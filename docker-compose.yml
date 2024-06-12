@@ -1,0 +1,48 @@
+version: "3.7"
+
+services:
+  prover-backend:
+    build:
+      context: .
+      target: prover-backend
+    image: prover-backend
+    env_file:
+     - .env_prover
+    volumes:
+      - type: bind
+        source: .
+        target: /bitvmx-backend
+    ports:
+      - "8080:80"
+    networks:
+      - bitvmx-net
+
+  verifier-backend:
+    build:
+      context: .
+      target: verifier-backend
+    image: verifier-backend
+    env_file:
+     - .env_verifier
+    volumes:
+      - type: bind
+        source: .
+        target: /bitvmx-backend
+    ports:
+      - "8081:80"
+    networks:
+      - bitvmx-net
+
+  format:
+    build:
+      context: .
+      target: bitvmx-base
+    image: bitvmx-base
+    volumes:
+      - type: bind
+        source: .
+        target: /bitvmx-backend
+    entrypoint: sh -c "black --config .black . && ruff check --fix"
+
+networks:
+  bitvmx-net:
