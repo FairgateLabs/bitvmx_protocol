@@ -2,6 +2,8 @@ from typing import Optional
 
 import requests
 
+from mutinyet_api.services.transaction_info_service import TransactionInfoService
+
 
 class FaucetService:
 
@@ -32,7 +34,8 @@ class FaucetService:
 
         if response.status_code == 200:
             # Intentar devolver el índice
-
-            return response.json()["txid"]
+            transaction_info = TransactionInfoService()(tx_id=response.json()["txid"])
+            faucet_output = transaction_info.get_output(address=destination_address)
+            return transaction_info.tx_id, faucet_output.index
 
         raise Exception(response.text)

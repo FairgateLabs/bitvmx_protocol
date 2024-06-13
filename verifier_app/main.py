@@ -9,3 +9,8 @@ app = FastAPI(
 @app.get("/healthcheck")
 async def healthcheck() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.post("/create_setup")
+async def create_setup(setup_uuid: str) -> dict[str, str]:
+    return {"id": setup_uuid}
