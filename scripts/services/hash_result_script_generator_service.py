@@ -1,7 +1,7 @@
+from scripts.bitcoin_script import BitcoinScript
 from winternitz_keys_handling.scripts.verify_digit_signature_nibble_service import (
     VerifyDigitSignatureNibbleService,
 )
-from scripts.bitcoin_script import BitcoinScript
 
 
 class HashResultScriptGeneratorService:
@@ -12,9 +12,7 @@ class HashResultScriptGeneratorService:
     def __call__(self, signature_public_key, public_keys, n0, bits_per_digit_checksum):
         script = BitcoinScript()
 
-        script.extend(
-            [signature_public_key.to_x_only_hex(), "OP_CHECKSIGVERIFY"]
-        )
+        script.extend([signature_public_key.to_x_only_hex(), "OP_CHECKSIGVERIFY"])
         # first_script.extend(
         #     [first_public_key_bob.to_x_only_hex(), "OP_CHECKSIGVERIFY"]
         # )

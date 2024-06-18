@@ -1,9 +1,9 @@
 from typing import List, Optional
-import math
 
 from winternitz_keys_handling.services.compute_max_checksum_service import ComputeMaxChecksumService
-from winternitz_keys_handling.services.generate_winternitz_keys_nibbles_service import \
-    GenerateWinternitzKeysNibblesService
+from winternitz_keys_handling.services.generate_winternitz_keys_nibbles_service import (
+    GenerateWinternitzKeysNibblesService,
+)
 
 
 def compute_checksum(
@@ -18,7 +18,16 @@ def compute_checksum(
 
     checksum_digits = []
     for i in range(n1):
-        checksum_digits.insert(0, int(binary_checksum_value[i * bits_per_digit_checksum:i * bits_per_digit_checksum + bits_per_digit_checksum], 2))
+        checksum_digits.insert(
+            0,
+            int(
+                binary_checksum_value[
+                    i * bits_per_digit_checksum : i * bits_per_digit_checksum
+                    + bits_per_digit_checksum
+                ],
+                2,
+            ),
+        )
 
     return checksum_digits
 
@@ -27,22 +36,30 @@ class GenerateWitnessFromInputNibblesService:
 
     def __init__(self, secret_key):
         self.compute_max_checksum_service = ComputeMaxChecksumService()
-        self.generate_winternitz_keys_nibbles_service = GenerateWinternitzKeysNibblesService(secret_key)
+        self.generate_winternitz_keys_nibbles_service = GenerateWinternitzKeysNibblesService(
+            secret_key
+        )
 
-    def __call__(self, step: int, case: int, input_numbers: List, bits_per_digit_checksum, gap: Optional[int] = 0):
+    def __call__(
+        self,
+        step: int,
+        case: int,
+        input_numbers: List,
+        bits_per_digit_checksum,
+    ):
 
-        d0 = 2 ** 4
+        d0 = 2**4
         n0 = len(input_numbers)
-        d1, n1, max_checksum_value = self.compute_max_checksum_service(d0, n0, bits_per_digit_checksum)
+        d1, n1, max_checksum_value = self.compute_max_checksum_service(
+            d0, n0, bits_per_digit_checksum
+        )
         checksum_digits = compute_checksum(
             input_numbers,
             bits_per_digit_checksum,
             max_checksum_value,
             n1,
         )
-        current_keys = self.generate_winternitz_keys_nibbles_service(
-            step, case, n0, gap
-        )
+        current_keys = self.generate_winternitz_keys_nibbles_service(step, case, n0)
         input_keys = current_keys[n1:]
         checksum_keys = current_keys[:n1]
         # checksum_keys.reverse()

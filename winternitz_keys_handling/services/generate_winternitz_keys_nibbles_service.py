@@ -15,13 +15,13 @@ class GenerateWinternitzKeysNibblesService:
         self.d0 = 2**4
         self.compute_max_checksum_service = ComputeMaxChecksumService()
 
-    def __call__(self, step: int, case: int, n0: int, gap: Optional[int] = 0):
-        hex_step = format(case, "04x")
+    def __call__(self, step: int, case: int, n0: int):
+        hex_step = format(step, "04x") + format(case, "04x")
         current_private_key = hashlib.sha256(
             bytes.fromhex(self.private_key + hashlib.sha256(bytes.fromhex(hex_step)).hexdigest())
         ).hexdigest()
 
-        d1, n1, max_checksum_value = self.compute_max_checksum_service(
+        d1, n1, _ = self.compute_max_checksum_service(
             self.d0, n0, self.bits_per_digit_checksum
         )
 
@@ -32,7 +32,7 @@ class GenerateWinternitzKeysNibblesService:
                 bytes.fromhex(
                     current_private_key
                     + hashlib.sha256(
-                        bytes.fromhex(format(n0 + n1 - i - 1 + gap, "04x"))
+                        bytes.fromhex(format(n0 + n1 - i - 1, "04x"))
                     ).hexdigest()
                 )
             ).hexdigest()
@@ -47,7 +47,7 @@ class GenerateWinternitzKeysNibblesService:
                 bytes.fromhex(
                     current_private_key
                     + hashlib.sha256(
-                        bytes.fromhex(format(n0 + n1 - i - 1 + gap, "04x"))
+                        bytes.fromhex(format(n0 + n1 - i - 1, "04x"))
                     ).hexdigest()
                 )
             ).hexdigest()

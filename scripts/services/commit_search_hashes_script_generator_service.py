@@ -1,5 +1,7 @@
 from scripts.bitcoin_script import BitcoinScript
-from winternitz_keys_handling.scripts.verify_digit_signature_nibble_service import VerifyDigitSignatureNibbleService
+from winternitz_keys_handling.scripts.verify_digit_signature_nibble_service import (
+    VerifyDigitSignatureNibbleService,
+)
 
 
 class CommitSearchHashesScriptGeneratorService:
