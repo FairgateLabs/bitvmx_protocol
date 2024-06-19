@@ -51,4 +51,5 @@ class CommitSearchHashesScriptGeneratorService:
                 prover_choice_public_keys,
                 verifier_choice_public_keys,
             )
+        script.append(1)
         return script

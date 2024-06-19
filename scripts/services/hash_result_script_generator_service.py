@@ -24,4 +24,5 @@ class HashResultScriptGeneratorService:
             bits_per_digit_checksum,
             to_alt_stack=True,
         )
+        script.append(1)
         return script

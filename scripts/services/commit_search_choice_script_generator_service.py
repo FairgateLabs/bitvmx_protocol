@@ -14,4 +14,5 @@ class CommitSearchChoiceScriptGeneratorService:
         self.verify_input_single_word_from_public_keys(
             script, public_keys, amount_of_bits, to_alt_stack=True
         )
+        script.append(1)
         return script

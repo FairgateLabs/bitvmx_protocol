@@ -3,6 +3,7 @@ import json
 import math
 import secrets
 import uuid
+import pickle
 from typing import Optional
 
 import requests
@@ -223,7 +224,6 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         amount_of_nibbles_hash,
         amount_of_bits_per_digit_checksum,
     )
-    hash_result_script.append(1)
 
     trigger_protocol_script = BitcoinScript()
     # trigger_protocol_script.extend(
@@ -258,7 +258,6 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
                 current_hash_public_keys, amount_of_nibbles_hash, amount_of_bits_per_digit_checksum
             )
 
-        current_search_script.append(1)
         hash_search_scripts.append(current_search_script)
 
         # Choice
@@ -267,7 +266,6 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
             current_choice_public_keys[0],
             amount_of_bits_choice,
         )
-        current_choice_script.append(1)
         choice_search_scripts.append(current_choice_script)
 
     hash_search_scripts_addresses = list(
@@ -287,30 +285,40 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     initial_amount_satoshis = 100000
     step_fees_satoshis = 10000
 
-    hash_result_script_address = destroyed_public_key.get_taproot_address([[hash_result_script]])
-
     faucet_service = FaucetService()
 
-    hash_result_tx, hash_result_index = faucet_service(
-        amount=initial_amount_satoshis, destination_address=hash_result_script_address.to_string()
+    faucet_tx, faucet_index = faucet_service(
+        amount=initial_amount_satoshis, destination_address=prover_public_key.get_segwit_address().to_string()
     )
 
-    print("Funding tx: " + hash_result_tx)
+    print("Faucet tx: " + faucet_tx)
 
     # Transaction construction
+    transaction_dict = {}
+
+    funding_txin = TxInput(faucet_tx, faucet_index)
+    hash_result_script_address = destroyed_public_key.get_taproot_address([[hash_result_script]])
+    funding_result_output_amount = initial_amount_satoshis - step_fees_satoshis
+    funding_txout = TxOutput(funding_result_output_amount, hash_result_script_address.to_script_pub_key())
+    funding_tx = Transaction(
+        [funding_txin], [funding_txout], has_segwit=True
+    )
+
     trigger_protocol_script_address = destroyed_public_key.get_taproot_address(
         [[trigger_protocol_script]]
     )
 
-    hash_result_txin = TxInput(hash_result_tx, hash_result_index)
-    faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
-    hash_result_output_amount = initial_amount_satoshis - step_fees_satoshis
+    hash_result_txin = TxInput(funding_tx.get_txid(), 0)
+    hash_result_output_amount = funding_result_output_amount - step_fees_satoshis
     # first_txOut = TxOutput(first_output_amount, P2wpkhAddress.from_address(address=faucet_address).to_script_pub_key())
     hash_result_txOut = TxOutput(
         hash_result_output_amount, trigger_protocol_script_address.to_script_pub_key()
     )
 
     hash_result_tx = Transaction([hash_result_txin], [hash_result_txOut], has_segwit=True)
+    import pickle
+    serialized_transaction = pickle.dumps(hash_result_tx)
+    hash_result_tx = pickle.loads(serialized_transaction)
     hash_result_control_block = ControlBlock(
         destroyed_public_key,
         scripts=[[hash_result_script]],
@@ -327,6 +335,9 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     trigger_protocol_tx = Transaction(
         [trigger_protocol_txin], [trigger_protocol_txOut], has_segwit=True
     )
+
+    serialized_transaction = pickle.dumps(trigger_protocol_tx)
+    trigger_protocol_tx = pickle.loads(serialized_transaction)
     trigger_protocol_control_block = ControlBlock(
         destroyed_public_key,
         scripts=[[trigger_protocol_script]],
@@ -350,6 +361,8 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         current_txout = TxOutput(current_output_amount, current_output_address.to_script_pub_key())
 
         current_tx = Transaction([current_txin], [current_txout], has_segwit=True)
+        serialized_transaction = pickle.dumps(current_tx)
+        current_tx = pickle.loads(serialized_transaction)
         search_hash_tx.append(current_tx)
         current_control_block = ControlBlock(
             destroyed_public_key,
@@ -363,12 +376,15 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         current_txin = TxInput(current_tx.get_txid(), 0)
         current_output_amount -= step_fees_satoshis
         if i == amount_of_iterations - 1:
+            faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
             current_output_address = P2wpkhAddress.from_address(address=faucet_address)
         else:
             current_output_address = hash_search_scripts_addresses[i + 1]
         current_txout = TxOutput(current_output_amount, current_output_address.to_script_pub_key())
 
         current_tx = Transaction([current_txin], [current_txout], has_segwit=True)
+        serialized_transaction = pickle.dumps(current_tx)
+        current_tx = pickle.loads(serialized_transaction)
         choice_hash_tx.append(current_tx)
         current_control_block = ControlBlock(
             destroyed_public_key,
@@ -410,7 +426,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         hash_result_tx,
         0,
         [hash_result_script_address.to_script_pub_key()],
-        [initial_amount_satoshis],
+        [funding_result_output_amount],
         script_path=True,
         tapleaf_script=hash_result_script,
         tapleaf_scripts=[hash_result_script],
@@ -424,7 +440,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     tx_digest = hash_result_tx.get_transaction_taproot_digest(
         0,
         [hash_result_script_address.to_script_pub_key()],
-        [initial_amount_satoshis],
+        [funding_result_output_amount],
         1,
         script=hash_result_script,
         sighash=TAPROOT_SIGHASH_ALL,
@@ -435,6 +451,22 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         bytes.fromhex(prover_public_key.to_x_only_hex()),
         bytes.fromhex(hash_result_signature_prover),
     )
+
+    #################################################################
+
+    funding_sig = prover_private_key.sign_segwit_input(
+        funding_tx, 0, prover_public_key.get_address().to_script_pub_key(), initial_amount_satoshis
+    )
+
+    funding_tx.witnesses.append(
+        TxWitnessInput(
+            [funding_sig, prover_public_key.to_hex()]
+        )
+    )
+
+    broadcast_transaction_service = BroadcastTransactionService()
+    broadcast_transaction_service(transaction=funding_tx.serialize())
+    print("Funding transaction: " + funding_tx.get_txid())
 
     hash_result_tx.witnesses.append(
         TxWitnessInput(
@@ -448,7 +480,6 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         )
     )
 
-    broadcast_transaction_service = BroadcastTransactionService()
     broadcast_transaction_service(transaction=hash_result_tx.serialize())
     print("Hash result revelation transaction: " + hash_result_tx.get_txid())
 
@@ -540,3 +571,8 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         print("Choice hash iteration transaction " + str(i) + ": " + choice_hash_tx[i].get_txid())
 
     return {"id": setup_uuid}
+
+
+@app.post("/publish_hash")
+async def publish_hash(create_setup_body: CreateSetupBody = Body()) -> dict[str, str]:
+    pass
