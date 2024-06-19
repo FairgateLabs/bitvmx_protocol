@@ -21,9 +21,7 @@ class GenerateWinternitzKeysNibblesService:
             bytes.fromhex(self.private_key + hashlib.sha256(bytes.fromhex(hex_step)).hexdigest())
         ).hexdigest()
 
-        d1, n1, _ = self.compute_max_checksum_service(
-            self.d0, n0, self.bits_per_digit_checksum
-        )
+        d1, n1, _ = self.compute_max_checksum_service(self.d0, n0, self.bits_per_digit_checksum)
 
         public_keys = []
 
@@ -31,9 +29,7 @@ class GenerateWinternitzKeysNibblesService:
             current_derived_private_key = hashlib.sha256(
                 bytes.fromhex(
                     current_private_key
-                    + hashlib.sha256(
-                        bytes.fromhex(format(n0 + n1 - i - 1, "04x"))
-                    ).hexdigest()
+                    + hashlib.sha256(bytes.fromhex(format(n0 + n1 - i - 1, "04x"))).hexdigest()
                 )
             ).hexdigest()
             signatures = [hex_ripemd160(current_derived_private_key)]
@@ -46,9 +42,7 @@ class GenerateWinternitzKeysNibblesService:
             current_derived_private_key = hashlib.sha256(
                 bytes.fromhex(
                     current_private_key
-                    + hashlib.sha256(
-                        bytes.fromhex(format(n0 + n1 - i - 1, "04x"))
-                    ).hexdigest()
+                    + hashlib.sha256(bytes.fromhex(format(n0 + n1 - i - 1, "04x"))).hexdigest()
                 )
             ).hexdigest()
             signatures = [hex_ripemd160(current_derived_private_key)]

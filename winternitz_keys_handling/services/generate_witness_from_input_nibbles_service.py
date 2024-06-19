@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 
 from winternitz_keys_handling.services.compute_max_checksum_service import ComputeMaxChecksumService
 from winternitz_keys_handling.services.generate_winternitz_keys_nibbles_service import (

@@ -12,10 +12,10 @@ class CommitSearchHashesScriptGeneratorService:
     def __call__(self, public_keys, n0, bits_per_digit_checksum):
         script = BitcoinScript()
 
-        # third_script.extend(
+        # script.extend(
         #     [third_public_key_alice.to_x_only_hex(), "OP_CHECKSIGVERIFY"]
         # )
-        # third_script.extend(
+        # script.extend(
         #     [third_public_key_bob.to_x_only_hex(), "OP_CHECKSIGVERIFY"]
         # )
 
