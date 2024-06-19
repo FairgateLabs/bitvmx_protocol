@@ -3,7 +3,6 @@ import json
 import math
 import secrets
 import uuid
-import pickle
 from typing import Optional
 
 import requests
@@ -24,6 +23,9 @@ from scripts.services.commit_search_choice_script_generator_service import (
 )
 from scripts.services.commit_search_hashes_script_generator_service import (
     CommitSearchHashesScriptGeneratorService,
+)
+from scripts.services.execution_trace_script_generator_service import (
+    ExecutionTraceScriptGeneratorService,
 )
 from scripts.services.hash_result_script_generator_service import HashResultScriptGeneratorService
 from winternitz_keys_handling.services.generate_winternitz_keys_nibbles_service import (
@@ -216,6 +218,22 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
             )
         choice_search_prover_public_keys.append(current_iteration_prover_choice_public_keys)
 
+    trace_words_lengths = [8, 8, 8] + [8, 8, 8] + [8, 2, 8] + [8, 8, 8, 2]
+    trace_words_lengths.reverse()
+    current_step = 3 + 2 * amount_of_iterations
+    trace_prover_keys = []
+    for i in range(len(trace_words_lengths)):
+        trace_prover_keys.append(
+            prover_winternitz_keys_nibbles_service(
+                step=current_step, case=i, n0=trace_words_lengths[i]
+            )
+        )
+    trace_prover_public_keys = []
+    for keys_list_of_lists in trace_prover_keys:
+        trace_prover_public_keys.append(
+            list(map(lambda key_list: key_list[-1], keys_list_of_lists))
+        )
+
     ## Scripts building ##
 
     hash_result_script = hash_result_script_generator(
@@ -243,7 +261,9 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         # Hash
         current_hash_public_keys = hash_search_public_keys[iter_count]
         if iter_count > 0:
-            previous_choice_verifier_public_keys = choice_search_verifier_public_keys[iter_count - 1]
+            previous_choice_verifier_public_keys = choice_search_verifier_public_keys[
+                iter_count - 1
+            ]
             current_choice_prover_public_keys = choice_search_prover_public_keys[iter_count - 1]
             current_search_script = commit_search_hashes_script_generator_service(
                 current_hash_public_keys,
@@ -282,13 +302,21 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         )
     )
 
+    execution_trace_script_generator_service = ExecutionTraceScriptGeneratorService()
+
+    trace_script = execution_trace_script_generator_service(
+        trace_prover_public_keys, trace_words_lengths, amount_of_bits_per_digit_checksum
+    )
+    trace_script_address = destroyed_public_key.get_taproot_address([[trace_script]])
+
     initial_amount_satoshis = 100000
     step_fees_satoshis = 10000
 
     faucet_service = FaucetService()
 
     faucet_tx, faucet_index = faucet_service(
-        amount=initial_amount_satoshis, destination_address=prover_public_key.get_segwit_address().to_string()
+        amount=initial_amount_satoshis,
+        destination_address=prover_public_key.get_segwit_address().to_string(),
     )
 
     print("Faucet tx: " + faucet_tx)
@@ -299,10 +327,12 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     funding_txin = TxInput(faucet_tx, faucet_index)
     hash_result_script_address = destroyed_public_key.get_taproot_address([[hash_result_script]])
     funding_result_output_amount = initial_amount_satoshis - step_fees_satoshis
-    funding_txout = TxOutput(funding_result_output_amount, hash_result_script_address.to_script_pub_key())
-    funding_tx = Transaction(
-        [funding_txin], [funding_txout], has_segwit=True
+    funding_txout = TxOutput(
+        funding_result_output_amount, hash_result_script_address.to_script_pub_key()
     )
+    funding_tx = Transaction([funding_txin], [funding_txout], has_segwit=True)
+
+    transaction_dict["funding_transaction_id"] = [funding_tx.get_txid(), 0]
 
     trigger_protocol_script_address = destroyed_public_key.get_taproot_address(
         [[trigger_protocol_script]]
@@ -316,9 +346,9 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     )
 
     hash_result_tx = Transaction([hash_result_txin], [hash_result_txOut], has_segwit=True)
-    import pickle
-    serialized_transaction = pickle.dumps(hash_result_tx)
-    hash_result_tx = pickle.loads(serialized_transaction)
+
+    transaction_dict["hash_result"] = hash_result_tx
+
     hash_result_control_block = ControlBlock(
         destroyed_public_key,
         scripts=[[hash_result_script]],
@@ -336,8 +366,8 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         [trigger_protocol_txin], [trigger_protocol_txOut], has_segwit=True
     )
 
-    serialized_transaction = pickle.dumps(trigger_protocol_tx)
-    trigger_protocol_tx = pickle.loads(serialized_transaction)
+    transaction_dict["trigger_protocol"] = hash_result_tx
+
     trigger_protocol_control_block = ControlBlock(
         destroyed_public_key,
         scripts=[[trigger_protocol_script]],
@@ -361,8 +391,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         current_txout = TxOutput(current_output_amount, current_output_address.to_script_pub_key())
 
         current_tx = Transaction([current_txin], [current_txout], has_segwit=True)
-        serialized_transaction = pickle.dumps(current_tx)
-        current_tx = pickle.loads(serialized_transaction)
+
         search_hash_tx.append(current_tx)
         current_control_block = ControlBlock(
             destroyed_public_key,
@@ -383,8 +412,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         current_txout = TxOutput(current_output_amount, current_output_address.to_script_pub_key())
 
         current_tx = Transaction([current_txin], [current_txout], has_segwit=True)
-        serialized_transaction = pickle.dumps(current_tx)
-        current_tx = pickle.loads(serialized_transaction)
+
         choice_hash_tx.append(current_tx)
         current_control_block = ControlBlock(
             destroyed_public_key,
@@ -395,6 +423,9 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         choice_search_control_blocks.append(current_control_block)
 
         previous_tx_id = current_tx.get_txid()
+
+    transaction_dict["search_hash"] = search_hash_tx
+    transaction_dict["choice_hash"] = choice_hash_tx
 
     # Witness computation
 
@@ -429,7 +460,6 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         [funding_result_output_amount],
         script_path=True,
         tapleaf_script=hash_result_script,
-        tapleaf_scripts=[hash_result_script],
         sighash=TAPROOT_SIGHASH_ALL,
         tweak=False,
     )
@@ -458,11 +488,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         funding_tx, 0, prover_public_key.get_address().to_script_pub_key(), initial_amount_satoshis
     )
 
-    funding_tx.witnesses.append(
-        TxWitnessInput(
-            [funding_sig, prover_public_key.to_hex()]
-        )
-    )
+    funding_tx.witnesses.append(TxWitnessInput([funding_sig, prover_public_key.to_hex()]))
 
     broadcast_transaction_service = BroadcastTransactionService()
     broadcast_transaction_service(transaction=funding_tx.serialize())
