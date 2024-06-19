@@ -163,12 +163,18 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     )
     choice_search_verifier_public_keys = []
     for iter_count in range(amount_of_iterations):
-        current_iteration_public_keys = []
-        current_iteration_public_keys.append(
+        current_iteration_keys = []
+        current_iteration_keys.append(
             verifier_winternitz_keys_single_word_service(
                 step=(3 + iter_count * 2 + 1), case=0, amount_of_bits=amount_of_bits_choice
             )
         )
+        current_iteration_public_keys = []
+        for keys_list_of_lists in current_iteration_keys:
+            current_iteration_public_keys.append(
+                list(map(lambda key_list: key_list[-1], keys_list_of_lists))
+            )
+
         choice_search_verifier_public_keys.append(current_iteration_public_keys)
 
     ##### END TO BE ERASED #####
@@ -181,22 +187,32 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     hash_search_public_keys = []
     choice_search_prover_public_keys = []
     for iter_count in range(amount_of_iterations):
-        current_iteration_hash_public_keys = []
+        current_iteration_hash_keys = []
 
         for word_count in range(amount_of_search_hashes_per_iteration):
-            current_iteration_hash_public_keys.append(
+            current_iteration_hash_keys.append(
                 prover_winternitz_keys_nibbles_service(
                     step=(3 + iter_count * 2), case=word_count, n0=amount_of_nibbles_hash
                 )
             )
+        current_iteration_hash_public_keys = []
+        for keys_list_of_lists in current_iteration_hash_keys:
+            current_iteration_hash_public_keys.append(
+                list(map(lambda key_list: key_list[-1], keys_list_of_lists))
+            )
         hash_search_public_keys.append(current_iteration_hash_public_keys)
 
-        current_iteration_prover_choice_public_keys = []
-        current_iteration_prover_choice_public_keys.append(
+        current_iteration_prover_choice_keys = []
+        current_iteration_prover_choice_keys.append(
             prover_winternitz_keys_single_word_service(
                 step=(3 + iter_count * 2 + 1), case=0, amount_of_bits=amount_of_bits_choice
             )
         )
+        current_iteration_prover_choice_public_keys = []
+        for keys_list_of_lists in current_iteration_prover_choice_keys:
+            current_iteration_prover_choice_public_keys.append(
+                list(map(lambda key_list: key_list[-1], keys_list_of_lists))
+            )
         choice_search_prover_public_keys.append(current_iteration_prover_choice_public_keys)
 
     ## Scripts building ##
@@ -225,25 +241,10 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     choice_search_scripts = []
     for iter_count in range(amount_of_iterations):
         # Hash
-        current_hash_iteration_keys = hash_search_public_keys[iter_count]
-        current_hash_public_keys = []
-        for keys_list_of_lists in current_hash_iteration_keys:
-            current_hash_public_keys.append(
-                list(map(lambda key_list: key_list[-1], keys_list_of_lists))
-            )
+        current_hash_public_keys = hash_search_public_keys[iter_count]
         if iter_count > 0:
-            previous_choice_verifier_keys = choice_search_verifier_public_keys[iter_count - 1]
-            previous_choice_verifier_public_keys = []
-            for keys_list_of_lists in previous_choice_verifier_keys:
-                previous_choice_verifier_public_keys.append(
-                    list(map(lambda key_list: key_list[-1], keys_list_of_lists))
-                )
-            current_choice_prover_keys = choice_search_prover_public_keys[iter_count - 1]
-            current_choice_prover_public_keys = []
-            for keys_list_of_lists in current_choice_prover_keys:
-                current_choice_prover_public_keys.append(
-                    list(map(lambda key_list: key_list[-1], keys_list_of_lists))
-                )
+            previous_choice_verifier_public_keys = choice_search_verifier_public_keys[iter_count - 1]
+            current_choice_prover_public_keys = choice_search_prover_public_keys[iter_count - 1]
             current_search_script = commit_search_hashes_script_generator_service(
                 current_hash_public_keys,
                 amount_of_nibbles_hash,
@@ -261,12 +262,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         hash_search_scripts.append(current_search_script)
 
         # Choice
-        current_choice_iteration_keys = choice_search_verifier_public_keys[iter_count]
-        current_choice_public_keys = []
-        for keys_list_of_lists in current_choice_iteration_keys:
-            current_choice_public_keys.append(
-                list(map(lambda key_list: key_list[-1], keys_list_of_lists))
-            )
+        current_choice_public_keys = choice_search_verifier_public_keys[iter_count]
         current_choice_script = commit_search_choice_script_generator_service(
             current_choice_public_keys[0],
             amount_of_bits_choice,
