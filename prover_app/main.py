@@ -305,7 +305,12 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     execution_trace_script_generator_service = ExecutionTraceScriptGeneratorService()
 
     trace_script = execution_trace_script_generator_service(
-        trace_prover_public_keys, trace_words_lengths, amount_of_bits_per_digit_checksum
+        trace_prover_public_keys,
+        trace_words_lengths,
+        amount_of_bits_per_digit_checksum,
+        amount_of_bits_choice,
+        choice_search_prover_public_keys[-1][0],
+        choice_search_verifier_public_keys[-1][0],
     )
     trace_script_address = destroyed_public_key.get_taproot_address([[trace_script]])
 
@@ -405,8 +410,9 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         current_txin = TxInput(current_tx.get_txid(), 0)
         current_output_amount -= step_fees_satoshis
         if i == amount_of_iterations - 1:
-            faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
-            current_output_address = P2wpkhAddress.from_address(address=faucet_address)
+            # faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
+            # current_output_address = P2wpkhAddress.from_address(address=faucet_address)
+            current_output_address = trace_script_address
         else:
             current_output_address = hash_search_scripts_addresses[i + 1]
         current_txout = TxOutput(current_output_amount, current_output_address.to_script_pub_key())
@@ -426,6 +432,21 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
     transaction_dict["search_hash"] = search_hash_tx
     transaction_dict["choice_hash"] = choice_hash_tx
+
+    trace_txin = TxInput(choice_hash_tx[-1].get_txid(), 0)
+    trace_output_amount = current_output_amount - step_fees_satoshis
+    faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
+    trace_output_address = P2wpkhAddress.from_address(address=faucet_address)
+    trace_txout = TxOutput(trace_output_amount, trace_output_address.to_script_pub_key())
+
+    trace_tx = Transaction([trace_txin], [trace_txout], has_segwit=True)
+
+    trace_control_block = ControlBlock(
+        destroyed_public_key,
+        scripts=[[trace_script]],
+        index=0,
+        is_odd=trace_script_address.is_odd(),
+    )
 
     # Witness computation
 
@@ -595,6 +616,54 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
         broadcast_transaction_service(transaction=choice_hash_tx[i].serialize())
         print("Choice hash iteration transaction " + str(i) + ": " + choice_hash_tx[i].get_txid())
+
+    trace_array = []
+    for word_length in trace_words_lengths:
+        trace_array.append("1" * word_length)
+
+    trace_witness = []
+
+    current_choice = 2
+    trace_witness += generate_verifier_witness_from_input_single_word_service(
+        step=(3 + (amount_of_iterations - 1) * 2 + 1),
+        case=0,
+        input_number=current_choice,
+        amount_of_bits=amount_of_bits_choice,
+    )
+    trace_witness += generate_prover_witness_from_input_single_word_service(
+        step=(3 + (amount_of_iterations - 1) * 2 + 1),
+        case=0,
+        input_number=current_choice,
+        amount_of_bits=amount_of_bits_choice,
+    )
+
+    for word_count in range(len(trace_words_lengths)):
+
+        input_number = []
+        for letter in trace_array[len(trace_array) - word_count - 1]:
+            input_number.append(int(letter, 16))
+
+        trace_witness += generate_witness_from_input_nibbles_service(
+            step=3 + amount_of_iterations * 2,
+            case=len(trace_words_lengths) - word_count - 1,
+            input_numbers=input_number,
+            bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+        )
+
+    trace_tx.witnesses.append(
+        TxWitnessInput(
+            trace_witness
+            + [
+                # third_signature_bob,
+                # third_signature_alice,
+                trace_script.to_hex(),
+                trace_control_block.to_hex(),
+            ]
+        )
+    )
+
+    broadcast_transaction_service(transaction=trace_tx.serialize())
+    print("Trace transaction: " + trace_tx.get_txid())
 
     return {"id": setup_uuid}
 
