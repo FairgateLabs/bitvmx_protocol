@@ -1,11 +1,14 @@
 import json
 import math
 import secrets
+import pickle
 
 from bitcoinutils.keys import PrivateKey
 from bitcoinutils.setup import setup
 from fastapi import FastAPI
 from pydantic import BaseModel
+from verifier_app.config import protocol_properties
+import httpx
 
 app = FastAPI(
     title="Verifier service",
@@ -61,4 +64,29 @@ async def create_setup(create_setup_body: CreateSetupBody) -> dict[str, str]:
     amount_of_search_hashes_per_iteration = 2**amount_of_bits_choice - 1
     amount_of_iterations = math.ceil(math.ceil(math.log2(amount_of_steps)) / amount_of_bits_choice)
 
+    protocol_dict = {}
+    protocol_dict["last_confirmed_step"] = None
+    protocol_dict["last_confirmed_step_tx_id"] = None
+
+    with open(f"prover_keys/{setup_uuid}.pkl", "xb") as f:
+        pickle.dump(protocol_dict, f)
+
     return {"id": setup_uuid}
+
+
+# This should be put in a common directory
+class PublishNextStepBody(BaseModel):
+    setup_uuid: str
+
+    model_config = {
+        "json_schema_extra": {"examples": [{"setup_uuid": "289a04aa-5e35-4854-a71c-8131db874440"}]}
+    }
+
+async def _trigger_next_step_prover(publish_hash_body: PublishNextStepBody):
+    prover_host = protocol_properties.prover_host
+    url = f"http://{prover_host}/publish_next_step"
+    headers = {"accept": "application/json", "Content-Type": "application/json"}
+
+    # Make the POST request
+    async with httpx.AsyncClient() as client:
+        await client.post(url, headers=headers, json=json.loads(publish_hash_body.json()))

@@ -4,3 +4,4 @@ dependency_injector==4.41.0
 requests==2.32.3
 black==24.1.0
 ruff==0.1.14
+httpx==0.27.0

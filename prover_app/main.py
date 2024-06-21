@@ -1,10 +1,13 @@
+import asyncio
 import hashlib
 import json
 import math
+import pickle
 import secrets
 import uuid
 from typing import Optional
 
+import httpx
 import requests
 from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
 from bitcoinutils.keys import P2wpkhAddress, PrivateKey, PublicKey
@@ -17,7 +20,6 @@ from pydantic import BaseModel
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
 from mutinyet_api.services.faucet_service import FaucetService
 from prover_app.config import protocol_properties
-from scripts.bitcoin_script import BitcoinScript
 from scripts.services.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
 )
@@ -28,6 +30,14 @@ from scripts.services.execution_trace_script_generator_service import (
     ExecutionTraceScriptGeneratorService,
 )
 from scripts.services.hash_result_script_generator_service import HashResultScriptGeneratorService
+from scripts.services.trigger_protocol_script_generator_service import (
+    TriggerProtocolScriptGeneratorService,
+)
+from transactions.enums import TransactionStepType
+from transactions.publication_services.publish_hash_transaction_service import (
+    PublishHashTransactionService,
+)
+from transactions.publication_services.trigger_protocol_transaction_service import TriggerProtocolTransactionService
 from winternitz_keys_handling.services.generate_winternitz_keys_nibbles_service import (
     GenerateWinternitzKeysNibblesService,
 )
@@ -93,14 +103,25 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     # Variable parameters
     amount_of_steps = create_setup_body.amount_of_steps
     # Constant parameters
-    amount_of_bits_choice = protocol_properties.amount_bits_choice
+    amount_of_bits_wrong_step_search = protocol_properties.amount_bits_choice
     amount_of_bits_per_digit_checksum = protocol_properties.amount_of_bits_per_digit_checksum
     verifier_list = protocol_properties.verifier_list
     # This is hardcoded since it depends on the hashing function
     amount_of_nibbles_hash = 64
     # Computed parameters
-    amount_of_search_hashes_per_iteration = 2**amount_of_bits_choice - 1
-    amount_of_iterations = math.ceil(math.ceil(math.log2(amount_of_steps)) / amount_of_bits_choice)
+    amount_of_wrong_step_search_hashes_per_iteration = 2**amount_of_bits_wrong_step_search - 1
+    amount_of_wrong_step_search_iterations = math.ceil(
+        math.ceil(math.log2(amount_of_steps)) / amount_of_bits_wrong_step_search
+    )
+
+    protocol_dict = {}
+    protocol_dict["amount_of_bits_per_digit_checksum"] = amount_of_bits_per_digit_checksum
+    protocol_dict["amount_of_wrong_step_search_iterations"] = amount_of_wrong_step_search_iterations
+    protocol_dict["amount_of_bits_wrong_step_search"] = amount_of_bits_wrong_step_search
+    protocol_dict["amount_of_wrong_step_search_hashes_per_iteration"] = (
+        amount_of_wrong_step_search_hashes_per_iteration
+    )
+    protocol_dict["amount_of_nibbles_hash"] = amount_of_nibbles_hash
 
     # Do this by composing the exchanged keys // remove when ended debugging
     public_keys = []
@@ -129,6 +150,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     public_keys.append(prover_public_key.to_x_only_hex())
 
     destroyed_public_key = None
+    public_destroyed_key_hex = ""
     while destroyed_public_key is None:
         try:
             public_destroyed_key_hex = hashlib.sha256(
@@ -144,9 +166,8 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
             prover_public_key = prover_private_key.get_public_key()
             public_keys[-1] = prover_public_key.to_x_only_hex()
 
-    keys_dict = {"secret_key": prover_private_key.to_bytes().hex()}
-    with open(f"prover_keys/{setup_uuid}.json", "x") as f:
-        f.write(json.dumps(keys_dict))
+    protocol_dict["destroyed_public_key"] = destroyed_public_key.to_hex()
+    protocol_dict["prover_secret_key"] = prover_private_key.to_bytes().hex()
 
     prover_hash_private_key = PrivateKey(b=bytes.fromhex(prover_private_key.to_bytes().hex()))
 
@@ -160,16 +181,19 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
     ###### TO BE ERASED ########
     verifier_private_key = PrivateKey(b=secrets.token_bytes(32))
+    protocol_dict["verifier_secret_key"] = verifier_private_key.to_bytes().hex()
     verifier_public_key = prover_private_key.get_public_key()
     verifier_winternitz_keys_single_word_service = GenerateWinternitzKeysSingleWordService(
         private_key=verifier_private_key
     )
-    choice_search_verifier_public_keys = []
-    for iter_count in range(amount_of_iterations):
+    choice_search_verifier_public_keys_list = []
+    for iter_count in range(amount_of_wrong_step_search_iterations):
         current_iteration_keys = []
         current_iteration_keys.append(
             verifier_winternitz_keys_single_word_service(
-                step=(3 + iter_count * 2 + 1), case=0, amount_of_bits=amount_of_bits_choice
+                step=(3 + iter_count * 2 + 1),
+                case=0,
+                amount_of_bits=amount_of_bits_wrong_step_search,
             )
         )
         current_iteration_public_keys = []
@@ -178,7 +202,11 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
                 list(map(lambda key_list: key_list[-1], keys_list_of_lists))
             )
 
-        choice_search_verifier_public_keys.append(current_iteration_public_keys)
+        choice_search_verifier_public_keys_list.append(current_iteration_public_keys)
+
+    protocol_dict["choice_search_verifier_public_keys_list"] = (
+        choice_search_verifier_public_keys_list
+    )
 
     ##### END TO BE ERASED #####
 
@@ -186,13 +214,14 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         step=1, case=0, n0=amount_of_nibbles_hash
     )
     hash_result_public_keys = list(map(lambda key_list: key_list[-1], hash_result_keys))
+    protocol_dict["hash_result_public_keys"] = hash_result_public_keys
 
-    hash_search_public_keys = []
-    choice_search_prover_public_keys = []
-    for iter_count in range(amount_of_iterations):
+    hash_search_public_keys_list = []
+    choice_search_prover_public_keys_list = []
+    for iter_count in range(amount_of_wrong_step_search_iterations):
         current_iteration_hash_keys = []
 
-        for word_count in range(amount_of_search_hashes_per_iteration):
+        for word_count in range(amount_of_wrong_step_search_hashes_per_iteration):
             current_iteration_hash_keys.append(
                 prover_winternitz_keys_nibbles_service(
                     step=(3 + iter_count * 2), case=word_count, n0=amount_of_nibbles_hash
@@ -203,12 +232,14 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
             current_iteration_hash_public_keys.append(
                 list(map(lambda key_list: key_list[-1], keys_list_of_lists))
             )
-        hash_search_public_keys.append(current_iteration_hash_public_keys)
+        hash_search_public_keys_list.append(current_iteration_hash_public_keys)
 
         current_iteration_prover_choice_keys = []
         current_iteration_prover_choice_keys.append(
             prover_winternitz_keys_single_word_service(
-                step=(3 + iter_count * 2 + 1), case=0, amount_of_bits=amount_of_bits_choice
+                step=(3 + iter_count * 2 + 1),
+                case=0,
+                amount_of_bits=amount_of_bits_wrong_step_search,
             )
         )
         current_iteration_prover_choice_public_keys = []
@@ -216,11 +247,17 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
             current_iteration_prover_choice_public_keys.append(
                 list(map(lambda key_list: key_list[-1], keys_list_of_lists))
             )
-        choice_search_prover_public_keys.append(current_iteration_prover_choice_public_keys)
+        choice_search_prover_public_keys_list.append(current_iteration_prover_choice_public_keys)
+
+    protocol_dict["hash_search_public_keys_list"] = hash_search_public_keys_list
+    protocol_dict["choice_search_prover_public_keys_list"] = choice_search_prover_public_keys_list
 
     trace_words_lengths = [8, 8, 8] + [8, 8, 8] + [8, 2, 8] + [8, 8, 8, 2]
     trace_words_lengths.reverse()
-    current_step = 3 + 2 * amount_of_iterations
+
+    protocol_dict["trace_words_lengths"] = trace_words_lengths
+
+    current_step = 3 + 2 * amount_of_wrong_step_search_iterations
     trace_prover_keys = []
     for i in range(len(trace_words_lengths)):
         trace_prover_keys.append(
@@ -234,6 +271,8 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
             list(map(lambda key_list: key_list[-1], keys_list_of_lists))
         )
 
+    protocol_dict["trace_prover_public_keys"] = trace_prover_public_keys
+
     ## Scripts building ##
 
     hash_result_script = hash_result_script_generator(
@@ -243,33 +282,29 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         amount_of_bits_per_digit_checksum,
     )
 
-    trigger_protocol_script = BitcoinScript()
-    # trigger_protocol_script.extend(
-    #     [prover_public_key.to_x_only_hex(), "OP_CHECKSIGVERIFY"]
-    # )
-    # trigger_protocol_script.extend(
-    #     [verifier_public_key.to_x_only_hex(), "OP_CHECKSIGVERIFY"]
-    # )
-    trigger_protocol_script.append(1)
+    trigger_protocol_script_generator = TriggerProtocolScriptGeneratorService()
+    trigger_protocol_script = trigger_protocol_script_generator()
 
     commit_search_hashes_script_generator_service = CommitSearchHashesScriptGeneratorService()
     commit_search_choice_script_generator_service = CommitSearchChoiceScriptGeneratorService()
 
     hash_search_scripts = []
     choice_search_scripts = []
-    for iter_count in range(amount_of_iterations):
+    for iter_count in range(amount_of_wrong_step_search_iterations):
         # Hash
-        current_hash_public_keys = hash_search_public_keys[iter_count]
+        current_hash_public_keys = hash_search_public_keys_list[iter_count]
         if iter_count > 0:
-            previous_choice_verifier_public_keys = choice_search_verifier_public_keys[
+            previous_choice_verifier_public_keys = choice_search_verifier_public_keys_list[
                 iter_count - 1
             ]
-            current_choice_prover_public_keys = choice_search_prover_public_keys[iter_count - 1]
+            current_choice_prover_public_keys = choice_search_prover_public_keys_list[
+                iter_count - 1
+            ]
             current_search_script = commit_search_hashes_script_generator_service(
                 current_hash_public_keys,
                 amount_of_nibbles_hash,
                 amount_of_bits_per_digit_checksum,
-                amount_of_bits_choice,
+                amount_of_bits_wrong_step_search,
                 current_choice_prover_public_keys[0],
                 previous_choice_verifier_public_keys[0],
             )
@@ -281,12 +316,15 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         hash_search_scripts.append(current_search_script)
 
         # Choice
-        current_choice_public_keys = choice_search_verifier_public_keys[iter_count]
+        current_choice_public_keys = choice_search_verifier_public_keys_list[iter_count]
         current_choice_script = commit_search_choice_script_generator_service(
             current_choice_public_keys[0],
-            amount_of_bits_choice,
+            amount_of_bits_wrong_step_search,
         )
         choice_search_scripts.append(current_choice_script)
+
+    protocol_dict["hash_result_public_keys"] = hash_result_public_keys
+    protocol_dict["hash_result_public_keys"] = hash_result_public_keys
 
     hash_search_scripts_addresses = list(
         map(
@@ -308,36 +346,41 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         trace_prover_public_keys,
         trace_words_lengths,
         amount_of_bits_per_digit_checksum,
-        amount_of_bits_choice,
-        choice_search_prover_public_keys[-1][0],
-        choice_search_verifier_public_keys[-1][0],
+        amount_of_bits_wrong_step_search,
+        choice_search_prover_public_keys_list[-1][0],
+        choice_search_verifier_public_keys_list[-1][0],
     )
     trace_script_address = destroyed_public_key.get_taproot_address([[trace_script]])
 
     initial_amount_satoshis = 100000
     step_fees_satoshis = 10000
 
+    protocol_dict["initial_amount_satoshis"] = initial_amount_satoshis
+    protocol_dict["step_fees_satoshis"] = step_fees_satoshis
+
     faucet_service = FaucetService()
 
     faucet_tx, faucet_index = faucet_service(
-        amount=initial_amount_satoshis,
+        amount=initial_amount_satoshis + step_fees_satoshis,
         destination_address=prover_public_key.get_segwit_address().to_string(),
     )
 
     print("Faucet tx: " + faucet_tx)
 
     # Transaction construction
-    transaction_dict = {}
 
     funding_txin = TxInput(faucet_tx, faucet_index)
     hash_result_script_address = destroyed_public_key.get_taproot_address([[hash_result_script]])
-    funding_result_output_amount = initial_amount_satoshis - step_fees_satoshis
+    funding_result_output_amount = initial_amount_satoshis
+
+    protocol_dict["funding_amount_satoshis"] = funding_result_output_amount
+
     funding_txout = TxOutput(
         funding_result_output_amount, hash_result_script_address.to_script_pub_key()
     )
     funding_tx = Transaction([funding_txin], [funding_txout], has_segwit=True)
 
-    transaction_dict["funding_transaction_id"] = [funding_tx.get_txid(), 0]
+    protocol_dict["funding_transaction_id"] = [funding_tx.get_txid(), 0]
 
     trigger_protocol_script_address = destroyed_public_key.get_taproot_address(
         [[trigger_protocol_script]]
@@ -352,14 +395,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
     hash_result_tx = Transaction([hash_result_txin], [hash_result_txOut], has_segwit=True)
 
-    transaction_dict["hash_result"] = hash_result_tx
-
-    hash_result_control_block = ControlBlock(
-        destroyed_public_key,
-        scripts=[[hash_result_script]],
-        index=0,
-        is_odd=hash_result_script_address.is_odd(),
-    )
+    protocol_dict["hash_result_tx"] = hash_result_tx
 
     trigger_protocol_output_amount = hash_result_output_amount - step_fees_satoshis
     trigger_protocol_txin = TxInput(hash_result_tx.get_txid(), 0)
@@ -371,7 +407,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         [trigger_protocol_txin], [trigger_protocol_txOut], has_segwit=True
     )
 
-    transaction_dict["trigger_protocol"] = hash_result_tx
+    protocol_dict["trigger_protocol_tx"] = trigger_protocol_tx
 
     trigger_protocol_control_block = ControlBlock(
         destroyed_public_key,
@@ -382,12 +418,12 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
     previous_tx_id = trigger_protocol_tx.get_txid()
     current_output_amount = trigger_protocol_output_amount
-    search_hash_tx = []
-    choice_hash_tx = []
+    search_hash_tx_list = []
+    choice_hash_tx_list = []
     hash_search_control_blocks = []
     choice_search_control_blocks = []
 
-    for i in range(amount_of_iterations):
+    for i in range(amount_of_wrong_step_search_iterations):
 
         # HASH
         current_txin = TxInput(previous_tx_id, 0)
@@ -397,7 +433,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
         current_tx = Transaction([current_txin], [current_txout], has_segwit=True)
 
-        search_hash_tx.append(current_tx)
+        search_hash_tx_list.append(current_tx)
         current_control_block = ControlBlock(
             destroyed_public_key,
             scripts=[[hash_search_scripts[i]]],
@@ -409,7 +445,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         # CHOICE
         current_txin = TxInput(current_tx.get_txid(), 0)
         current_output_amount -= step_fees_satoshis
-        if i == amount_of_iterations - 1:
+        if i == amount_of_wrong_step_search_iterations - 1:
             # faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
             # current_output_address = P2wpkhAddress.from_address(address=faucet_address)
             current_output_address = trace_script_address
@@ -419,7 +455,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
         current_tx = Transaction([current_txin], [current_txout], has_segwit=True)
 
-        choice_hash_tx.append(current_tx)
+        choice_hash_tx_list.append(current_tx)
         current_control_block = ControlBlock(
             destroyed_public_key,
             scripts=[[choice_search_scripts[i]]],
@@ -430,10 +466,10 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
         previous_tx_id = current_tx.get_txid()
 
-    transaction_dict["search_hash"] = search_hash_tx
-    transaction_dict["choice_hash"] = choice_hash_tx
+    protocol_dict["search_hash_tx_list"] = search_hash_tx_list
+    protocol_dict["choice_hash_tx_list"] = choice_hash_tx_list
 
-    trace_txin = TxInput(choice_hash_tx[-1].get_txid(), 0)
+    trace_txin = TxInput(choice_hash_tx_list[-1].get_txid(), 0)
     trace_output_amount = current_output_amount - step_fees_satoshis
     faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
     trace_output_address = P2wpkhAddress.from_address(address=faucet_address)
@@ -447,6 +483,13 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         index=0,
         is_odd=trace_script_address.is_odd(),
     )
+
+    protocol_dict["trace_tx"] = trace_tx
+
+    protocol_dict["transactions"] = protocol_dict
+
+    protocol_dict["last_confirmed_step"] = None
+    protocol_dict["last_confirmed_step_tx_id"] = None
 
     # Witness computation
 
@@ -485,6 +528,8 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         tweak=False,
     )
 
+    protocol_dict["hash_result_signatures"] = [hash_result_signature_prover]
+
     ## Signature verification
     from bitcoinutils.schnorr import schnorr_verify
 
@@ -503,10 +548,16 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         bytes.fromhex(hash_result_signature_prover),
     )
 
+    with open(f"prover_keys/{setup_uuid}.pkl", "xb") as f:
+        pickle.dump(protocol_dict, f)
+
     #################################################################
 
     funding_sig = prover_private_key.sign_segwit_input(
-        funding_tx, 0, prover_public_key.get_address().to_script_pub_key(), initial_amount_satoshis
+        funding_tx,
+        0,
+        prover_public_key.get_address().to_script_pub_key(),
+        initial_amount_satoshis + step_fees_satoshis,
     )
 
     funding_tx.witnesses.append(TxWitnessInput([funding_sig, prover_public_key.to_hex()]))
@@ -515,159 +566,352 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     broadcast_transaction_service(transaction=funding_tx.serialize())
     print("Funding transaction: " + funding_tx.get_txid())
 
-    hash_result_tx.witnesses.append(
-        TxWitnessInput(
-            hash_result_witness
-            + [
-                # first_signature_bob,
-                hash_result_signature_prover,
-                hash_result_script.to_hex(),
-                hash_result_control_block.to_hex(),
-            ]
-        )
+    return {"id": setup_uuid}
+
+
+class PublishNextStepBody(BaseModel):
+    setup_uuid: str
+
+    model_config = {
+        "json_schema_extra": {"examples": [{"setup_uuid": "289a04aa-5e35-4854-a71c-8131db874440"}]}
+    }
+
+
+async def _trigger_next_step_prover(publish_hash_body: PublishNextStepBody):
+    prover_host = protocol_properties.prover_host
+    url = f"http://{prover_host}/publish_next_step"
+    headers = {"accept": "application/json", "Content-Type": "application/json"}
+
+    # Make the POST request
+    async with httpx.AsyncClient() as client:
+        await client.post(url, headers=headers, json=json.loads(publish_hash_body.json()))
+
+
+async def _trigger_next_step_verifier(publish_hash_body: PublishNextStepBody):
+    verifier_host = protocol_properties.verifier_list[0]
+    url = f"http://{verifier_host}/publish_next_step"
+    headers = {"accept": "application/json", "Content-Type": "application/json"}
+
+    # Make the POST request
+    async with httpx.AsyncClient() as client:
+        await client.post(url, headers=headers, json=json.loads(publish_hash_body.json()))
+
+
+
+@app.post("/publish_next_step")
+async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()) -> dict[str, str]:
+    setup_uuid = publish_next_step_body.setup_uuid
+    with open(f"prover_keys/{setup_uuid}.pkl", "rb") as f:
+        protocol_dict = pickle.load(f)
+
+    # This should be a configuration
+    amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
+
+    prover_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["prover_secret_key"]))
+    prover_public_key = prover_private_key.get_public_key()
+
+    initial_amount_of_satoshis = protocol_dict["initial_amount_satoshis"]
+    amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
+    amount_of_wrong_step_search_iterations = protocol_dict["amount_of_wrong_step_search_iterations"]
+    amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
+    amount_of_wrong_step_search_hashes_per_iteration = protocol_dict[
+        "amount_of_wrong_step_search_hashes_per_iteration"
+    ]
+    last_confirmed_step = protocol_dict["last_confirmed_step"]
+    last_confirmed_step_tx_id = protocol_dict["last_confirmed_step_tx_id"]
+
+    hash_result_tx = protocol_dict["hash_result_tx"]
+
+    hash_result_witness = []
+
+    generate_witness_from_input_nibbles_service = GenerateWitnessFromInputNibblesService(
+        prover_private_key
     )
 
-    broadcast_transaction_service(transaction=hash_result_tx.serialize())
-    print("Hash result revelation transaction: " + hash_result_tx.get_txid())
+    destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
 
-    trigger_protocol_witness = []
-    trigger_protocol_tx.witnesses.append(
-        TxWitnessInput(
-            trigger_protocol_witness
-            + [
-                # first_signature_bob,
-                # hash_result_signature_prover,
-                trigger_protocol_script.to_hex(),
-                trigger_protocol_control_block.to_hex(),
-            ]
-        )
+    broadcast_transaction_service = BroadcastTransactionService()
+
+    ## TO BE ERASED ##
+    verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_secret_key"]))
+    generate_verifier_witness_from_input_single_word_service = (
+        GenerateWitnessFromInputSingleWordService(verifier_private_key)
+    )
+    ## END TO BE ERASED ##
+    generate_prover_witness_from_input_single_word_service = (
+        GenerateWitnessFromInputSingleWordService(prover_private_key)
     )
 
-    broadcast_transaction_service(transaction=trigger_protocol_tx.serialize())
-    print("Trigger protocol transaction: " + trigger_protocol_tx.get_txid())
+    if last_confirmed_step is None:
+        publish_hash_transaction_service = PublishHashTransactionService(prover_private_key)
+        last_confirmed_step_tx = publish_hash_transaction_service(protocol_dict)
+        last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
+        last_confirmed_step = TransactionStepType.HASH_RESULT
+        protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
+        protocol_dict["last_confirmed_step"] = last_confirmed_step
+    elif last_confirmed_step == TransactionStepType.HASH_RESULT:
+        trigger_protocol_transaction_service = TriggerProtocolTransactionService()
+        last_confirmed_step_tx = trigger_protocol_transaction_service(protocol_dict)
+        last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
+        last_confirmed_step = TransactionStepType.TRIGGER_PROTOCOL
+        protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
+        protocol_dict["last_confirmed_step"] = last_confirmed_step
+    else:
+        # trigger_protocol_tx = protocol_dict["trigger_protocol_tx"]
+        # trigger_protocol_script_generator = TriggerProtocolScriptGeneratorService()
+        # trigger_protocol_script = trigger_protocol_script_generator()
+        # trigger_protocol_script_address = destroyed_public_key.get_taproot_address(
+        #     [[trigger_protocol_script]]
+        # )
+        #
+        # trigger_protocol_control_block = ControlBlock(
+        #     destroyed_public_key,
+        #     scripts=[[trigger_protocol_script]],
+        #     index=0,
+        #     is_odd=trigger_protocol_script_address.is_odd(),
+        # )
+        #
+        # trigger_protocol_witness = []
+        # trigger_protocol_tx.witnesses.append(
+        #     TxWitnessInput(
+        #         trigger_protocol_witness
+        #         + [
+        #             # first_signature_bob,
+        #             # hash_result_signature_prover,
+        #             trigger_protocol_script.to_hex(),
+        #             trigger_protocol_control_block.to_hex(),
+        #         ]
+        #     )
+        # )
+        #
+        # broadcast_transaction_service(transaction=trigger_protocol_tx.serialize())
+        # print("Trigger protocol transaction: " + trigger_protocol_tx.get_txid())
 
-    for i in range(amount_of_iterations):
+        search_hash_tx_list = protocol_dict["search_hash_tx_list"]
+        choice_hash_tx_list = protocol_dict["choice_hash_tx_list"]
 
-        iteration_hashes = 3 * ["1111111111111111111111111111111111111111111111111111111111111112"]
-        hash_search_witness = []
+        hash_search_public_keys_list = protocol_dict["hash_search_public_keys_list"]
+        choice_search_prover_public_keys_list = protocol_dict[
+            "choice_search_prover_public_keys_list"
+        ]
+        choice_search_verifier_public_keys_list = protocol_dict[
+            "choice_search_verifier_public_keys_list"
+        ]
 
-        if i > 0:
+        commit_search_hashes_script_generator_service = CommitSearchHashesScriptGeneratorService()
+        commit_search_choice_script_generator_service = CommitSearchChoiceScriptGeneratorService()
+
+        for i in range(amount_of_wrong_step_search_iterations):
+
+            iteration_hashes = 3 * [
+                "1111111111111111111111111111111111111111111111111111111111111112"
+            ]
+            hash_search_witness = []
+
+            current_hash_public_keys = hash_search_public_keys_list[i]
+
+            if i > 0:
+                previous_choice_verifier_public_keys = choice_search_verifier_public_keys_list[
+                    i - 1
+                ]
+                current_choice_prover_public_keys = choice_search_prover_public_keys_list[i - 1]
+                current_hash_search_script = commit_search_hashes_script_generator_service(
+                    current_hash_public_keys,
+                    amount_of_nibbles_hash,
+                    amount_of_bits_per_digit_checksum,
+                    amount_of_bits_wrong_step_search,
+                    current_choice_prover_public_keys[0],
+                    previous_choice_verifier_public_keys[0],
+                )
+
+                current_choice = 2
+                hash_search_witness += generate_verifier_witness_from_input_single_word_service(
+                    step=(3 + (i - 1) * 2 + 1),
+                    case=0,
+                    input_number=current_choice,
+                    amount_of_bits=amount_of_bits_wrong_step_search,
+                )
+                hash_search_witness += generate_prover_witness_from_input_single_word_service(
+                    step=(3 + (i - 1) * 2 + 1),
+                    case=0,
+                    input_number=current_choice,
+                    amount_of_bits=amount_of_bits_wrong_step_search,
+                )
+
+            else:
+                current_hash_search_script = commit_search_hashes_script_generator_service(
+                    current_hash_public_keys,
+                    amount_of_nibbles_hash,
+                    amount_of_bits_per_digit_checksum,
+                )
+
+            current_choice_public_keys = choice_search_verifier_public_keys_list[i]
+            current_choice_search_script = commit_search_choice_script_generator_service(
+                current_choice_public_keys[0],
+                amount_of_bits_wrong_step_search,
+            )
+
+            for word_count in range(amount_of_wrong_step_search_hashes_per_iteration):
+
+                input_number = []
+                for letter in iteration_hashes[len(iteration_hashes) - word_count - 1]:
+                    input_number.append(int(letter, 16))
+
+                hash_search_witness += generate_witness_from_input_nibbles_service(
+                    step=(3 + i * 2),
+                    case=2 - word_count,
+                    input_numbers=input_number,
+                    bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+                )
+
+            current_hash_search_scripts_address = destroyed_public_key.get_taproot_address(
+                [[current_hash_search_script]]
+            )
+            current_hash_search_control_block = ControlBlock(
+                destroyed_public_key,
+                scripts=[[current_hash_search_script]],
+                index=0,
+                is_odd=current_hash_search_scripts_address.is_odd(),
+            )
+
+            search_hash_tx_list[i].witnesses.append(
+                TxWitnessInput(
+                    hash_search_witness
+                    + [
+                        # third_signature_bob,
+                        # third_signature_alice,
+                        current_hash_search_script.to_hex(),
+                        current_hash_search_control_block.to_hex(),
+                    ]
+                )
+            )
+
+            broadcast_transaction_service(transaction=search_hash_tx_list[i].serialize())
+            print(
+                "Search hash iteration transaction "
+                + str(i)
+                + ": "
+                + search_hash_tx_list[i].get_txid()
+            )
+
+            choice_search_witness = []
             current_choice = 2
-            hash_search_witness += generate_verifier_witness_from_input_single_word_service(
-                step=(3 + (i - 1) * 2 + 1),
+            choice_search_witness += generate_verifier_witness_from_input_single_word_service(
+                step=(3 + i * 2 + 1),
                 case=0,
                 input_number=current_choice,
-                amount_of_bits=amount_of_bits_choice,
+                amount_of_bits=amount_of_bits_wrong_step_search,
             )
-            hash_search_witness += generate_prover_witness_from_input_single_word_service(
-                step=(3 + (i - 1) * 2 + 1),
-                case=0,
-                input_number=current_choice,
-                amount_of_bits=amount_of_bits_choice,
+            current_choice_search_scripts_address = destroyed_public_key.get_taproot_address(
+                [[current_choice_search_script]]
+            )
+            current_choice_search_control_block = ControlBlock(
+                destroyed_public_key,
+                scripts=[[current_hash_search_script]],
+                index=0,
+                is_odd=current_choice_search_scripts_address.is_odd(),
             )
 
-        for word_count in range(amount_of_search_hashes_per_iteration):
+            choice_hash_tx_list[i].witnesses.append(
+                TxWitnessInput(
+                    choice_search_witness
+                    + [
+                        # third_signature_bob,
+                        # third_signature_alice,
+                        current_choice_search_script.to_hex(),
+                        current_choice_search_control_block.to_hex(),
+                    ]
+                )
+            )
+
+            broadcast_transaction_service(transaction=choice_hash_tx_list[i].serialize())
+            print(
+                "Choice hash iteration transaction "
+                + str(i)
+                + ": "
+                + choice_hash_tx_list[i].get_txid()
+            )
+
+        trace_words_lengths = protocol_dict["trace_words_lengths"]
+
+        trace_array = []
+        for word_length in trace_words_lengths:
+            trace_array.append("1" * word_length)
+
+        trace_witness = []
+
+        current_choice = 2
+        trace_witness += generate_verifier_witness_from_input_single_word_service(
+            step=(3 + (amount_of_wrong_step_search_iterations - 1) * 2 + 1),
+            case=0,
+            input_number=current_choice,
+            amount_of_bits=amount_of_bits_wrong_step_search,
+        )
+        trace_witness += generate_prover_witness_from_input_single_word_service(
+            step=(3 + (amount_of_wrong_step_search_iterations - 1) * 2 + 1),
+            case=0,
+            input_number=current_choice,
+            amount_of_bits=amount_of_bits_wrong_step_search,
+        )
+
+        for word_count in range(len(trace_words_lengths)):
 
             input_number = []
-            for letter in iteration_hashes[len(iteration_hashes) - word_count - 1]:
+            for letter in trace_array[len(trace_array) - word_count - 1]:
                 input_number.append(int(letter, 16))
 
-            hash_search_witness += generate_witness_from_input_nibbles_service(
-                step=(3 + i * 2),
-                case=2 - word_count,
+            trace_witness += generate_witness_from_input_nibbles_service(
+                step=3 + amount_of_wrong_step_search_iterations * 2,
+                case=len(trace_words_lengths) - word_count - 1,
                 input_numbers=input_number,
                 bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
             )
 
-        search_hash_tx[i].witnesses.append(
+        trace_tx = protocol_dict["trace_tx"]
+        trace_prover_public_keys = protocol_dict["trace_prover_public_keys"]
+
+        execution_trace_script_generator_service = ExecutionTraceScriptGeneratorService()
+        trace_script = execution_trace_script_generator_service(
+            trace_prover_public_keys,
+            trace_words_lengths,
+            amount_of_bits_per_digit_checksum,
+            amount_of_bits_wrong_step_search,
+            choice_search_prover_public_keys_list[-1][0],
+            choice_search_verifier_public_keys_list[-1][0],
+        )
+        trace_script_address = destroyed_public_key.get_taproot_address([[trace_script]])
+
+        trace_control_block = ControlBlock(
+            destroyed_public_key,
+            scripts=[[trace_script]],
+            index=0,
+            is_odd=trace_script_address.is_odd(),
+        )
+
+        trace_tx.witnesses.append(
             TxWitnessInput(
-                hash_search_witness
+                trace_witness
                 + [
                     # third_signature_bob,
                     # third_signature_alice,
-                    hash_search_scripts[i].to_hex(),
-                    hash_search_control_blocks[i].to_hex(),
+                    trace_script.to_hex(),
+                    trace_control_block.to_hex(),
                 ]
             )
         )
 
-        broadcast_transaction_service(transaction=search_hash_tx[i].serialize())
-        print("Search hash iteration transaction " + str(i) + ": " + search_hash_tx[i].get_txid())
+        broadcast_transaction_service(transaction=trace_tx.serialize())
+        print("Trace transaction: " + trace_tx.get_txid())
 
-        choice_search_witness = []
-        current_choice = 2
-        choice_search_witness += generate_verifier_witness_from_input_single_word_service(
-            step=(3 + i * 2 + 1),
-            case=0,
-            input_number=current_choice,
-            amount_of_bits=amount_of_bits_choice,
-        )
-        choice_hash_tx[i].witnesses.append(
-            TxWitnessInput(
-                choice_search_witness
-                + [
-                    # third_signature_bob,
-                    # third_signature_alice,
-                    choice_search_scripts[i].to_hex(),
-                    choice_search_control_blocks[i].to_hex(),
-                ]
-            )
-        )
+        last_confirmed_step_tx_id = trace_tx.get_txid()
+        last_confirmed_step = TransactionStepType.TRACE
+        protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
+        protocol_dict["last_confirmed_step"] = last_confirmed_step
 
-        broadcast_transaction_service(transaction=choice_hash_tx[i].serialize())
-        print("Choice hash iteration transaction " + str(i) + ": " + choice_hash_tx[i].get_txid())
+    with open(f"prover_keys/{setup_uuid}.pkl", "wb") as f:
+        pickle.dump(protocol_dict, f)
 
-    trace_array = []
-    for word_length in trace_words_lengths:
-        trace_array.append("1" * word_length)
+    if last_confirmed_step in [TransactionStepType.HASH_RESULT, TransactionStepType.TRIGGER_PROTOCOL]:
+        asyncio.create_task(_trigger_next_step_prover(publish_next_step_body))
 
-    trace_witness = []
-
-    current_choice = 2
-    trace_witness += generate_verifier_witness_from_input_single_word_service(
-        step=(3 + (amount_of_iterations - 1) * 2 + 1),
-        case=0,
-        input_number=current_choice,
-        amount_of_bits=amount_of_bits_choice,
-    )
-    trace_witness += generate_prover_witness_from_input_single_word_service(
-        step=(3 + (amount_of_iterations - 1) * 2 + 1),
-        case=0,
-        input_number=current_choice,
-        amount_of_bits=amount_of_bits_choice,
-    )
-
-    for word_count in range(len(trace_words_lengths)):
-
-        input_number = []
-        for letter in trace_array[len(trace_array) - word_count - 1]:
-            input_number.append(int(letter, 16))
-
-        trace_witness += generate_witness_from_input_nibbles_service(
-            step=3 + amount_of_iterations * 2,
-            case=len(trace_words_lengths) - word_count - 1,
-            input_numbers=input_number,
-            bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
-        )
-
-    trace_tx.witnesses.append(
-        TxWitnessInput(
-            trace_witness
-            + [
-                # third_signature_bob,
-                # third_signature_alice,
-                trace_script.to_hex(),
-                trace_control_block.to_hex(),
-            ]
-        )
-    )
-
-    broadcast_transaction_service(transaction=trace_tx.serialize())
-    print("Trace transaction: " + trace_tx.get_txid())
-
-    return {"id": setup_uuid}
-
-
-@app.post("/publish_hash")
-async def publish_hash(create_setup_body: CreateSetupBody = Body()) -> dict[str, str]:
-    pass
+    return {"id": setup_uuid, "executed_step": last_confirmed_step}
