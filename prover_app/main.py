@@ -39,9 +39,6 @@ from transactions.transaction_generator_from_public_keys_service import (
 from winternitz_keys_handling.services.generate_prover_public_keys_service import (
     GenerateProverPublicKeysService,
 )
-from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
-    GenerateWitnessFromInputNibblesService,
-)
 
 app = FastAPI(
     title="Prover service",
@@ -240,24 +237,6 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         [[scripts_dict["hash_result_script"]]]
     )
 
-    hash_result_witness = []
-
-    generate_witness_from_input_nibbles_service = GenerateWitnessFromInputNibblesService(
-        prover_private_key
-    )
-
-    # input_number_first_alice = []
-    # first_revealed_hash = "1111111111111111111111111111111111111111111111111111111111111112"
-    # for letter in first_revealed_hash:
-    #     input_number_first_alice.append(int(letter, 16))
-
-    # hash_result_witness += generate_witness_from_input_nibbles_service(
-    #     step=1,
-    #     case=0,
-    #     input_numbers=input_number_first_alice,
-    #     bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
-    # )
-
     hash_result_signature_prover = prover_private_key.sign_taproot_input(
         hash_result_tx,
         0,
@@ -347,7 +326,6 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
 
     prover_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["prover_secret_key"]))
 
-    amount_of_wrong_step_search_iterations = protocol_dict["amount_of_wrong_step_search_iterations"]
     last_confirmed_step = protocol_dict["last_confirmed_step"]
 
     ## TO BE ERASED ##

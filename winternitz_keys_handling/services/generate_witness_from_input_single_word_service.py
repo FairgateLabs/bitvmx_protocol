@@ -20,14 +20,11 @@ class GenerateWitnessFromInputSingleWordService:
         amount_of_bits,
     ):
 
-        d0 = 2**4
-        n0 = 1
         max_checksum_value = 2**amount_of_bits - 1
         checksum_digit = max_checksum_value - input_number
         current_keys = self.generate_winternitz_keys_single_word_service(step, case, amount_of_bits)
         input_keys = current_keys[1]
         checksum_keys = current_keys[0]
-        # checksum_keys.reverse()
         witness = []
         current_digit = input_number
         current_private_key = input_keys[current_digit]
