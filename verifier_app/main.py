@@ -215,4 +215,7 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
     if last_confirmed_step in [TransactionStepType.TRIGGER_PROTOCOL]:
         asyncio.create_task(_trigger_next_step_prover(publish_next_step_body))
 
+    with open(f"verifier_keys/{setup_uuid}.pkl", "wb") as f:
+        pickle.dump(protocol_dict, f)
+
     return {"id": setup_uuid, "executed_step": last_confirmed_step}
