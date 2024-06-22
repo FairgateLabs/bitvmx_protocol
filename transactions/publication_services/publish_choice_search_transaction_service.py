@@ -25,7 +25,7 @@ class PublishChoiceSearchTransactionService:
     def __call__(self, protocol_dict, i):
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
         amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
-        choice_hash_tx_list = protocol_dict["choice_hash_tx_list"]
+        search_choice_tx_list = protocol_dict["search_choice_tx_list"]
 
         choice_search_verifier_public_keys_list = protocol_dict[
             "choice_search_verifier_public_keys_list"
@@ -55,7 +55,7 @@ class PublishChoiceSearchTransactionService:
             is_odd=current_choice_search_scripts_address.is_odd(),
         )
 
-        choice_hash_tx_list[i].witnesses.append(
+        search_choice_tx_list[i].witnesses.append(
             TxWitnessInput(
                 choice_search_witness
                 + [
@@ -67,8 +67,11 @@ class PublishChoiceSearchTransactionService:
             )
         )
 
-        self.broadcast_transaction_service(transaction=choice_hash_tx_list[i].serialize())
+        self.broadcast_transaction_service(transaction=search_choice_tx_list[i].serialize())
         print(
-            "Choice hash iteration transaction " + str(i) + ": " + choice_hash_tx_list[i].get_txid()
+            "Choice hash iteration transaction "
+            + str(i)
+            + ": "
+            + search_choice_tx_list[i].get_txid()
         )
-        return choice_hash_tx_list[i]
+        return search_choice_tx_list[i]

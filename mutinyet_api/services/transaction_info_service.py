@@ -8,10 +8,11 @@ from pydantic import BaseModel
 class TransactionInput(BaseModel):
     tx_id: str
     index: int
+    witness: List[str]
 
     @staticmethod
     def from_mutinynet_vin(vin: dict) -> "TransactionInput":
-        return TransactionInput(tx_id=vin["txid"], index=vin["vout"])
+        return TransactionInput(tx_id=vin["txid"], index=vin["vout"], witness=vin["witness"])
 
 
 class TransactionOutput(BaseModel):

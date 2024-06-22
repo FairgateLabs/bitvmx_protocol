@@ -3,6 +3,7 @@ from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
+from mutinyet_api.services.transaction_info_service import TransactionInfoService
 from scripts.services.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
 )
@@ -19,7 +20,7 @@ from winternitz_keys_handling.services.generate_witness_from_input_single_word_s
 
 class PublishHashSearchTransactionService:
 
-    def __init__(self, prover_private_key, verifier_private_key):
+    def __init__(self, prover_private_key):
         self.commit_search_hashes_script_generator_service = (
             CommitSearchHashesScriptGeneratorService()
         )
@@ -27,17 +28,13 @@ class PublishHashSearchTransactionService:
             CommitSearchChoiceScriptGeneratorService()
         )
         self.broadcast_transaction_service = BroadcastTransactionService()
-        ## TO BE ERASED ##
-        self.generate_verifier_witness_from_input_single_word_service = (
-            GenerateWitnessFromInputSingleWordService(verifier_private_key)
-        )
-        ## END TO BE ERASED ##
         self.generate_prover_witness_from_input_single_word_service = (
             GenerateWitnessFromInputSingleWordService(prover_private_key)
         )
         self.generate_witness_from_input_nibbles_service = GenerateWitnessFromInputNibblesService(
             prover_private_key
         )
+        self.transaction_info_service = TransactionInfoService()
 
     def __call__(self, protocol_dict, i):
         search_hash_tx_list = protocol_dict["search_hash_tx_list"]
@@ -63,6 +60,9 @@ class PublishHashSearchTransactionService:
         current_hash_public_keys = hash_search_public_keys_list[i]
 
         if i > 0:
+            previous_choice_tx = protocol_dict["search_choice_tx_list"][i - 1].get_txid()
+            previous_choice_transaction_info = self.transaction_info_service(previous_choice_tx)
+            previous_witness = previous_choice_transaction_info.inputs[0].witness
             previous_choice_verifier_public_keys = choice_search_verifier_public_keys_list[i - 1]
             current_choice_prover_public_keys = choice_search_prover_public_keys_list[i - 1]
             current_hash_search_script = self.commit_search_hashes_script_generator_service(
@@ -74,13 +74,8 @@ class PublishHashSearchTransactionService:
                 previous_choice_verifier_public_keys[0],
             )
 
-            current_choice = 2
-            hash_search_witness += self.generate_verifier_witness_from_input_single_word_service(
-                step=(3 + (i - 1) * 2 + 1),
-                case=0,
-                input_number=current_choice,
-                amount_of_bits=amount_of_bits_wrong_step_search,
-            )
+            hash_search_witness += previous_witness[0:4]
+            current_choice = int(previous_witness[1])
             hash_search_witness += self.generate_prover_witness_from_input_single_word_service(
                 step=(3 + (i - 1) * 2 + 1),
                 case=0,

@@ -342,7 +342,7 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
     elif last_confirmed_step == TransactionStepType.HASH_RESULT:
         ## VERIFY THE PREVIOUS STEP ##
         publish_hash_search_transaction_service = PublishHashSearchTransactionService(
-            prover_private_key, verifier_private_key
+            prover_private_key
         )
         last_confirmed_step_tx = publish_hash_search_transaction_service(protocol_dict, 0)
         last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
@@ -367,27 +367,8 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         protocol_dict["last_confirmed_step"] = last_confirmed_step
     elif last_confirmed_step == TransactionStepType.SEARCH_STEP_CHOICE:
         ## VERIFY THE PREVIOUS STEP ##
-        # for i in range(1, amount_of_wrong_step_search_iterations):
-        #     publish_hash_search_transaction_service = PublishHashSearchTransactionService(
-        #         prover_private_key, verifier_private_key
-        #     )
-        #     last_confirmed_step_tx = publish_hash_search_transaction_service(protocol_dict, i)
-        #     last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-        #     last_confirmed_step = TransactionStepType.SEARCH_STEP_HASH
-        #     protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-        #     protocol_dict["last_confirmed_step"] = last_confirmed_step
-        #
-        #     publish_choice_search_transaction_service = PublishChoiceSearchTransactionService(
-        #         verifier_private_key
-        #     )
-        #     last_confirmed_step_tx = publish_choice_search_transaction_service(protocol_dict, i)
-        #     last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-        #     last_confirmed_step = TransactionStepType.SEARCH_STEP_CHOICE
-        #     protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-        #     protocol_dict["last_confirmed_step"] = last_confirmed_step
-
         if (
-            protocol_dict["choice_hash_tx_list"][-1].get_txid()
+            protocol_dict["search_choice_tx_list"][-1].get_txid()
             == protocol_dict["last_confirmed_step_tx_id"]
         ):
             publish_trace_transaction_service = PublishTraceTransactionService(
@@ -400,15 +381,15 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
             protocol_dict["last_confirmed_step"] = last_confirmed_step
         else:
             i = None
-            for i in range(len(protocol_dict["choice_hash_tx_list"])):
+            for i in range(len(protocol_dict["search_choice_tx_list"])):
                 if (
-                    protocol_dict["choice_hash_tx_list"][i].get_txid()
+                    protocol_dict["search_choice_tx_list"][i].get_txid()
                     == protocol_dict["last_confirmed_step_tx_id"]
                 ):
                     break
             i += 1
             publish_hash_search_transaction_service = PublishHashSearchTransactionService(
-                prover_private_key, verifier_private_key
+                prover_private_key
             )
             last_confirmed_step_tx = publish_hash_search_transaction_service(protocol_dict, i)
             last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()

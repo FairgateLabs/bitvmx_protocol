@@ -86,7 +86,7 @@ class TransactionGeneratorFromPublicKeysService:
         previous_tx_id = trigger_protocol_tx.get_txid()
         current_output_amount = trigger_protocol_output_amount
         search_hash_tx_list = []
-        choice_hash_tx_list = []
+        search_choice_tx_list = []
 
         trace_script_address = destroyed_public_key.get_taproot_address(
             [[scripts_dict["trace_script"]]]
@@ -115,13 +115,13 @@ class TransactionGeneratorFromPublicKeysService:
                 current_output_amount, current_output_address.to_script_pub_key()
             )
             current_tx = Transaction([current_txin], [current_txout], has_segwit=True)
-            choice_hash_tx_list.append(current_tx)
+            search_choice_tx_list.append(current_tx)
             previous_tx_id = current_tx.get_txid()
 
         protocol_dict["search_hash_tx_list"] = search_hash_tx_list
-        protocol_dict["choice_hash_tx_list"] = choice_hash_tx_list
+        protocol_dict["search_choice_tx_list"] = search_choice_tx_list
 
-        trace_txin = TxInput(choice_hash_tx_list[-1].get_txid(), 0)
+        trace_txin = TxInput(search_choice_tx_list[-1].get_txid(), 0)
         trace_output_amount = current_output_amount - step_fees_satoshis
         faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
         trace_output_address = P2wpkhAddress.from_address(address=faucet_address)
