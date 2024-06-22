@@ -1,11 +1,12 @@
 import asyncio
+import hashlib
 import json
 import pickle
 import secrets
 from typing import List
 
 import httpx
-from bitcoinutils.keys import PrivateKey
+from bitcoinutils.keys import PrivateKey, PublicKey
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
@@ -13,9 +14,12 @@ from transactions.enums import TransactionStepType
 from transactions.publication_services.trigger_protocol_transaction_service import (
     TriggerProtocolTransactionService,
 )
+from transactions.transaction_generator_from_public_keys_service import (
+    TransactionGeneratorFromPublicKeysService,
+)
 from verifier_app.config import protocol_properties
-from winternitz_keys_handling.services.generate_winternitz_keys_single_word_service import (
-    GenerateWinternitzKeysSingleWordService,
+from winternitz_keys_handling.services.generate_verifier_public_keys_service import (
+    GenerateVerifierPublicKeysService,
 )
 
 app = FastAPI(
@@ -55,13 +59,21 @@ async def init_setup(body: InitSetupBody) -> InitSetupResponse:
 
 class PublicKeysBody(BaseModel):
     setup_uuid: str
-    destroyed_public_key: str
+    seed_destroyed_public_key_hex: str
     prover_public_key: str
     hash_result_public_keys: List[str]
     hash_search_public_keys_list: List[List[List[str]]]
+    choice_search_prover_public_keys_list: List[List[List[str]]]
+    trace_words_lengths: List[int]
     trace_prover_public_keys: List[List[str]]
     amount_of_wrong_step_search_iterations: int
     amount_of_bits_wrong_step_search: int
+    amount_of_bits_per_digit_checksum: int
+    funding_amount_satoshis: int
+    step_fees_satoshis: int
+    funds_tx_id: str
+    funds_index: int
+    amount_of_nibbles_hash: int
 
 
 class PublicKeysResponse(BaseModel):
@@ -77,10 +89,27 @@ async def public_keys(public_keys_body: PublicKeysBody) -> PublicKeysResponse:
     with open(f"verifier_keys/{setup_uuid}.pkl", "rb") as f:
         protocol_dict = pickle.load(f)
 
-    protocol_dict["destroyed_public_key"] = public_keys_body.destroyed_public_key
+    verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["secret_key"]))
+
+    if (
+        verifier_private_key.get_public_key().to_x_only_hex()
+        not in public_keys_body.seed_destroyed_public_key_hex
+    ):
+        raise Exception("Seed does not contain public key")
+
+    destroyed_public_key_hex = hashlib.sha256(
+        bytes.fromhex(public_keys_body.seed_destroyed_public_key_hex)
+    ).hexdigest()
+    destroyed_public_key = PublicKey(hex_str="02" + destroyed_public_key_hex)
+    protocol_dict["seed_destroyed_public_key_hex"] = public_keys_body.seed_destroyed_public_key_hex
+    protocol_dict["destroyed_public_key"] = destroyed_public_key.to_hex()
     protocol_dict["prover_public_key"] = public_keys_body.prover_public_key
     protocol_dict["hash_result_public_keys"] = public_keys_body.hash_result_public_keys
     protocol_dict["hash_search_public_keys_list"] = public_keys_body.hash_search_public_keys_list
+    protocol_dict["choice_search_prover_public_keys_list"] = (
+        public_keys_body.choice_search_prover_public_keys_list
+    )
+    protocol_dict["trace_words_lengths"] = public_keys_body.trace_words_lengths
     protocol_dict["trace_prover_public_keys"] = public_keys_body.trace_prover_public_keys
     protocol_dict["amount_of_wrong_step_search_iterations"] = (
         public_keys_body.amount_of_wrong_step_search_iterations
@@ -88,43 +117,30 @@ async def public_keys(public_keys_body: PublicKeysBody) -> PublicKeysResponse:
     protocol_dict["amount_of_bits_wrong_step_search"] = (
         public_keys_body.amount_of_bits_wrong_step_search
     )
-
-    amount_of_wrong_step_search_iterations = public_keys_body.amount_of_wrong_step_search_iterations
-    amount_of_bits_wrong_step_search = public_keys_body.amount_of_bits_wrong_step_search
-
-    verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["secret_key"]))
-
-    verifier_winternitz_keys_single_word_service = GenerateWinternitzKeysSingleWordService(
-        private_key=verifier_private_key
+    protocol_dict["amount_of_bits_per_digit_checksum"] = (
+        public_keys_body.amount_of_bits_per_digit_checksum
     )
-    choice_search_verifier_public_keys_list = []
-    for iter_count in range(amount_of_wrong_step_search_iterations):
-        current_iteration_keys = []
-        current_iteration_keys.append(
-            verifier_winternitz_keys_single_word_service(
-                step=(3 + iter_count * 2 + 1),
-                case=0,
-                amount_of_bits=amount_of_bits_wrong_step_search,
-            )
-        )
-        current_iteration_public_keys = []
-        for keys_list_of_lists in current_iteration_keys:
-            current_iteration_public_keys.append(
-                list(map(lambda key_list: key_list[-1], keys_list_of_lists))
-            )
+    protocol_dict["funding_amount_satoshis"] = public_keys_body.funding_amount_satoshis
+    protocol_dict["step_fees_satoshis"] = public_keys_body.step_fees_satoshis
+    protocol_dict["funds_tx_id"] = public_keys_body.funds_tx_id
+    protocol_dict["funds_index"] = public_keys_body.funds_index
+    protocol_dict["amount_of_nibbles_hash"] = public_keys_body.amount_of_nibbles_hash
 
-        choice_search_verifier_public_keys_list.append(current_iteration_public_keys)
+    generate_verifier_public_keys_service = GenerateVerifierPublicKeysService(verifier_private_key)
+    generate_verifier_public_keys_service(protocol_dict)
 
-    protocol_dict["choice_search_verifier_public_keys_list"] = (
-        choice_search_verifier_public_keys_list
-    )
+    # Transaction construction
+    transaction_generator_from_public_keys_service = TransactionGeneratorFromPublicKeysService()
+    transaction_generator_from_public_keys_service(protocol_dict)
 
     with open(f"verifier_keys/{setup_uuid}.pkl", "wb") as f:
         pickle.dump(protocol_dict, f)
 
     return PublicKeysResponse(
         verifier_secret_key=verifier_private_key.to_bytes().hex(),
-        choice_search_verifier_public_keys_list=choice_search_verifier_public_keys_list,
+        choice_search_verifier_public_keys_list=protocol_dict[
+            "choice_search_verifier_public_keys_list"
+        ],
     )
 
 
@@ -188,9 +204,10 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
     last_confirmed_step_tx_id = protocol_dict["last_confirmed_step_tx_id"]
 
     if last_confirmed_step is None:
+        # VERIFY THAT THE FIRST HASH HAS BEEN PUBLISHED #
         trigger_protocol_transaction_service = TriggerProtocolTransactionService()
-        # last_confirmed_step_tx = trigger_protocol_transaction_service(protocol_dict)
-        # last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
+        last_confirmed_step_tx = trigger_protocol_transaction_service(protocol_dict)
+        last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
         last_confirmed_step = TransactionStepType.TRIGGER_PROTOCOL
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
         protocol_dict["last_confirmed_step"] = last_confirmed_step

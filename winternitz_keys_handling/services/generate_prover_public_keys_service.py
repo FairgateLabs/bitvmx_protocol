@@ -1,7 +1,9 @@
-from winternitz_keys_handling.services.generate_winternitz_keys_nibbles_service import \
-    GenerateWinternitzKeysNibblesService
-from winternitz_keys_handling.services.generate_winternitz_keys_single_word_service import \
-    GenerateWinternitzKeysSingleWordService
+from winternitz_keys_handling.services.generate_winternitz_keys_nibbles_service import (
+    GenerateWinternitzKeysNibblesService,
+)
+from winternitz_keys_handling.services.generate_winternitz_keys_single_word_service import (
+    GenerateWinternitzKeysSingleWordService,
+)
 
 
 class GenerateProverPublicKeysService:
@@ -17,8 +19,12 @@ class GenerateProverPublicKeysService:
     def __call__(self, protocol_dict):
 
         amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
-        amount_of_wrong_step_search_iterations = protocol_dict["amount_of_wrong_step_search_iterations"]
-        amount_of_wrong_step_search_hashes_per_iteration = protocol_dict["amount_of_wrong_step_search_hashes_per_iteration"]
+        amount_of_wrong_step_search_iterations = protocol_dict[
+            "amount_of_wrong_step_search_iterations"
+        ]
+        amount_of_wrong_step_search_hashes_per_iteration = protocol_dict[
+            "amount_of_wrong_step_search_hashes_per_iteration"
+        ]
         amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
 
         hash_result_keys = self.prover_winternitz_keys_nibbles_service(
@@ -58,10 +64,14 @@ class GenerateProverPublicKeysService:
                 current_iteration_prover_choice_public_keys.append(
                     list(map(lambda key_list: key_list[-1], keys_list_of_lists))
                 )
-            choice_search_prover_public_keys_list.append(current_iteration_prover_choice_public_keys)
+            choice_search_prover_public_keys_list.append(
+                current_iteration_prover_choice_public_keys
+            )
 
         protocol_dict["hash_search_public_keys_list"] = hash_search_public_keys_list
-        protocol_dict["choice_search_prover_public_keys_list"] = choice_search_prover_public_keys_list
+        protocol_dict["choice_search_prover_public_keys_list"] = (
+            choice_search_prover_public_keys_list
+        )
 
         trace_words_lengths = [8, 8, 8] + [8, 8, 8] + [8, 2, 8] + [8, 8, 8, 2]
         trace_words_lengths.reverse()

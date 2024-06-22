@@ -1,4 +1,3 @@
-import hashlib
 
 from bitcoinutils.keys import PublicKey
 
@@ -37,16 +36,8 @@ class ScriptsDictGeneratorService:
             "amount_of_wrong_step_search_iterations"
         ]
         amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
-        amount_of_wrong_step_search_hashes_per_iteration = protocol_dict[
-            "amount_of_wrong_step_search_hashes_per_iteration"
-        ]
         amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
-        seed_destroyed_public_key_hex = protocol_dict["seed_destroyed_public_key_hex"]
-        destroyed_public_key_hex = hashlib.sha256(
-            bytes.fromhex(seed_destroyed_public_key_hex)
-        ).hexdigest()
-        destroyed_public_key = PublicKey(hex_str="02" + destroyed_public_key_hex)
-        prover_public_key = protocol_dict["prover_public_key"]
+        prover_public_key = PublicKey(hex_str=protocol_dict["prover_public_key"])
         hash_result_public_keys = protocol_dict["hash_result_public_keys"]
         hash_search_public_keys_list = protocol_dict["hash_search_public_keys_list"]
         choice_search_prover_public_keys_list = protocol_dict[

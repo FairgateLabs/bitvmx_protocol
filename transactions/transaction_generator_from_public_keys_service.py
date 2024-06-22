@@ -11,19 +11,19 @@ class TransactionGeneratorFromPublicKeysService:
 
     def __call__(self, protocol_dict):
 
-        faucet_tx_id = protocol_dict["faucet_tx_id"]
-        faucet_index = protocol_dict["faucet_index"]
+        funds_tx_id = protocol_dict["funds_tx_id"]
+        funds_index = protocol_dict["funds_index"]
         funding_result_output_amount = protocol_dict["funding_amount_satoshis"]
         step_fees_satoshis = protocol_dict["step_fees_satoshis"]
         amount_of_wrong_step_search_iterations = protocol_dict[
             "amount_of_wrong_step_search_iterations"
         ]
 
-        destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
+        destroyed_public_key = PublicKey(hex_str="02" + protocol_dict["destroyed_public_key"])
 
         scripts_dict = self.scripts_dict_generator_service(protocol_dict)
 
-        funding_txin = TxInput(faucet_tx_id, faucet_index)
+        funding_txin = TxInput(funds_tx_id, funds_index)
         # hash_result_script_address = destroyed_public_key.get_taproot_address([[hash_result_script]])
 
         protocol_dict["funding_amount_satoshis"] = funding_result_output_amount
