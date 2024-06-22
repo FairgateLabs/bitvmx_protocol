@@ -40,6 +40,7 @@ from transactions.publication_services.trigger_protocol_transaction_service impo
 from transactions.transaction_generator_from_public_keys_service import (
     TransactionGeneratorFromPublicKeysService,
 )
+from winternitz_keys_handling.services.generate_prover_public_keys_service import GenerateProverPublicKeysService
 from winternitz_keys_handling.services.generate_winternitz_keys_nibbles_service import (
     GenerateWinternitzKeysNibblesService,
 )
@@ -125,9 +126,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     )
     protocol_dict["amount_of_nibbles_hash"] = amount_of_nibbles_hash
 
-    # Do this by composing the exchanged keys // remove when ended debugging
     public_keys = []
-
     for verifier in verifier_list:
         url = f"http://{verifier}/init_setup"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
@@ -164,76 +163,10 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     protocol_dict["prover_secret_key"] = prover_private_key.to_bytes().hex()
     protocol_dict["prover_public_key"] = prover_public_key
 
-    prover_hash_private_key = PrivateKey(b=bytes.fromhex(prover_private_key.to_bytes().hex()))
+    prover_private_key = PrivateKey(b=bytes.fromhex(prover_private_key.to_bytes().hex()))
 
-    prover_winternitz_keys_nibbles_service = GenerateWinternitzKeysNibblesService(
-        private_key=prover_hash_private_key
-    )
-    prover_winternitz_keys_single_word_service = GenerateWinternitzKeysSingleWordService(
-        private_key=prover_hash_private_key
-    )
-    hash_result_keys = prover_winternitz_keys_nibbles_service(
-        step=1, case=0, n0=amount_of_nibbles_hash
-    )
-    hash_result_public_keys = list(map(lambda key_list: key_list[-1], hash_result_keys))
-    protocol_dict["hash_result_public_keys"] = hash_result_public_keys
-
-    hash_search_public_keys_list = []
-    choice_search_prover_public_keys_list = []
-    for iter_count in range(amount_of_wrong_step_search_iterations):
-        current_iteration_hash_keys = []
-
-        for word_count in range(amount_of_wrong_step_search_hashes_per_iteration):
-            current_iteration_hash_keys.append(
-                prover_winternitz_keys_nibbles_service(
-                    step=(3 + iter_count * 2), case=word_count, n0=amount_of_nibbles_hash
-                )
-            )
-        current_iteration_hash_public_keys = []
-        for keys_list_of_lists in current_iteration_hash_keys:
-            current_iteration_hash_public_keys.append(
-                list(map(lambda key_list: key_list[-1], keys_list_of_lists))
-            )
-        hash_search_public_keys_list.append(current_iteration_hash_public_keys)
-
-        current_iteration_prover_choice_keys = []
-        current_iteration_prover_choice_keys.append(
-            prover_winternitz_keys_single_word_service(
-                step=(3 + iter_count * 2 + 1),
-                case=0,
-                amount_of_bits=amount_of_bits_wrong_step_search,
-            )
-        )
-        current_iteration_prover_choice_public_keys = []
-        for keys_list_of_lists in current_iteration_prover_choice_keys:
-            current_iteration_prover_choice_public_keys.append(
-                list(map(lambda key_list: key_list[-1], keys_list_of_lists))
-            )
-        choice_search_prover_public_keys_list.append(current_iteration_prover_choice_public_keys)
-
-    protocol_dict["hash_search_public_keys_list"] = hash_search_public_keys_list
-    protocol_dict["choice_search_prover_public_keys_list"] = choice_search_prover_public_keys_list
-
-    trace_words_lengths = [8, 8, 8] + [8, 8, 8] + [8, 2, 8] + [8, 8, 8, 2]
-    trace_words_lengths.reverse()
-
-    protocol_dict["trace_words_lengths"] = trace_words_lengths
-
-    current_step = 3 + 2 * amount_of_wrong_step_search_iterations
-    trace_prover_keys = []
-    for i in range(len(trace_words_lengths)):
-        trace_prover_keys.append(
-            prover_winternitz_keys_nibbles_service(
-                step=current_step, case=i, n0=trace_words_lengths[i]
-            )
-        )
-    trace_prover_public_keys = []
-    for keys_list_of_lists in trace_prover_keys:
-        trace_prover_public_keys.append(
-            list(map(lambda key_list: key_list[-1], keys_list_of_lists))
-        )
-
-    protocol_dict["trace_prover_public_keys"] = trace_prover_public_keys
+    generate_prover_public_keys_service = GenerateProverPublicKeysService(prover_private_key)
+    generate_prover_public_keys_service(protocol_dict)
 
     # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
     url = f"http://{verifier_list[0]}/public_keys"
@@ -242,9 +175,9 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         "setup_uuid": setup_uuid,
         "destroyed_public_key": destroyed_public_key_hex,
         "prover_public_key": prover_public_key.to_hex(),
-        "hash_result_public_keys": hash_result_public_keys,
-        "hash_search_public_keys_list": hash_search_public_keys_list,
-        "trace_prover_public_keys": trace_prover_public_keys,
+        "hash_result_public_keys": protocol_dict["hash_result_public_keys"],
+        "hash_search_public_keys_list": protocol_dict["hash_search_public_keys_list"],
+        "trace_prover_public_keys": protocol_dict["trace_prover_public_keys"],
         "amount_of_wrong_step_search_iterations": amount_of_wrong_step_search_iterations,
         "amount_of_bits_wrong_step_search": amount_of_bits_wrong_step_search,
     }
@@ -302,7 +235,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     transaction_generator_from_public_keys_service = TransactionGeneratorFromPublicKeysService()
     transaction_generator_from_public_keys_service(protocol_dict)
 
-    # Witness computation
+    # Signature computation
 
     hash_result_tx = protocol_dict["hash_result_tx"]
     hash_result_script_address = destroyed_public_key.get_taproot_address(
@@ -312,7 +245,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     hash_result_witness = []
 
     generate_witness_from_input_nibbles_service = GenerateWitnessFromInputNibblesService(
-        prover_hash_private_key
+        prover_private_key
     )
 
     input_number_first_alice = []
