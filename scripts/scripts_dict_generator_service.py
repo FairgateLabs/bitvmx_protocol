@@ -1,4 +1,3 @@
-
 from bitcoinutils.keys import PublicKey
 
 from scripts.services.commit_search_choice_script_generator_service import (

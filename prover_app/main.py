@@ -13,7 +13,6 @@ from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
 from bitcoinutils.keys import PrivateKey, PublicKey
 from bitcoinutils.setup import setup
 from bitcoinutils.transactions import TxWitnessInput
-from bitcoinutils.utils import ControlBlock
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
@@ -21,9 +20,6 @@ from mutinyet_api.services.broadcast_transaction_service import BroadcastTransac
 from mutinyet_api.services.faucet_service import FaucetService
 from prover_app.config import protocol_properties
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
-from scripts.services.execution_trace_script_generator_service import (
-    ExecutionTraceScriptGeneratorService,
-)
 from transactions.enums import TransactionStepType
 from transactions.publication_services.publish_choice_search_transaction_service import (
     PublishChoiceSearchTransactionService,
@@ -34,6 +30,9 @@ from transactions.publication_services.publish_hash_search_transaction_service i
 from transactions.publication_services.publish_hash_transaction_service import (
     PublishHashTransactionService,
 )
+from transactions.publication_services.publish_trace_transaction_service import (
+    PublishTraceTransactionService,
+)
 from transactions.transaction_generator_from_public_keys_service import (
     TransactionGeneratorFromPublicKeysService,
 )
@@ -42,9 +41,6 @@ from winternitz_keys_handling.services.generate_prover_public_keys_service impor
 )
 from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,
-)
-from winternitz_keys_handling.services.generate_witness_from_input_single_word_service import (
-    GenerateWitnessFromInputSingleWordService,
 )
 
 app = FastAPI(
@@ -349,43 +345,14 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
     with open(f"prover_keys/{setup_uuid}.pkl", "rb") as f:
         protocol_dict = pickle.load(f)
 
-    # This should be a configuration
-    amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
-
     prover_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["prover_secret_key"]))
-    prover_public_key = prover_private_key.get_public_key()
 
-    initial_amount_of_satoshis = protocol_dict["initial_amount_satoshis"]
-    amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
     amount_of_wrong_step_search_iterations = protocol_dict["amount_of_wrong_step_search_iterations"]
-    amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
-    amount_of_wrong_step_search_hashes_per_iteration = protocol_dict[
-        "amount_of_wrong_step_search_hashes_per_iteration"
-    ]
     last_confirmed_step = protocol_dict["last_confirmed_step"]
-    last_confirmed_step_tx_id = protocol_dict["last_confirmed_step_tx_id"]
-
-    hash_result_tx = protocol_dict["hash_result_tx"]
-
-    hash_result_witness = []
-
-    generate_witness_from_input_nibbles_service = GenerateWitnessFromInputNibblesService(
-        prover_private_key
-    )
-
-    destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
-
-    broadcast_transaction_service = BroadcastTransactionService()
 
     ## TO BE ERASED ##
     verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_secret_key"]))
-    generate_verifier_witness_from_input_single_word_service = (
-        GenerateWitnessFromInputSingleWordService(verifier_private_key)
-    )
     ## END TO BE ERASED ##
-    generate_prover_witness_from_input_single_word_service = (
-        GenerateWitnessFromInputSingleWordService(prover_private_key)
-    )
 
     if last_confirmed_step is None:
         publish_hash_transaction_service = PublishHashTransactionService(prover_private_key)
@@ -396,15 +363,6 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         protocol_dict["last_confirmed_step"] = last_confirmed_step
     elif last_confirmed_step == TransactionStepType.HASH_RESULT:
         ## VERIFY THAT THE PROTOCOL HAS BEEN TRIGGERED ##
-        choice_hash_tx_list = protocol_dict["choice_hash_tx_list"]
-
-        choice_search_prover_public_keys_list = protocol_dict[
-            "choice_search_prover_public_keys_list"
-        ]
-        choice_search_verifier_public_keys_list = protocol_dict[
-            "choice_search_verifier_public_keys_list"
-        ]
-
         for i in range(amount_of_wrong_step_search_iterations):
             publish_hash_search_transaction_service = PublishHashSearchTransactionService(
                 prover_private_key, verifier_private_key
@@ -424,78 +382,11 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
             protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
             protocol_dict["last_confirmed_step"] = last_confirmed_step
 
-        trace_words_lengths = protocol_dict["trace_words_lengths"]
-
-        trace_array = []
-        for word_length in trace_words_lengths:
-            trace_array.append("1" * word_length)
-
-        trace_witness = []
-
-        current_choice = 2
-        trace_witness += generate_verifier_witness_from_input_single_word_service(
-            step=(3 + (amount_of_wrong_step_search_iterations - 1) * 2 + 1),
-            case=0,
-            input_number=current_choice,
-            amount_of_bits=amount_of_bits_wrong_step_search,
+        publish_trace_transaction_service = PublishTraceTransactionService(
+            prover_private_key, verifier_private_key
         )
-        trace_witness += generate_prover_witness_from_input_single_word_service(
-            step=(3 + (amount_of_wrong_step_search_iterations - 1) * 2 + 1),
-            case=0,
-            input_number=current_choice,
-            amount_of_bits=amount_of_bits_wrong_step_search,
-        )
-
-        for word_count in range(len(trace_words_lengths)):
-
-            input_number = []
-            for letter in trace_array[len(trace_array) - word_count - 1]:
-                input_number.append(int(letter, 16))
-
-            trace_witness += generate_witness_from_input_nibbles_service(
-                step=3 + amount_of_wrong_step_search_iterations * 2,
-                case=len(trace_words_lengths) - word_count - 1,
-                input_numbers=input_number,
-                bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
-            )
-
-        trace_tx = protocol_dict["trace_tx"]
-        trace_prover_public_keys = protocol_dict["trace_prover_public_keys"]
-
-        execution_trace_script_generator_service = ExecutionTraceScriptGeneratorService()
-        trace_script = execution_trace_script_generator_service(
-            trace_prover_public_keys,
-            trace_words_lengths,
-            amount_of_bits_per_digit_checksum,
-            amount_of_bits_wrong_step_search,
-            choice_search_prover_public_keys_list[-1][0],
-            choice_search_verifier_public_keys_list[-1][0],
-        )
-        trace_script_address = destroyed_public_key.get_taproot_address([[trace_script]])
-
-        trace_control_block = ControlBlock(
-            destroyed_public_key,
-            scripts=[[trace_script]],
-            index=0,
-            is_odd=trace_script_address.is_odd(),
-        )
-
-        trace_tx.witnesses.append(
-            TxWitnessInput(
-                trace_witness
-                + [
-                    # third_signature_bob,
-                    # third_signature_alice,
-                    trace_script.to_hex(),
-                    trace_control_block.to_hex(),
-                ]
-            )
-        )
-
-        broadcast_transaction_service(transaction=trace_tx.serialize())
-        print("Trace transaction: " + trace_tx.get_txid())
-
-        last_confirmed_step_tx_id = trace_tx.get_txid()
+        last_confirmed_step_tx = publish_trace_transaction_service(protocol_dict)
+        last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
         last_confirmed_step = TransactionStepType.TRACE
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
         protocol_dict["last_confirmed_step"] = last_confirmed_step
