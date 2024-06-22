@@ -150,13 +150,15 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     public_keys.append(prover_public_key.to_x_only_hex())
 
     destroyed_public_key = None
-    public_destroyed_key_hex = ""
+    destroyed_public_key_hex = ""
+    seed_destroyed_public_key_hex = ""
     while destroyed_public_key is None:
         try:
-            public_destroyed_key_hex = hashlib.sha256(
-                bytes.fromhex("".join(public_keys))
+            seed_destroyed_public_key_hex = "".join(public_keys)
+            destroyed_public_key_hex = hashlib.sha256(
+                bytes.fromhex(seed_destroyed_public_key_hex)
             ).hexdigest()
-            destroyed_public_key = PublicKey(hex_str="02" + public_destroyed_key_hex)
+            destroyed_public_key = PublicKey(hex_str="02" + destroyed_public_key_hex)
             continue
         except IndexError:
             prover_private_key = PrivateKey(b=secrets.token_bytes(32))
@@ -166,6 +168,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
             prover_public_key = prover_private_key.get_public_key()
             public_keys[-1] = prover_public_key.to_x_only_hex()
 
+    protocol_dict["seed_destroyed_public_key_hex"] = seed_destroyed_public_key_hex
     protocol_dict["destroyed_public_key"] = destroyed_public_key.to_hex()
     protocol_dict["prover_secret_key"] = prover_private_key.to_bytes().hex()
 
@@ -178,37 +181,6 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         private_key=prover_hash_private_key
     )
     hash_result_script_generator = HashResultScriptGeneratorService()
-
-    ###### TO BE ERASED ########
-    verifier_private_key = PrivateKey(b=secrets.token_bytes(32))
-    protocol_dict["verifier_secret_key"] = verifier_private_key.to_bytes().hex()
-    verifier_public_key = prover_private_key.get_public_key()
-    verifier_winternitz_keys_single_word_service = GenerateWinternitzKeysSingleWordService(
-        private_key=verifier_private_key
-    )
-    choice_search_verifier_public_keys_list = []
-    for iter_count in range(amount_of_wrong_step_search_iterations):
-        current_iteration_keys = []
-        current_iteration_keys.append(
-            verifier_winternitz_keys_single_word_service(
-                step=(3 + iter_count * 2 + 1),
-                case=0,
-                amount_of_bits=amount_of_bits_wrong_step_search,
-            )
-        )
-        current_iteration_public_keys = []
-        for keys_list_of_lists in current_iteration_keys:
-            current_iteration_public_keys.append(
-                list(map(lambda key_list: key_list[-1], keys_list_of_lists))
-            )
-
-        choice_search_verifier_public_keys_list.append(current_iteration_public_keys)
-
-    protocol_dict["choice_search_verifier_public_keys_list"] = (
-        choice_search_verifier_public_keys_list
-    )
-
-    ##### END TO BE ERASED #####
 
     hash_result_keys = prover_winternitz_keys_nibbles_service(
         step=1, case=0, n0=amount_of_nibbles_hash
@@ -272,6 +244,56 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         )
 
     protocol_dict["trace_prover_public_keys"] = trace_prover_public_keys
+
+    # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
+    url = f"http://{verifier_list[0]}/public_keys"
+    headers = {"accept": "application/json", "Content-Type": "application/json"}
+    data = {
+        "setup_uuid": setup_uuid,
+        "destroyed_public_key": destroyed_public_key_hex,
+        "prover_public_key": prover_public_key.to_hex(),
+        "hash_result_public_keys": hash_result_public_keys,
+        "hash_search_public_keys_list": hash_search_public_keys_list,
+        "trace_prover_public_keys": trace_prover_public_keys,
+        "amount_of_wrong_step_search_iterations": amount_of_wrong_step_search_iterations,
+        "amount_of_bits_wrong_step_search": amount_of_bits_wrong_step_search
+    }
+
+    public_keys_response = requests.post(url, headers=headers, json=data)
+    if public_keys_response.status_code != 200:
+        raise Exception("Some error with the public keys verifier call")
+    public_keys_response_json = public_keys_response.json()
+
+    choice_search_verifier_public_keys_list = public_keys_response_json["choice_search_verifier_public_keys_list"]
+
+    ###### TO BE ERASED ########
+    verifier_private_key = PrivateKey(b=bytes.fromhex(public_keys_response_json["verifier_secret_key"]))
+    protocol_dict["verifier_secret_key"] = verifier_private_key.to_bytes().hex()
+    # verifier_winternitz_keys_single_word_service = GenerateWinternitzKeysSingleWordService(
+    #     private_key=verifier_private_key
+    # )
+    # for iter_count in range(amount_of_wrong_step_search_iterations):
+    #     current_iteration_keys = []
+    #     current_iteration_keys.append(
+    #         verifier_winternitz_keys_single_word_service(
+    #             step=(3 + iter_count * 2 + 1),
+    #             case=0,
+    #             amount_of_bits=amount_of_bits_wrong_step_search,
+    #         )
+    #     )
+    #     current_iteration_public_keys = []
+    #     for keys_list_of_lists in current_iteration_keys:
+    #         current_iteration_public_keys.append(
+    #             list(map(lambda key_list: key_list[-1], keys_list_of_lists))
+    #         )
+    #
+    #     choice_search_verifier_public_keys_list.append(current_iteration_public_keys)
+
+    protocol_dict["choice_search_verifier_public_keys_list"] = (
+        choice_search_verifier_public_keys_list
+    )
+
+    ##### END TO BE ERASED #####
 
     ## Scripts building ##
 
@@ -657,36 +679,6 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
         protocol_dict["last_confirmed_step"] = last_confirmed_step
     else:
-        # trigger_protocol_tx = protocol_dict["trigger_protocol_tx"]
-        # trigger_protocol_script_generator = TriggerProtocolScriptGeneratorService()
-        # trigger_protocol_script = trigger_protocol_script_generator()
-        # trigger_protocol_script_address = destroyed_public_key.get_taproot_address(
-        #     [[trigger_protocol_script]]
-        # )
-        #
-        # trigger_protocol_control_block = ControlBlock(
-        #     destroyed_public_key,
-        #     scripts=[[trigger_protocol_script]],
-        #     index=0,
-        #     is_odd=trigger_protocol_script_address.is_odd(),
-        # )
-        #
-        # trigger_protocol_witness = []
-        # trigger_protocol_tx.witnesses.append(
-        #     TxWitnessInput(
-        #         trigger_protocol_witness
-        #         + [
-        #             # first_signature_bob,
-        #             # hash_result_signature_prover,
-        #             trigger_protocol_script.to_hex(),
-        #             trigger_protocol_control_block.to_hex(),
-        #         ]
-        #     )
-        # )
-        #
-        # broadcast_transaction_service(transaction=trigger_protocol_tx.serialize())
-        # print("Trigger protocol transaction: " + trigger_protocol_tx.get_txid())
-
         search_hash_tx_list = protocol_dict["search_hash_tx_list"]
         choice_hash_tx_list = protocol_dict["choice_hash_tx_list"]
 
