@@ -10,9 +10,9 @@ from typing import Optional
 import httpx
 import requests
 from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
-from bitcoinutils.keys import P2wpkhAddress, PrivateKey, PublicKey
+from bitcoinutils.keys import PrivateKey, PublicKey
 from bitcoinutils.setup import setup
-from bitcoinutils.transactions import Transaction, TxInput, TxOutput, TxWitnessInput
+from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
@@ -20,6 +20,7 @@ from pydantic import BaseModel
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
 from mutinyet_api.services.faucet_service import FaucetService
 from prover_app.config import protocol_properties
+from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 from scripts.services.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
 )
@@ -29,15 +30,16 @@ from scripts.services.commit_search_hashes_script_generator_service import (
 from scripts.services.execution_trace_script_generator_service import (
     ExecutionTraceScriptGeneratorService,
 )
-from scripts.services.hash_result_script_generator_service import HashResultScriptGeneratorService
-from scripts.services.trigger_protocol_script_generator_service import (
-    TriggerProtocolScriptGeneratorService,
-)
 from transactions.enums import TransactionStepType
 from transactions.publication_services.publish_hash_transaction_service import (
     PublishHashTransactionService,
 )
-from transactions.publication_services.trigger_protocol_transaction_service import TriggerProtocolTransactionService
+from transactions.publication_services.trigger_protocol_transaction_service import (
+    TriggerProtocolTransactionService,
+)
+from transactions.transaction_generator_from_public_keys_service import (
+    TransactionGeneratorFromPublicKeysService,
+)
 from winternitz_keys_handling.services.generate_winternitz_keys_nibbles_service import (
     GenerateWinternitzKeysNibblesService,
 )
@@ -125,12 +127,6 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
     # Do this by composing the exchanged keys // remove when ended debugging
     public_keys = []
-    # destroyed_keys.append(secrets.token_hex(32))
-    # destroyed_key = PrivateKey(b=secrets.token_bytes(32))
-    # destroyed_key = PrivateKey(
-    #     b=bytes.fromhex("6eda6ac008a9b39f4aec5502f27c309a5ead41b7b45a8321a37e9901a3515bd3")
-    # )
-    # destroyed_public_key = destroyed_key.get_public_key()
 
     for verifier in verifier_list:
         url = f"http://{verifier}/init_setup"
@@ -143,9 +139,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
     # Generate prover private key
     prover_private_key = PrivateKey(b=secrets.token_bytes(32))
-    # prover_private_key = PrivateKey(
-    #     b=bytes.fromhex("5cb928bbdfcf6b37732ef1efb6dd7d44e2b2af8d24fdc0f534adee4d495afd84")
-    # )
+
     prover_public_key = prover_private_key.get_public_key()
     public_keys.append(prover_public_key.to_x_only_hex())
 
@@ -162,15 +156,13 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
             continue
         except IndexError:
             prover_private_key = PrivateKey(b=secrets.token_bytes(32))
-            # prover_private_key = PrivateKey(
-            #     b=bytes.fromhex("5cb928bbdfcf6b37732ef1efb6dd7d44e2b2af8d24fdc0f534adee4d495afd84")
-            # )
             prover_public_key = prover_private_key.get_public_key()
             public_keys[-1] = prover_public_key.to_x_only_hex()
 
     protocol_dict["seed_destroyed_public_key_hex"] = seed_destroyed_public_key_hex
     protocol_dict["destroyed_public_key"] = destroyed_public_key.to_hex()
     protocol_dict["prover_secret_key"] = prover_private_key.to_bytes().hex()
+    protocol_dict["prover_public_key"] = prover_public_key
 
     prover_hash_private_key = PrivateKey(b=bytes.fromhex(prover_private_key.to_bytes().hex()))
 
@@ -180,8 +172,6 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     prover_winternitz_keys_single_word_service = GenerateWinternitzKeysSingleWordService(
         private_key=prover_hash_private_key
     )
-    hash_result_script_generator = HashResultScriptGeneratorService()
-
     hash_result_keys = prover_winternitz_keys_nibbles_service(
         step=1, case=0, n0=amount_of_nibbles_hash
     )
@@ -256,7 +246,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         "hash_search_public_keys_list": hash_search_public_keys_list,
         "trace_prover_public_keys": trace_prover_public_keys,
         "amount_of_wrong_step_search_iterations": amount_of_wrong_step_search_iterations,
-        "amount_of_bits_wrong_step_search": amount_of_bits_wrong_step_search
+        "amount_of_bits_wrong_step_search": amount_of_bits_wrong_step_search,
     }
 
     public_keys_response = requests.post(url, headers=headers, json=data)
@@ -264,115 +254,26 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         raise Exception("Some error with the public keys verifier call")
     public_keys_response_json = public_keys_response.json()
 
-    choice_search_verifier_public_keys_list = public_keys_response_json["choice_search_verifier_public_keys_list"]
+    choice_search_verifier_public_keys_list = public_keys_response_json[
+        "choice_search_verifier_public_keys_list"
+    ]
 
     ###### TO BE ERASED ########
-    verifier_private_key = PrivateKey(b=bytes.fromhex(public_keys_response_json["verifier_secret_key"]))
+    verifier_private_key = PrivateKey(
+        b=bytes.fromhex(public_keys_response_json["verifier_secret_key"])
+    )
     protocol_dict["verifier_secret_key"] = verifier_private_key.to_bytes().hex()
-    # verifier_winternitz_keys_single_word_service = GenerateWinternitzKeysSingleWordService(
-    #     private_key=verifier_private_key
-    # )
-    # for iter_count in range(amount_of_wrong_step_search_iterations):
-    #     current_iteration_keys = []
-    #     current_iteration_keys.append(
-    #         verifier_winternitz_keys_single_word_service(
-    #             step=(3 + iter_count * 2 + 1),
-    #             case=0,
-    #             amount_of_bits=amount_of_bits_wrong_step_search,
-    #         )
-    #     )
-    #     current_iteration_public_keys = []
-    #     for keys_list_of_lists in current_iteration_keys:
-    #         current_iteration_public_keys.append(
-    #             list(map(lambda key_list: key_list[-1], keys_list_of_lists))
-    #         )
-    #
-    #     choice_search_verifier_public_keys_list.append(current_iteration_public_keys)
-
     protocol_dict["choice_search_verifier_public_keys_list"] = (
         choice_search_verifier_public_keys_list
     )
-
     ##### END TO BE ERASED #####
 
     ## Scripts building ##
 
-    hash_result_script = hash_result_script_generator(
-        prover_public_key,
-        hash_result_public_keys,
-        amount_of_nibbles_hash,
-        amount_of_bits_per_digit_checksum,
-    )
+    scripts_dict_generator_service = ScriptsDictGeneratorService()
+    scripts_dict = scripts_dict_generator_service(protocol_dict)
 
-    trigger_protocol_script_generator = TriggerProtocolScriptGeneratorService()
-    trigger_protocol_script = trigger_protocol_script_generator()
-
-    commit_search_hashes_script_generator_service = CommitSearchHashesScriptGeneratorService()
-    commit_search_choice_script_generator_service = CommitSearchChoiceScriptGeneratorService()
-
-    hash_search_scripts = []
-    choice_search_scripts = []
-    for iter_count in range(amount_of_wrong_step_search_iterations):
-        # Hash
-        current_hash_public_keys = hash_search_public_keys_list[iter_count]
-        if iter_count > 0:
-            previous_choice_verifier_public_keys = choice_search_verifier_public_keys_list[
-                iter_count - 1
-            ]
-            current_choice_prover_public_keys = choice_search_prover_public_keys_list[
-                iter_count - 1
-            ]
-            current_search_script = commit_search_hashes_script_generator_service(
-                current_hash_public_keys,
-                amount_of_nibbles_hash,
-                amount_of_bits_per_digit_checksum,
-                amount_of_bits_wrong_step_search,
-                current_choice_prover_public_keys[0],
-                previous_choice_verifier_public_keys[0],
-            )
-        else:
-            current_search_script = commit_search_hashes_script_generator_service(
-                current_hash_public_keys, amount_of_nibbles_hash, amount_of_bits_per_digit_checksum
-            )
-
-        hash_search_scripts.append(current_search_script)
-
-        # Choice
-        current_choice_public_keys = choice_search_verifier_public_keys_list[iter_count]
-        current_choice_script = commit_search_choice_script_generator_service(
-            current_choice_public_keys[0],
-            amount_of_bits_wrong_step_search,
-        )
-        choice_search_scripts.append(current_choice_script)
-
-    protocol_dict["hash_result_public_keys"] = hash_result_public_keys
-    protocol_dict["hash_result_public_keys"] = hash_result_public_keys
-
-    hash_search_scripts_addresses = list(
-        map(
-            lambda search_script: destroyed_public_key.get_taproot_address([[search_script]]),
-            hash_search_scripts,
-        )
-    )
-
-    choice_search_scripts_addresses = list(
-        map(
-            lambda choice_script: destroyed_public_key.get_taproot_address([[choice_script]]),
-            choice_search_scripts,
-        )
-    )
-
-    execution_trace_script_generator_service = ExecutionTraceScriptGeneratorService()
-
-    trace_script = execution_trace_script_generator_service(
-        trace_prover_public_keys,
-        trace_words_lengths,
-        amount_of_bits_per_digit_checksum,
-        amount_of_bits_wrong_step_search,
-        choice_search_prover_public_keys_list[-1][0],
-        choice_search_verifier_public_keys_list[-1][0],
-    )
-    trace_script_address = destroyed_public_key.get_taproot_address([[trace_script]])
+    hash_result_script = scripts_dict["hash_result_script"]
 
     initial_amount_satoshis = 100000
     step_fees_satoshis = 10000
@@ -380,151 +281,38 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     protocol_dict["initial_amount_satoshis"] = initial_amount_satoshis
     protocol_dict["step_fees_satoshis"] = step_fees_satoshis
 
+    # We need to know the origin of the funds or change the signature to only sign the output (it's possible and gives more flexibility)
+
     faucet_service = FaucetService()
 
-    faucet_tx, faucet_index = faucet_service(
+    faucet_tx_id, faucet_index = faucet_service(
         amount=initial_amount_satoshis + step_fees_satoshis,
         destination_address=prover_public_key.get_segwit_address().to_string(),
     )
 
-    print("Faucet tx: " + faucet_tx)
+    protocol_dict["faucet_tx_id"] = faucet_tx_id
+    protocol_dict["faucet_index"] = faucet_index
 
-    # Transaction construction
+    print("Faucet tx: " + faucet_tx_id)
 
-    funding_txin = TxInput(faucet_tx, faucet_index)
-    hash_result_script_address = destroyed_public_key.get_taproot_address([[hash_result_script]])
     funding_result_output_amount = initial_amount_satoshis
-
     protocol_dict["funding_amount_satoshis"] = funding_result_output_amount
 
-    funding_txout = TxOutput(
-        funding_result_output_amount, hash_result_script_address.to_script_pub_key()
-    )
-    funding_tx = Transaction([funding_txin], [funding_txout], has_segwit=True)
-
-    protocol_dict["funding_transaction_id"] = [funding_tx.get_txid(), 0]
-
-    trigger_protocol_script_address = destroyed_public_key.get_taproot_address(
-        [[trigger_protocol_script]]
-    )
-
-    hash_result_txin = TxInput(funding_tx.get_txid(), 0)
-    hash_result_output_amount = funding_result_output_amount - step_fees_satoshis
-    # first_txOut = TxOutput(first_output_amount, P2wpkhAddress.from_address(address=faucet_address).to_script_pub_key())
-    hash_result_txOut = TxOutput(
-        hash_result_output_amount, trigger_protocol_script_address.to_script_pub_key()
-    )
-
-    hash_result_tx = Transaction([hash_result_txin], [hash_result_txOut], has_segwit=True)
-
-    protocol_dict["hash_result_tx"] = hash_result_tx
-
-    trigger_protocol_output_amount = hash_result_output_amount - step_fees_satoshis
-    trigger_protocol_txin = TxInput(hash_result_tx.get_txid(), 0)
-    trigger_protocol_txOut = TxOutput(
-        trigger_protocol_output_amount, hash_search_scripts_addresses[0].to_script_pub_key()
-    )
-
-    trigger_protocol_tx = Transaction(
-        [trigger_protocol_txin], [trigger_protocol_txOut], has_segwit=True
-    )
-
-    protocol_dict["trigger_protocol_tx"] = trigger_protocol_tx
-
-    trigger_protocol_control_block = ControlBlock(
-        destroyed_public_key,
-        scripts=[[trigger_protocol_script]],
-        index=0,
-        is_odd=trigger_protocol_script_address.is_odd(),
-    )
-
-    previous_tx_id = trigger_protocol_tx.get_txid()
-    current_output_amount = trigger_protocol_output_amount
-    search_hash_tx_list = []
-    choice_hash_tx_list = []
-    hash_search_control_blocks = []
-    choice_search_control_blocks = []
-
-    for i in range(amount_of_wrong_step_search_iterations):
-
-        # HASH
-        current_txin = TxInput(previous_tx_id, 0)
-        current_output_amount -= step_fees_satoshis
-        current_output_address = choice_search_scripts_addresses[i]
-        current_txout = TxOutput(current_output_amount, current_output_address.to_script_pub_key())
-
-        current_tx = Transaction([current_txin], [current_txout], has_segwit=True)
-
-        search_hash_tx_list.append(current_tx)
-        current_control_block = ControlBlock(
-            destroyed_public_key,
-            scripts=[[hash_search_scripts[i]]],
-            index=0,
-            is_odd=hash_search_scripts_addresses[i].is_odd(),
-        )
-        hash_search_control_blocks.append(current_control_block)
-
-        # CHOICE
-        current_txin = TxInput(current_tx.get_txid(), 0)
-        current_output_amount -= step_fees_satoshis
-        if i == amount_of_wrong_step_search_iterations - 1:
-            # faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
-            # current_output_address = P2wpkhAddress.from_address(address=faucet_address)
-            current_output_address = trace_script_address
-        else:
-            current_output_address = hash_search_scripts_addresses[i + 1]
-        current_txout = TxOutput(current_output_amount, current_output_address.to_script_pub_key())
-
-        current_tx = Transaction([current_txin], [current_txout], has_segwit=True)
-
-        choice_hash_tx_list.append(current_tx)
-        current_control_block = ControlBlock(
-            destroyed_public_key,
-            scripts=[[choice_search_scripts[i]]],
-            index=0,
-            is_odd=choice_search_scripts_addresses[i].is_odd(),
-        )
-        choice_search_control_blocks.append(current_control_block)
-
-        previous_tx_id = current_tx.get_txid()
-
-    protocol_dict["search_hash_tx_list"] = search_hash_tx_list
-    protocol_dict["choice_hash_tx_list"] = choice_hash_tx_list
-
-    trace_txin = TxInput(choice_hash_tx_list[-1].get_txid(), 0)
-    trace_output_amount = current_output_amount - step_fees_satoshis
-    faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
-    trace_output_address = P2wpkhAddress.from_address(address=faucet_address)
-    trace_txout = TxOutput(trace_output_amount, trace_output_address.to_script_pub_key())
-
-    trace_tx = Transaction([trace_txin], [trace_txout], has_segwit=True)
-
-    trace_control_block = ControlBlock(
-        destroyed_public_key,
-        scripts=[[trace_script]],
-        index=0,
-        is_odd=trace_script_address.is_odd(),
-    )
-
-    protocol_dict["trace_tx"] = trace_tx
-
-    protocol_dict["transactions"] = protocol_dict
-
-    protocol_dict["last_confirmed_step"] = None
-    protocol_dict["last_confirmed_step_tx_id"] = None
+    # Transaction construction
+    transaction_generator_from_public_keys_service = TransactionGeneratorFromPublicKeysService()
+    transaction_generator_from_public_keys_service(protocol_dict)
 
     # Witness computation
+
+    hash_result_tx = protocol_dict["hash_result_tx"]
+    hash_result_script_address = destroyed_public_key.get_taproot_address(
+        [[scripts_dict["hash_result_script"]]]
+    )
 
     hash_result_witness = []
 
     generate_witness_from_input_nibbles_service = GenerateWitnessFromInputNibblesService(
         prover_hash_private_key
-    )
-    generate_verifier_witness_from_input_single_word_service = (
-        GenerateWitnessFromInputSingleWordService(verifier_private_key)
-    )
-    generate_prover_witness_from_input_single_word_service = (
-        GenerateWitnessFromInputSingleWordService(prover_hash_private_key)
     )
 
     input_number_first_alice = []
@@ -574,6 +362,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         pickle.dump(protocol_dict, f)
 
     #################################################################
+    funding_tx = protocol_dict["funding_tx"]
 
     funding_sig = prover_private_key.sign_segwit_input(
         funding_tx,
@@ -617,7 +406,6 @@ async def _trigger_next_step_verifier(publish_hash_body: PublishNextStepBody):
     # Make the POST request
     async with httpx.AsyncClient() as client:
         await client.post(url, headers=headers, json=json.loads(publish_hash_body.json()))
-
 
 
 @app.post("/publish_next_step")
@@ -678,7 +466,7 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         last_confirmed_step = TransactionStepType.TRIGGER_PROTOCOL
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
         protocol_dict["last_confirmed_step"] = last_confirmed_step
-    else:
+    elif last_confirmed_step == TransactionStepType.TRIGGER_PROTOCOL:
         search_hash_tx_list = protocol_dict["search_hash_tx_list"]
         choice_hash_tx_list = protocol_dict["choice_hash_tx_list"]
 
@@ -903,7 +691,10 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
     with open(f"prover_keys/{setup_uuid}.pkl", "wb") as f:
         pickle.dump(protocol_dict, f)
 
-    if last_confirmed_step in [TransactionStepType.HASH_RESULT, TransactionStepType.TRIGGER_PROTOCOL]:
-        asyncio.create_task(_trigger_next_step_prover(publish_next_step_body))
+    if last_confirmed_step in [
+        TransactionStepType.HASH_RESULT,
+        TransactionStepType.TRIGGER_PROTOCOL,
+    ]:
+        asyncio.create_task(_trigger_next_step_verifier(publish_next_step_body))
 
     return {"id": setup_uuid, "executed_step": last_confirmed_step}

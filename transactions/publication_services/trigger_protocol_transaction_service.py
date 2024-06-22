@@ -3,7 +3,9 @@ from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
-from scripts.services.trigger_protocol_script_generator_service import TriggerProtocolScriptGeneratorService
+from scripts.services.trigger_protocol_script_generator_service import (
+    TriggerProtocolScriptGeneratorService,
+)
 
 
 class TriggerProtocolTransactionService:
