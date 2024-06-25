@@ -3,6 +3,7 @@ from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
+from mutinyet_api.services.transaction_info_service import TransactionInfoService
 from scripts.services.execution_trace_script_generator_service import (
     ExecutionTraceScriptGeneratorService,
 )
@@ -30,6 +31,7 @@ class PublishTraceTransactionService:
             prover_private_key
         )
         self.broadcast_transaction_service = BroadcastTransactionService()
+        self.transaction_info_service = TransactionInfoService()
 
     def __call__(self, protocol_dict):
         trace_words_lengths = protocol_dict["trace_words_lengths"]
@@ -52,13 +54,12 @@ class PublishTraceTransactionService:
 
         trace_witness = []
 
-        current_choice = 2
-        trace_witness += self.generate_verifier_witness_from_input_single_word_service(
-            step=(3 + (amount_of_wrong_step_search_iterations - 1) * 2 + 1),
-            case=0,
-            input_number=current_choice,
-            amount_of_bits=amount_of_bits_wrong_step_search,
-        )
+        previous_choice_tx = protocol_dict["search_choice_tx_list"][-1].get_txid()
+        previous_choice_transaction_info = self.transaction_info_service(previous_choice_tx)
+        previous_witness = previous_choice_transaction_info.inputs[0].witness
+        trace_witness += previous_witness[0:4]
+        current_choice = int(previous_witness[1])
+
         trace_witness += self.generate_prover_witness_from_input_single_word_service(
             step=(3 + (amount_of_wrong_step_search_iterations - 1) * 2 + 1),
             case=0,

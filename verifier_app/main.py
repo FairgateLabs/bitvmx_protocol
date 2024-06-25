@@ -11,6 +11,9 @@ from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
 from transactions.enums import TransactionStepType
+from transactions.publication_services.publish_choice_search_transaction_service import (
+    PublishChoiceSearchTransactionService,
+)
 from transactions.publication_services.trigger_protocol_transaction_service import (
     TriggerProtocolTransactionService,
 )
@@ -46,7 +49,7 @@ async def init_setup(body: InitSetupBody) -> InitSetupResponse:
     private_key = PrivateKey(b=secrets.token_bytes(32))
     setup_uuid = body.setup_uuid
     protocol_dict = {
-        "secret_key": private_key.to_bytes().hex(),
+        "verifier_private_key": private_key.to_bytes().hex(),
         "last_confirmed_step": None,
         "last_confirmed_step_tx_id": None,
     }
@@ -89,7 +92,7 @@ async def public_keys(public_keys_body: PublicKeysBody) -> PublicKeysResponse:
     with open(f"verifier_keys/{setup_uuid}.pkl", "rb") as f:
         protocol_dict = pickle.load(f)
 
-    verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["secret_key"]))
+    verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
 
     if (
         verifier_private_key.get_public_key().to_x_only_hex()
@@ -211,8 +214,43 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         last_confirmed_step = TransactionStepType.TRIGGER_PROTOCOL
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
         protocol_dict["last_confirmed_step"] = last_confirmed_step
+    elif last_confirmed_step is TransactionStepType.TRIGGER_PROTOCOL:
+        ## VERIFY THE PREVIOUS STEP ##
+        verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
+        i = 0
+        publish_choice_search_transaction_service = PublishChoiceSearchTransactionService(
+            verifier_private_key
+        )
+        last_confirmed_step_tx = publish_choice_search_transaction_service(protocol_dict, i)
+        last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
+        last_confirmed_step = TransactionStepType.SEARCH_STEP_CHOICE
+        protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
+        protocol_dict["last_confirmed_step"] = last_confirmed_step
+    elif last_confirmed_step is TransactionStepType.SEARCH_STEP_CHOICE:
+        ## VERIFY THE PREVIOUS STEP ##
+        verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
+        i = 0
+        for i in range(len(protocol_dict["search_choice_tx_list"])):
+            if (
+                protocol_dict["search_choice_tx_list"][i].get_txid()
+                == protocol_dict["last_confirmed_step_tx_id"]
+            ):
+                break
+        i += 1
+        if i < len(protocol_dict["search_choice_tx_list"]):
+            publish_choice_search_transaction_service = PublishChoiceSearchTransactionService(
+                verifier_private_key
+            )
+            last_confirmed_step_tx = publish_choice_search_transaction_service(protocol_dict, i)
+            last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
+            last_confirmed_step = TransactionStepType.SEARCH_STEP_CHOICE
+            protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
+            protocol_dict["last_confirmed_step"] = last_confirmed_step
 
-    if last_confirmed_step in [TransactionStepType.TRIGGER_PROTOCOL]:
+    if last_confirmed_step in [
+        TransactionStepType.TRIGGER_PROTOCOL,
+        TransactionStepType.SEARCH_STEP_CHOICE,
+    ]:
         asyncio.create_task(_trigger_next_step_prover(publish_next_step_body))
 
     with open(f"verifier_keys/{setup_uuid}.pkl", "wb") as f:

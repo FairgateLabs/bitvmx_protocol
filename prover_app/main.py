@@ -18,12 +18,10 @@ from pydantic import BaseModel
 
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
 from mutinyet_api.services.faucet_service import FaucetService
+from mutinyet_api.services.transaction_published_service import TransactionPublishedService
 from prover_app.config import protocol_properties
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionStepType
-from transactions.publication_services.publish_choice_search_transaction_service import (
-    PublishChoiceSearchTransactionService,
-)
 from transactions.publication_services.publish_hash_search_transaction_service import (
     PublishHashSearchTransactionService,
 )
@@ -349,53 +347,56 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         last_confirmed_step = TransactionStepType.SEARCH_STEP_HASH
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
         protocol_dict["last_confirmed_step"] = last_confirmed_step
+    # elif last_confirmed_step == TransactionStepType.SEARCH_STEP_HASH:
+    #     i = None
+    #     for i in range(len(protocol_dict["search_hash_tx_list"])):
+    #         if (
+    #             protocol_dict["search_hash_tx_list"][i].get_txid()
+    #             == protocol_dict["last_confirmed_step_tx_id"]
+    #         ):
+    #             break
+    #     publish_choice_search_transaction_service = PublishChoiceSearchTransactionService(
+    #         verifier_private_key
+    #     )
+    #     last_confirmed_step_tx = publish_choice_search_transaction_service(protocol_dict, i)
+    #     last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
+    #     last_confirmed_step = TransactionStepType.SEARCH_STEP_CHOICE
+    #     protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
+    #     protocol_dict["last_confirmed_step"] = last_confirmed_step
     elif last_confirmed_step == TransactionStepType.SEARCH_STEP_HASH:
-        i = None
-        for i in range(len(protocol_dict["search_hash_tx_list"])):
-            if (
-                protocol_dict["search_hash_tx_list"][i].get_txid()
-                == protocol_dict["last_confirmed_step_tx_id"]
-            ):
-                break
-        publish_choice_search_transaction_service = PublishChoiceSearchTransactionService(
-            verifier_private_key
-        )
-        last_confirmed_step_tx = publish_choice_search_transaction_service(protocol_dict, i)
-        last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-        last_confirmed_step = TransactionStepType.SEARCH_STEP_CHOICE
-        protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-        protocol_dict["last_confirmed_step"] = last_confirmed_step
-    elif last_confirmed_step == TransactionStepType.SEARCH_STEP_CHOICE:
         ## VERIFY THE PREVIOUS STEP ##
         if (
-            protocol_dict["search_choice_tx_list"][-1].get_txid()
+            protocol_dict["search_hash_tx_list"][-1].get_txid()
             == protocol_dict["last_confirmed_step_tx_id"]
         ):
-            publish_trace_transaction_service = PublishTraceTransactionService(
-                prover_private_key, verifier_private_key
-            )
-            last_confirmed_step_tx = publish_trace_transaction_service(protocol_dict)
-            last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-            last_confirmed_step = TransactionStepType.TRACE
-            protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-            protocol_dict["last_confirmed_step"] = last_confirmed_step
+            transaction_published_service = TransactionPublishedService()
+            if transaction_published_service(protocol_dict["search_choice_tx_list"][-1].get_txid()):
+                publish_trace_transaction_service = PublishTraceTransactionService(
+                    prover_private_key, verifier_private_key
+                )
+                last_confirmed_step_tx = publish_trace_transaction_service(protocol_dict)
+                last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
+                last_confirmed_step = TransactionStepType.TRACE
+                protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
+                protocol_dict["last_confirmed_step"] = last_confirmed_step
         else:
             i = None
-            for i in range(len(protocol_dict["search_choice_tx_list"])):
+            for i in range(len(protocol_dict["search_hash_tx_list"])):
                 if (
-                    protocol_dict["search_choice_tx_list"][i].get_txid()
+                    protocol_dict["search_hash_tx_list"][i].get_txid()
                     == protocol_dict["last_confirmed_step_tx_id"]
                 ):
                     break
             i += 1
-            publish_hash_search_transaction_service = PublishHashSearchTransactionService(
-                prover_private_key
-            )
-            last_confirmed_step_tx = publish_hash_search_transaction_service(protocol_dict, i)
-            last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-            last_confirmed_step = TransactionStepType.SEARCH_STEP_HASH
-            protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-            protocol_dict["last_confirmed_step"] = last_confirmed_step
+            if i < len(protocol_dict["search_choice_tx_list"]):
+                publish_hash_search_transaction_service = PublishHashSearchTransactionService(
+                    prover_private_key
+                )
+                last_confirmed_step_tx = publish_hash_search_transaction_service(protocol_dict, i)
+                last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
+                last_confirmed_step = TransactionStepType.SEARCH_STEP_HASH
+                protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
+                protocol_dict["last_confirmed_step"] = last_confirmed_step
 
     with open(f"prover_keys/{setup_uuid}.pkl", "wb") as f:
         pickle.dump(protocol_dict, f)

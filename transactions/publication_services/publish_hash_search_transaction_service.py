@@ -76,6 +76,7 @@ class PublishHashSearchTransactionService:
 
             hash_search_witness += previous_witness[0:4]
             current_choice = int(previous_witness[1])
+            protocol_dict["search_choice_" + str(i - 1)] = current_choice
             hash_search_witness += self.generate_prover_witness_from_input_single_word_service(
                 step=(3 + (i - 1) * 2 + 1),
                 case=0,
