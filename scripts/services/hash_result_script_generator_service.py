@@ -9,10 +9,11 @@ class HashResultScriptGeneratorService:
     def __init__(self):
         self.verify_input_nibble_message_from_public_keys = VerifyDigitSignatureNibbleService()
 
-    def __call__(self, signature_public_key, public_keys, n0, bits_per_digit_checksum):
+    def __call__(self, signature_public_keys, public_keys, n0, bits_per_digit_checksum):
         script = BitcoinScript()
 
-        script.extend([signature_public_key.to_x_only_hex(), "OP_CHECKSIGVERIFY"])
+        for signature_public_key in signature_public_keys:
+            script.extend([signature_public_key.to_x_only_hex(), "OP_CHECKSIGVERIFY"])
         # first_script.extend(
         #     [first_public_key_bob.to_x_only_hex(), "OP_CHECKSIGVERIFY"]
         # )

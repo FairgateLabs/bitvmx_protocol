@@ -6,10 +6,12 @@ import secrets
 from typing import List
 
 import httpx
+from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
 from bitcoinutils.keys import PrivateKey, PublicKey
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
+from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionStepType
 from transactions.publication_services.publish_choice_search_transaction_service import (
     PublishChoiceSearchTransactionService,
@@ -80,10 +82,8 @@ class PublicKeysBody(BaseModel):
 
 
 class PublicKeysResponse(BaseModel):
-    ## TO BE ERASED ##
-    verifier_secret_key: str
-    ## END TO BE ERASED ##
     choice_search_verifier_public_keys_list: List[List[List[str]]]
+    verifier_public_key: str
 
 
 @app.post("/public_keys")
@@ -132,18 +132,68 @@ async def public_keys(public_keys_body: PublicKeysBody) -> PublicKeysResponse:
     generate_verifier_public_keys_service = GenerateVerifierPublicKeysService(verifier_private_key)
     generate_verifier_public_keys_service(protocol_dict)
 
-    # Transaction construction
-    transaction_generator_from_public_keys_service = TransactionGeneratorFromPublicKeysService()
-    transaction_generator_from_public_keys_service(protocol_dict)
+    protocol_dict["verifier_public_key"] = verifier_private_key.get_public_key().to_hex()
 
     with open(f"verifier_keys/{setup_uuid}.pkl", "wb") as f:
         pickle.dump(protocol_dict, f)
 
     return PublicKeysResponse(
-        verifier_secret_key=verifier_private_key.to_bytes().hex(),
         choice_search_verifier_public_keys_list=protocol_dict[
             "choice_search_verifier_public_keys_list"
         ],
+        verifier_public_key=verifier_private_key.get_public_key().to_hex(),
+    )
+
+
+class SignaturesBody(BaseModel):
+    setup_uuid: str
+    hash_signature: str
+
+
+class SignaturesResponse(BaseModel):
+    verifier_hash_result_signature: str
+
+
+@app.post("/signatures")
+async def signatures(public_keys_body: SignaturesBody) -> SignaturesResponse:
+    setup_uuid = public_keys_body.setup_uuid
+    with open(f"verifier_keys/{setup_uuid}.pkl", "rb") as f:
+        protocol_dict = pickle.load(f)
+
+    verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
+
+    funding_amount_satoshis = protocol_dict["funding_amount_satoshis"]
+    # step_fees_satoshis = protocol_dict["step_fees_satoshis"]
+
+    # Transaction construction
+    transaction_generator_from_public_keys_service = TransactionGeneratorFromPublicKeysService()
+    transaction_generator_from_public_keys_service(protocol_dict)
+
+    # Scripts construction
+    scripts_dict_generator_service = ScriptsDictGeneratorService()
+    scripts_dict = scripts_dict_generator_service(protocol_dict)
+
+    hash_result_tx = protocol_dict["hash_result_tx"]
+    destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
+    hash_result_script = scripts_dict["hash_result_script"]
+    hash_result_script_address = destroyed_public_key.get_taproot_address([[hash_result_script]])
+
+    hash_result_signature_verifier = verifier_private_key.sign_taproot_input(
+        hash_result_tx,
+        0,
+        [hash_result_script_address.to_script_pub_key()],
+        [funding_amount_satoshis],
+        script_path=True,
+        tapleaf_script=hash_result_script,
+        sighash=TAPROOT_SIGHASH_ALL,
+        tweak=False,
+    )
+
+    with open(f"verifier_keys/{setup_uuid}.pkl", "wb") as f:
+        pickle.dump(protocol_dict, f)
+
+    return SignaturesResponse(
+        verifier_hash_result_signature=hash_result_signature_verifier,
     )
 
 

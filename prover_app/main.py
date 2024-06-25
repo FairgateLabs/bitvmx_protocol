@@ -127,7 +127,6 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     public_keys.append(prover_public_key.to_x_only_hex())
 
     destroyed_public_key = None
-    destroyed_public_key_hex = ""
     seed_destroyed_public_key_hex = ""
     while destroyed_public_key is None:
         try:
@@ -198,16 +197,11 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     choice_search_verifier_public_keys_list = public_keys_response_json[
         "choice_search_verifier_public_keys_list"
     ]
-
-    ###### TO BE ERASED ########
-    verifier_private_key = PrivateKey(
-        b=bytes.fromhex(public_keys_response_json["verifier_secret_key"])
-    )
-    protocol_dict["verifier_secret_key"] = verifier_private_key.to_bytes().hex()
     protocol_dict["choice_search_verifier_public_keys_list"] = (
         choice_search_verifier_public_keys_list
     )
-    ##### END TO BE ERASED #####
+    verifier_public_key = public_keys_response_json["verifier_public_key"]
+    protocol_dict["verifier_public_key"] = verifier_public_key
 
     ## Scripts building ##
 
@@ -246,7 +240,21 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         tweak=False,
     )
 
-    protocol_dict["hash_result_signatures"] = [hash_result_signature_prover]
+    # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
+    hash_result_signatures = [hash_result_signature_prover]
+    for verifier in verifier_list:
+        url = f"http://{verifier}/signatures"
+        headers = {"accept": "application/json", "Content-Type": "application/json"}
+        data = {"setup_uuid": setup_uuid, "hash_signature": hash_result_signature_prover}
+        signatures_response = requests.post(url, headers=headers, json=data)
+        if signatures_response.status_code != 200:
+            raise Exception("Some error when exchanging the signatures")
+
+        signatures_response_json = signatures_response.json()
+        hash_result_signatures.append(signatures_response_json["verifier_hash_result_signature"])
+
+    hash_result_signatures.reverse()
+    protocol_dict["hash_result_signatures"] = hash_result_signatures
 
     ## Signature verification
     from bitcoinutils.schnorr import schnorr_verify
@@ -323,12 +331,9 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         protocol_dict = pickle.load(f)
 
     prover_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["prover_secret_key"]))
-
     last_confirmed_step = protocol_dict["last_confirmed_step"]
 
-    ## TO BE ERASED ##
-    verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_secret_key"]))
-    ## END TO BE ERASED ##
+    transaction_published_service = TransactionPublishedService()
 
     if last_confirmed_step is None:
         publish_hash_transaction_service = PublishHashTransactionService(prover_private_key)
@@ -337,8 +342,9 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         last_confirmed_step = TransactionStepType.HASH_RESULT
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
         protocol_dict["last_confirmed_step"] = last_confirmed_step
-    elif last_confirmed_step == TransactionStepType.HASH_RESULT:
-        ## VERIFY THE PREVIOUS STEP ##
+    elif last_confirmed_step == TransactionStepType.HASH_RESULT and transaction_published_service(
+        protocol_dict["trigger_protocol_tx"].get_txid()
+    ):
         publish_hash_search_transaction_service = PublishHashSearchTransactionService(
             prover_private_key
         )
@@ -347,38 +353,17 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         last_confirmed_step = TransactionStepType.SEARCH_STEP_HASH
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
         protocol_dict["last_confirmed_step"] = last_confirmed_step
-    # elif last_confirmed_step == TransactionStepType.SEARCH_STEP_HASH:
-    #     i = None
-    #     for i in range(len(protocol_dict["search_hash_tx_list"])):
-    #         if (
-    #             protocol_dict["search_hash_tx_list"][i].get_txid()
-    #             == protocol_dict["last_confirmed_step_tx_id"]
-    #         ):
-    #             break
-    #     publish_choice_search_transaction_service = PublishChoiceSearchTransactionService(
-    #         verifier_private_key
-    #     )
-    #     last_confirmed_step_tx = publish_choice_search_transaction_service(protocol_dict, i)
-    #     last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-    #     last_confirmed_step = TransactionStepType.SEARCH_STEP_CHOICE
-    #     protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-    #     protocol_dict["last_confirmed_step"] = last_confirmed_step
     elif last_confirmed_step == TransactionStepType.SEARCH_STEP_HASH:
-        ## VERIFY THE PREVIOUS STEP ##
         if (
             protocol_dict["search_hash_tx_list"][-1].get_txid()
             == protocol_dict["last_confirmed_step_tx_id"]
-        ):
-            transaction_published_service = TransactionPublishedService()
-            if transaction_published_service(protocol_dict["search_choice_tx_list"][-1].get_txid()):
-                publish_trace_transaction_service = PublishTraceTransactionService(
-                    prover_private_key, verifier_private_key
-                )
-                last_confirmed_step_tx = publish_trace_transaction_service(protocol_dict)
-                last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-                last_confirmed_step = TransactionStepType.TRACE
-                protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-                protocol_dict["last_confirmed_step"] = last_confirmed_step
+        ) and transaction_published_service(protocol_dict["search_choice_tx_list"][-1].get_txid()):
+            publish_trace_transaction_service = PublishTraceTransactionService(prover_private_key)
+            last_confirmed_step_tx = publish_trace_transaction_service(protocol_dict)
+            last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
+            last_confirmed_step = TransactionStepType.TRACE
+            protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
+            protocol_dict["last_confirmed_step"] = last_confirmed_step
         else:
             i = None
             for i in range(len(protocol_dict["search_hash_tx_list"])):
@@ -388,7 +373,9 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
                 ):
                     break
             i += 1
-            if i < len(protocol_dict["search_choice_tx_list"]):
+            if i < len(protocol_dict["search_choice_tx_list"]) and transaction_published_service(
+                protocol_dict["search_choice_tx_list"][i - 1].get_txid()
+            ):
                 publish_hash_search_transaction_service = PublishHashSearchTransactionService(
                     prover_private_key
                 )

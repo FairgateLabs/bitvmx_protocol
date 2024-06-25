@@ -37,6 +37,7 @@ class ScriptsDictGeneratorService:
         amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
         amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
         prover_public_key = PublicKey(hex_str=protocol_dict["prover_public_key"])
+        verifier_public_key = PublicKey(hex_str=protocol_dict["verifier_public_key"])
         hash_result_public_keys = protocol_dict["hash_result_public_keys"]
         hash_search_public_keys_list = protocol_dict["hash_search_public_keys_list"]
         choice_search_prover_public_keys_list = protocol_dict[
@@ -51,7 +52,7 @@ class ScriptsDictGeneratorService:
         scripts_dict = {}
 
         scripts_dict["hash_result_script"] = self.hash_result_script_generator(
-            prover_public_key,
+            [prover_public_key, verifier_public_key],
             hash_result_public_keys,
             amount_of_nibbles_hash,
             amount_of_bits_per_digit_checksum,

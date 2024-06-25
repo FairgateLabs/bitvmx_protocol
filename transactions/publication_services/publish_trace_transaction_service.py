@@ -17,13 +17,8 @@ from winternitz_keys_handling.services.generate_witness_from_input_single_word_s
 
 class PublishTraceTransactionService:
 
-    def __init__(self, prover_private_key, verifier_private_key):
+    def __init__(self, prover_private_key):
         self.execution_trace_script_generator_service = ExecutionTraceScriptGeneratorService()
-        ## TO BE ERASED ##
-        self.generate_verifier_witness_from_input_single_word_service = (
-            GenerateWitnessFromInputSingleWordService(verifier_private_key)
-        )
-        ## END TO BE ERASED ##
         self.generate_prover_witness_from_input_single_word_service = (
             GenerateWitnessFromInputSingleWordService(prover_private_key)
         )
