@@ -1,15 +1,17 @@
+from bitcoinutils.keys import PublicKey
+
 from scripts.bitcoin_script import BitcoinScript
 
 
 class TriggerProtocolScriptGeneratorService:
 
-    def __call__(self):
+    def __call__(self, signature_public_keys):
         script = BitcoinScript()
-        # trigger_protocol_script.extend(
-        #     [prover_public_key.to_x_only_hex(), "OP_CHECKSIGVERIFY"]
-        # )
-        # trigger_protocol_script.extend(
-        #     [verifier_public_key.to_x_only_hex(), "OP_CHECKSIGVERIFY"]
-        # )
+
+        for signature_public_key in reversed(signature_public_keys):
+            script.extend(
+                [PublicKey(hex_str=signature_public_key).to_x_only_hex(), "OP_CHECKSIGVERIFY"]
+            )
+
         script.append(1)
         return script

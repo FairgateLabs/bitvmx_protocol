@@ -1,6 +1,6 @@
 from typing import List
 
-from bitcoinutils.keys import PrivateKey, PublicKey
+from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import Transaction, TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
@@ -31,12 +31,9 @@ class PublishHashTransactionService:
     def __call__(self, protocol_dict) -> Transaction:
 
         hash_result_split_number = _get_result_hash_value()
-        prover_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["prover_secret_key"]))
-        prover_public_key = prover_private_key.get_public_key()
         amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
         amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
-        verifier_public_key = PublicKey(hex_str=protocol_dict["verifier_public_key"])
         hash_result_tx = protocol_dict["hash_result_tx"]
         hash_result_signatures = protocol_dict["hash_result_signatures"]
 
@@ -51,7 +48,7 @@ class PublishHashTransactionService:
         hash_result_public_keys = protocol_dict["hash_result_public_keys"]
 
         hash_result_script = self.hash_result_script_generator(
-            [prover_public_key, verifier_public_key],
+            protocol_dict["public_keys"],
             hash_result_public_keys,
             amount_of_nibbles_hash,
             amount_of_bits_per_digit_checksum,

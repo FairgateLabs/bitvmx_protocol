@@ -6,13 +6,13 @@ import secrets
 from typing import List
 
 import httpx
-from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
 from bitcoinutils.keys import PrivateKey, PublicKey
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionStepType
+from transactions.generate_signatures_service import GenerateSignaturesService
 from transactions.publication_services.publish_choice_search_transaction_service import (
     PublishChoiceSearchTransactionService,
 )
@@ -135,6 +135,11 @@ async def public_keys(public_keys_body: PublicKeysBody) -> PublicKeysResponse:
 
     protocol_dict["verifier_public_key"] = verifier_private_key.get_public_key().to_hex()
 
+    protocol_dict["public_keys"] = [
+        protocol_dict["verifier_public_key"],
+        protocol_dict["prover_public_key"],
+    ]
+
     with open(f"verifier_keys/{setup_uuid}.pkl", "wb") as f:
         pickle.dump(protocol_dict, f)
 
@@ -163,7 +168,7 @@ async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
 
     verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
 
-    funding_amount_satoshis = protocol_dict["funding_amount_satoshis"]
+    # funding_amount_satoshis = protocol_dict["funding_amount_satoshis"]
     # step_fees_satoshis = protocol_dict["step_fees_satoshis"]
     protocol_dict["trigger_protocol_prover_signature"] = signatures_body.trigger_protocol_signature
 
@@ -175,10 +180,7 @@ async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
     scripts_dict_generator_service = ScriptsDictGeneratorService()
     scripts_dict = scripts_dict_generator_service(protocol_dict)
 
-    hash_result_tx = protocol_dict["hash_result_tx"]
     destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
-    hash_result_script = scripts_dict["hash_result_script"]
-    hash_result_script_address = destroyed_public_key.get_taproot_address([[hash_result_script]])
 
     verify_prover_signatures_service = VerifyProverSignaturesService(destroyed_public_key)
     verify_prover_signatures_service(
@@ -187,21 +189,17 @@ async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
         protocol_dict["prover_public_key"],
         protocol_dict["trigger_protocol_prover_signature"],
     )
-    # generate_signatures_service = GenerateSignaturesService(
-    #     verifier_private_key, destroyed_public_key
-    # )
-    # signatures_dict = generate_signatures_service(protocol_dict, scripts_dict)
 
-    hash_result_signature_verifier = verifier_private_key.sign_taproot_input(
-        hash_result_tx,
-        0,
-        [hash_result_script_address.to_script_pub_key()],
-        [funding_amount_satoshis],
-        script_path=True,
-        tapleaf_script=hash_result_script,
-        sighash=TAPROOT_SIGHASH_ALL,
-        tweak=False,
+    generate_signatures_service = GenerateSignaturesService(
+        verifier_private_key, destroyed_public_key
     )
+    signatures_dict = generate_signatures_service(protocol_dict, scripts_dict)
+
+    hash_result_signature_verifier = signatures_dict["hash_result_signature"]
+    protocol_dict["trigger_protocol_signatures"] = [
+        signatures_dict["trigger_protocol_signature"],
+        protocol_dict["trigger_protocol_prover_signature"],
+    ]
 
     with open(f"verifier_keys/{setup_uuid}.pkl", "wb") as f:
         pickle.dump(protocol_dict, f)
@@ -220,29 +218,6 @@ class CreateSetupBody(BaseModel):
     model_config = {"json_schema_extra": {"examples": [{"amount_of_steps": 16}]}}
 
 
-# @app.post("/create_setup")
-# async def create_setup(create_setup_body: CreateSetupBody) -> dict[str, str]:
-#     setup("testnet")
-#     amount_of_steps = create_setup_body.amount_of_steps
-#     amount_of_bits_choice = create_setup_body.amount_bits_choice
-#     setup_uuid = create_setup_body.setup_uuid
-#     amount_of_bits_per_digit_checksum = create_setup_body.amount_of_bits_per_digit_checksum
-#
-#     amount_of_nibbles_hash = 64
-#     amount_of_search_hashes_per_iteration = 2**amount_of_bits_choice - 1
-#     amount_of_iterations = math.ceil(math.ceil(math.log2(amount_of_steps)) / amount_of_bits_choice)
-#
-#     protocol_dict = {}
-#     protocol_dict["last_confirmed_step"] = None
-#     protocol_dict["last_confirmed_step_tx_id"] = None
-#
-#     with open(f"verifier_keys/{setup_uuid}.pkl", "xb") as f:
-#         pickle.dump(protocol_dict, f)
-#
-#     return {"id": setup_uuid}
-
-
-# This should be put in a common directory
 class PublishNextStepBody(BaseModel):
     setup_uuid: str
 
