@@ -251,10 +251,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         data = {
             "setup_uuid": setup_uuid,
             "trigger_protocol_signature": signatures_dict["trigger_protocol_signature"],
-            # "trigger_signature": trigger_signature_prover,
-            # "hash_search_signatures": hash_result_signatures_prover,
-            # "choice_search_signatures": choice_search_signatures_prover,
-            # "trace_signature": trace_signature_prover,
+            "search_choice_signatures": signatures_dict["search_choice_signatures"],
         }
         signatures_response = requests.post(url, headers=headers, json=data)
         if signatures_response.status_code != 200:

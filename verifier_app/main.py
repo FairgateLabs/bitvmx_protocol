@@ -154,6 +154,7 @@ async def public_keys(public_keys_body: PublicKeysBody) -> PublicKeysResponse:
 class SignaturesBody(BaseModel):
     setup_uuid: str
     trigger_protocol_signature: str
+    search_choice_signatures: List[str]
 
 
 class SignaturesResponse(BaseModel):
