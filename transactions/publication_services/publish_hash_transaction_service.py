@@ -66,8 +66,8 @@ class PublishHashTransactionService:
 
         hash_result_tx.witnesses.append(
             TxWitnessInput(
-                hash_result_witness
-                + hash_result_signatures
+                hash_result_signatures
+                + hash_result_witness
                 + [
                     hash_result_script.to_hex(),
                     hash_result_control_block.to_hex(),

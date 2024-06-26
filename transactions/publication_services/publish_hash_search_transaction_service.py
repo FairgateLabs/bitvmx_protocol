@@ -118,8 +118,6 @@ class PublishHashSearchTransactionService:
             TxWitnessInput(
                 hash_search_witness
                 + [
-                    # third_signature_bob,
-                    # third_signature_alice,
                     current_hash_search_script.to_hex(),
                     current_hash_search_control_block.to_hex(),
                 ]
