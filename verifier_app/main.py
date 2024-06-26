@@ -19,6 +19,7 @@ from transactions.publication_services.publish_choice_search_transaction_service
 from transactions.publication_services.trigger_protocol_transaction_service import (
     TriggerProtocolTransactionService,
 )
+from transactions.signatures.verify_prover_signatures_service import VerifyProverSignaturesService
 from transactions.transaction_generator_from_public_keys_service import (
     TransactionGeneratorFromPublicKeysService,
 )
@@ -58,7 +59,7 @@ async def init_setup(body: InitSetupBody) -> InitSetupResponse:
     with open(f"verifier_keys/{setup_uuid}.pkl", "xb") as f:
         pickle.dump(protocol_dict, f)
     return InitSetupResponse(
-        public_key=private_key.get_public_key().to_x_only_hex(),
+        public_key=private_key.get_public_key().to_hex(),
     )
 
 
@@ -147,7 +148,7 @@ async def public_keys(public_keys_body: PublicKeysBody) -> PublicKeysResponse:
 
 class SignaturesBody(BaseModel):
     setup_uuid: str
-    hash_signature: str
+    trigger_protocol_signature: str
 
 
 class SignaturesResponse(BaseModel):
@@ -155,8 +156,8 @@ class SignaturesResponse(BaseModel):
 
 
 @app.post("/signatures")
-async def signatures(public_keys_body: SignaturesBody) -> SignaturesResponse:
-    setup_uuid = public_keys_body.setup_uuid
+async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
+    setup_uuid = signatures_body.setup_uuid
     with open(f"verifier_keys/{setup_uuid}.pkl", "rb") as f:
         protocol_dict = pickle.load(f)
 
@@ -164,6 +165,7 @@ async def signatures(public_keys_body: SignaturesBody) -> SignaturesResponse:
 
     funding_amount_satoshis = protocol_dict["funding_amount_satoshis"]
     # step_fees_satoshis = protocol_dict["step_fees_satoshis"]
+    protocol_dict["trigger_protocol_prover_signature"] = signatures_body.trigger_protocol_signature
 
     # Transaction construction
     transaction_generator_from_public_keys_service = TransactionGeneratorFromPublicKeysService()
@@ -177,6 +179,18 @@ async def signatures(public_keys_body: SignaturesBody) -> SignaturesResponse:
     destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
     hash_result_script = scripts_dict["hash_result_script"]
     hash_result_script_address = destroyed_public_key.get_taproot_address([[hash_result_script]])
+
+    verify_prover_signatures_service = VerifyProverSignaturesService(destroyed_public_key)
+    verify_prover_signatures_service(
+        protocol_dict,
+        scripts_dict,
+        protocol_dict["prover_public_key"],
+        protocol_dict["trigger_protocol_prover_signature"],
+    )
+    # generate_signatures_service = GenerateSignaturesService(
+    #     verifier_private_key, destroyed_public_key
+    # )
+    # signatures_dict = generate_signatures_service(protocol_dict, scripts_dict)
 
     hash_result_signature_verifier = verifier_private_key.sign_taproot_input(
         hash_result_tx,

@@ -9,7 +9,6 @@ from typing import Optional
 
 import httpx
 import requests
-from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
 from bitcoinutils.keys import PrivateKey, PublicKey
 from bitcoinutils.setup import setup
 from bitcoinutils.transactions import TxWitnessInput
@@ -22,6 +21,7 @@ from mutinyet_api.services.transaction_published_service import TransactionPubli
 from prover_app.config import protocol_properties
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionStepType
+from transactions.generate_signatures_service import GenerateSignaturesService
 from transactions.publication_services.publish_hash_search_transaction_service import (
     PublishHashSearchTransactionService,
 )
@@ -30,6 +30,9 @@ from transactions.publication_services.publish_hash_transaction_service import (
 )
 from transactions.publication_services.publish_trace_transaction_service import (
     PublishTraceTransactionService,
+)
+from transactions.signatures.verify_verifier_signatures_service import (
+    VerifyVerifierSignaturesService,
 )
 from transactions.transaction_generator_from_public_keys_service import (
     TransactionGeneratorFromPublicKeysService,
@@ -124,7 +127,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     prover_private_key = PrivateKey(b=secrets.token_bytes(32))
 
     prover_public_key = prover_private_key.get_public_key()
-    public_keys.append(prover_public_key.to_x_only_hex())
+    public_keys.append(prover_public_key.to_hex())
 
     destroyed_public_key = None
     seed_destroyed_public_key_hex = ""
@@ -139,12 +142,13 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         except IndexError:
             prover_private_key = PrivateKey(b=secrets.token_bytes(32))
             prover_public_key = prover_private_key.get_public_key()
-            public_keys[-1] = prover_public_key.to_x_only_hex()
+            public_keys[-1] = prover_public_key.to_hex()
 
     protocol_dict["seed_destroyed_public_key_hex"] = seed_destroyed_public_key_hex
     protocol_dict["destroyed_public_key"] = destroyed_public_key.to_hex()
     protocol_dict["prover_secret_key"] = prover_private_key.to_bytes().hex()
     protocol_dict["prover_public_key"] = prover_public_key.to_hex()
+    protocol_dict["public_keys"] = public_keys
 
     prover_private_key = PrivateKey(b=bytes.fromhex(prover_private_key.to_bytes().hex()))
 
@@ -208,8 +212,6 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     scripts_dict_generator_service = ScriptsDictGeneratorService()
     scripts_dict = scripts_dict_generator_service(protocol_dict)
 
-    hash_result_script = scripts_dict["hash_result_script"]
-
     protocol_dict["initial_amount_satoshis"] = initial_amount_satoshis
     protocol_dict["step_fees_satoshis"] = step_fees_satoshis
 
@@ -224,55 +226,57 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
     # Signature computation
 
-    hash_result_tx = protocol_dict["hash_result_tx"]
-    hash_result_script_address = destroyed_public_key.get_taproot_address(
-        [[scripts_dict["hash_result_script"]]]
+    generate_signatures_service = GenerateSignaturesService(
+        prover_private_key, destroyed_public_key
     )
+    signatures_dict = generate_signatures_service(protocol_dict, scripts_dict)
 
-    hash_result_signature_prover = prover_private_key.sign_taproot_input(
-        hash_result_tx,
-        0,
-        [hash_result_script_address.to_script_pub_key()],
-        [funding_result_output_amount],
-        script_path=True,
-        tapleaf_script=hash_result_script,
-        sighash=TAPROOT_SIGHASH_ALL,
-        tweak=False,
-    )
+    #
+    # hash_result_signature_prover = prover_private_key.sign_taproot_input(
+    #     hash_result_tx,
+    #     0,
+    #     [hash_result_script_address.to_script_pub_key()],
+    #     [funding_result_output_amount],
+    #     script_path=True,
+    #     tapleaf_script=hash_result_script,
+    #     sighash=TAPROOT_SIGHASH_ALL,
+    #     tweak=False,
+    # )
 
     # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
-    hash_result_signatures = [hash_result_signature_prover]
+    hash_result_signatures = [signatures_dict["hash_result_signature"]]
     for verifier in verifier_list:
         url = f"http://{verifier}/signatures"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
-        data = {"setup_uuid": setup_uuid, "hash_signature": hash_result_signature_prover}
+        data = {
+            "setup_uuid": setup_uuid,
+            "trigger_protocol_signature": signatures_dict["trigger_protocol_signature"],
+            # "trigger_signature": trigger_signature_prover,
+            # "hash_search_signatures": hash_result_signatures_prover,
+            # "choice_search_signatures": choice_search_signatures_prover,
+            # "trace_signature": trace_signature_prover,
+        }
         signatures_response = requests.post(url, headers=headers, json=data)
         if signatures_response.status_code != 200:
             raise Exception("Some error when exchanging the signatures")
 
         signatures_response_json = signatures_response.json()
+
         hash_result_signatures.append(signatures_response_json["verifier_hash_result_signature"])
 
     hash_result_signatures.reverse()
     protocol_dict["hash_result_signatures"] = hash_result_signatures
 
-    ## Signature verification
-    from bitcoinutils.schnorr import schnorr_verify
-
-    tx_digest = hash_result_tx.get_transaction_taproot_digest(
-        0,
-        [hash_result_script_address.to_script_pub_key()],
-        [funding_result_output_amount],
-        1,
-        script=hash_result_script,
-        sighash=TAPROOT_SIGHASH_ALL,
-    )
-
-    assert schnorr_verify(
-        tx_digest,
-        bytes.fromhex(prover_public_key.to_x_only_hex()),
-        bytes.fromhex(hash_result_signature_prover),
-    )
+    verify_verifier_signatures_service = VerifyVerifierSignaturesService(destroyed_public_key)
+    for i in range(len(protocol_dict["public_keys"]) - 1):
+        verify_verifier_signatures_service(
+            protocol_dict=protocol_dict,
+            scripts_dict=scripts_dict,
+            public_key=protocol_dict["public_keys"][i],
+            hash_result_signature=protocol_dict["hash_result_signatures"][
+                len(protocol_dict["public_keys"]) - i - 2
+            ],
+        )
 
     with open(f"prover_keys/{setup_uuid}.pkl", "xb") as f:
         pickle.dump(protocol_dict, f)
