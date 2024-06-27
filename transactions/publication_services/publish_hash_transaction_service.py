@@ -4,6 +4,7 @@ from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import Transaction, TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
+from bitvmx_execution.execution_trace_generation_service import ExecutionTraceGenerationService
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
 from scripts.services.hash_result_script_generator_service import HashResultScriptGeneratorService
 from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
@@ -27,6 +28,7 @@ class PublishHashTransactionService:
         )
         self.hash_result_script_generator = HashResultScriptGeneratorService()
         self.broadcast_transaction_service = BroadcastTransactionService()
+        self.execution_trace_generation_service = ExecutionTraceGenerationService("prover_files/")
 
     def __call__(self, protocol_dict) -> Transaction:
 
@@ -36,6 +38,8 @@ class PublishHashTransactionService:
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
         hash_result_tx = protocol_dict["hash_result_tx"]
         hash_result_signatures = protocol_dict["hash_result_signatures"]
+
+        self.execution_trace_generation_service(protocol_dict)
 
         hash_result_witness = []
         hash_result_witness += self.generate_witness_from_input_nibbles_service(

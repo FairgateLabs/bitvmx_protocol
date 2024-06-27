@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import json
 import math
+import os
 import pickle
 import secrets
 import uuid
@@ -105,6 +106,10 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     )
 
     protocol_dict = {}
+    protocol_dict["setup_uuid"] = setup_uuid
+    protocol_dict["amount_of_trace_steps"] = (
+        2**amount_of_bits_wrong_step_search
+    ) ** amount_of_wrong_step_search_iterations
     protocol_dict["amount_of_bits_per_digit_checksum"] = amount_of_bits_per_digit_checksum
     protocol_dict["amount_of_wrong_step_search_iterations"] = amount_of_wrong_step_search_iterations
     protocol_dict["amount_of_bits_wrong_step_search"] = amount_of_bits_wrong_step_search
@@ -284,7 +289,9 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
             ],
         )
 
-    with open(f"prover_keys/{setup_uuid}.pkl", "xb") as f:
+    os.makedirs(f"prover_files/{setup_uuid}")
+
+    with open(f"prover_files/{setup_uuid}/file_database.pkl", "xb") as f:
         pickle.dump(protocol_dict, f)
 
     #################################################################
@@ -337,7 +344,7 @@ async def _trigger_next_step_verifier(publish_hash_body: PublishNextStepBody):
 @app.post("/publish_next_step")
 async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()) -> dict[str, str]:
     setup_uuid = publish_next_step_body.setup_uuid
-    with open(f"prover_keys/{setup_uuid}.pkl", "rb") as f:
+    with open(f"prover_files/{setup_uuid}/file_database.pkl", "rb") as f:
         protocol_dict = pickle.load(f)
 
     prover_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["prover_secret_key"]))
@@ -395,7 +402,7 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
                 protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
                 protocol_dict["last_confirmed_step"] = last_confirmed_step
 
-    with open(f"prover_keys/{setup_uuid}.pkl", "wb") as f:
+    with open(f"prover_files/{setup_uuid}/file_database.pkl", "wb") as f:
         pickle.dump(protocol_dict, f)
 
     if last_confirmed_step in [

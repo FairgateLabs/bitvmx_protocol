@@ -1,6 +1,7 @@
 import asyncio
 import hashlib
 import json
+import os
 import pickle
 import secrets
 from typing import List
@@ -55,8 +56,10 @@ async def init_setup(body: InitSetupBody) -> InitSetupResponse:
         "verifier_private_key": private_key.to_bytes().hex(),
         "last_confirmed_step": None,
         "last_confirmed_step_tx_id": None,
+        "setup_uuid": setup_uuid,
     }
-    with open(f"verifier_keys/{setup_uuid}.pkl", "xb") as f:
+    os.makedirs(f"verifier_files/{setup_uuid}")
+    with open(f"verifier_files/{setup_uuid}/file_database.pkl", "xb") as f:
         pickle.dump(protocol_dict, f)
     return InitSetupResponse(
         public_key=private_key.get_public_key().to_hex(),
@@ -90,7 +93,7 @@ class PublicKeysResponse(BaseModel):
 @app.post("/public_keys")
 async def public_keys(public_keys_body: PublicKeysBody) -> PublicKeysResponse:
     setup_uuid = public_keys_body.setup_uuid
-    with open(f"verifier_keys/{setup_uuid}.pkl", "rb") as f:
+    with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
         protocol_dict = pickle.load(f)
 
     verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
@@ -130,6 +133,10 @@ async def public_keys(public_keys_body: PublicKeysBody) -> PublicKeysResponse:
     protocol_dict["funds_index"] = public_keys_body.funds_index
     protocol_dict["amount_of_nibbles_hash"] = public_keys_body.amount_of_nibbles_hash
 
+    protocol_dict["amount_of_trace_steps"] = (
+        2 ** protocol_dict["amount_of_bits_wrong_step_search"]
+    ) ** protocol_dict["amount_of_wrong_step_search_iterations"]
+
     generate_verifier_public_keys_service = GenerateVerifierPublicKeysService(verifier_private_key)
     generate_verifier_public_keys_service(protocol_dict)
 
@@ -140,7 +147,7 @@ async def public_keys(public_keys_body: PublicKeysBody) -> PublicKeysResponse:
         protocol_dict["prover_public_key"],
     ]
 
-    with open(f"verifier_keys/{setup_uuid}.pkl", "wb") as f:
+    with open(f"verifier_files/{setup_uuid}/file_database.pkl", "wb") as f:
         pickle.dump(protocol_dict, f)
 
     return PublicKeysResponse(
@@ -166,7 +173,7 @@ class SignaturesResponse(BaseModel):
 @app.post("/signatures")
 async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
     setup_uuid = signatures_body.setup_uuid
-    with open(f"verifier_keys/{setup_uuid}.pkl", "rb") as f:
+    with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
         protocol_dict = pickle.load(f)
 
     verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
@@ -217,7 +224,7 @@ async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
     protocol_dict["search_choice_signatures"] = search_choice_signatures
     trace_signature = signatures_dict["trace_signature"]
 
-    with open(f"verifier_keys/{setup_uuid}.pkl", "wb") as f:
+    with open(f"verifier_files/{setup_uuid}/file_database.pkl", "wb") as f:
         pickle.dump(protocol_dict, f)
 
     return SignaturesResponse(
@@ -257,7 +264,7 @@ async def _trigger_next_step_prover(publish_hash_body: PublishNextStepBody):
 @app.post("/publish_next_step")
 async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()) -> dict[str, str]:
     setup_uuid = publish_next_step_body.setup_uuid
-    with open(f"verifier_keys/{setup_uuid}.pkl", "rb") as f:
+    with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
         protocol_dict = pickle.load(f)
 
     last_confirmed_step = protocol_dict["last_confirmed_step"]
@@ -310,7 +317,7 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
     ]:
         asyncio.create_task(_trigger_next_step_prover(publish_next_step_body))
 
-    with open(f"verifier_keys/{setup_uuid}.pkl", "wb") as f:
+    with open(f"verifier_files/{setup_uuid}/file_database.pkl", "wb") as f:
         pickle.dump(protocol_dict, f)
 
     return {"id": setup_uuid, "executed_step": last_confirmed_step}

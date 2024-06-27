@@ -2,6 +2,7 @@ from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
+from bitvmx_execution.execution_trace_generation_service import ExecutionTraceGenerationService
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
 from scripts.services.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
@@ -12,8 +13,11 @@ class TriggerProtocolTransactionService:
 
     def __init__(self):
         self.broadcast_transaction_service = BroadcastTransactionService()
+        self.execution_trace_generation_service = ExecutionTraceGenerationService("verifier_files/")
 
     def __call__(self, protocol_dict):
+        self.execution_trace_generation_service(protocol_dict)
+
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
         trigger_protocol_tx = protocol_dict["trigger_protocol_tx"]
         trigger_protocol_signatures = protocol_dict["trigger_protocol_signatures"]
