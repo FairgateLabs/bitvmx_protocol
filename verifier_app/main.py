@@ -159,6 +159,8 @@ class SignaturesBody(BaseModel):
 
 class SignaturesResponse(BaseModel):
     verifier_hash_result_signature: str
+    verifier_search_hash_signatures: List[str]
+    verifier_trace_signature: str
 
 
 @app.post("/signatures")
@@ -172,6 +174,7 @@ async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
     # funding_amount_satoshis = protocol_dict["funding_amount_satoshis"]
     # step_fees_satoshis = protocol_dict["step_fees_satoshis"]
     protocol_dict["trigger_protocol_prover_signature"] = signatures_body.trigger_protocol_signature
+    protocol_dict["search_choice_prover_signatures"] = signatures_body.search_choice_signatures
 
     # Transaction construction
     transaction_generator_from_public_keys_service = TransactionGeneratorFromPublicKeysService()
@@ -189,6 +192,7 @@ async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
         scripts_dict,
         protocol_dict["prover_public_key"],
         protocol_dict["trigger_protocol_prover_signature"],
+        protocol_dict["search_choice_prover_signatures"],
     )
 
     generate_signatures_service = GenerateSignaturesService(
@@ -201,12 +205,25 @@ async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
         signatures_dict["trigger_protocol_signature"],
         protocol_dict["trigger_protocol_prover_signature"],
     ]
+    search_hash_signatures = signatures_dict["search_hash_signatures"]
+    search_choice_signatures = []
+    for i in range(len(signatures_dict["search_choice_signatures"])):
+        search_choice_signatures.append(
+            [
+                signatures_dict["search_choice_signatures"][i],
+                protocol_dict["search_choice_prover_signatures"][i],
+            ]
+        )
+    protocol_dict["search_choice_signatures"] = search_choice_signatures
+    trace_signature = signatures_dict["trace_signature"]
 
     with open(f"verifier_keys/{setup_uuid}.pkl", "wb") as f:
         pickle.dump(protocol_dict, f)
 
     return SignaturesResponse(
         verifier_hash_result_signature=hash_result_signature_verifier,
+        verifier_search_hash_signatures=search_hash_signatures,
+        verifier_trace_signature=trace_signature,
     )
 
 

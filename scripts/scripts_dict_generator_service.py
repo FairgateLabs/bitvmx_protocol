@@ -98,21 +98,8 @@ class ScriptsDictGeneratorService:
         scripts_dict["hash_search_scripts"] = hash_search_scripts
         scripts_dict["choice_search_scripts"] = choice_search_scripts
 
-        # hash_search_scripts_addresses = list(
-        #     map(
-        #         lambda search_script: destroyed_public_key.get_taproot_address([[search_script]]),
-        #         hash_search_scripts,
-        #     )
-        # )
-        #
-        # choice_search_scripts_addresses = list(
-        #     map(
-        #         lambda choice_script: destroyed_public_key.get_taproot_address([[choice_script]]),
-        #         choice_search_scripts,
-        #     )
-        # )
-
         scripts_dict["trace_script"] = self.execution_trace_script_generator_service(
+            protocol_dict["public_keys"],
             trace_prover_public_keys,
             trace_words_lengths,
             amount_of_bits_per_digit_checksum,
@@ -120,6 +107,5 @@ class ScriptsDictGeneratorService:
             choice_search_prover_public_keys_list[-1][0],
             choice_search_verifier_public_keys_list[-1][0],
         )
-        # trace_script_address = destroyed_public_key.get_taproot_address([[trace_script]])
 
         return scripts_dict

@@ -83,4 +83,23 @@ class GenerateSignaturesService:
         signatures_dict["search_hash_signatures"] = search_hash_signatures
         signatures_dict["search_choice_signatures"] = search_choice_signatures
 
+        trace_tx = protocol_dict["trace_tx"]
+        trace_script_address = self.destroyed_public_key.get_taproot_address(
+            [[scripts_dict["trace_script"]]]
+        )
+        trace_signature = self.private_key.sign_taproot_input(
+            trace_tx,
+            0,
+            [trace_script_address.to_script_pub_key()],
+            [
+                funding_result_output_amount
+                - (2 * len(protocol_dict["search_hash_tx_list"]) + 2) * step_fees_satoshis
+            ],
+            script_path=True,
+            tapleaf_script=scripts_dict["trace_script"],
+            sighash=TAPROOT_SIGHASH_ALL,
+            tweak=False,
+        )
+        signatures_dict["trace_signature"] = trace_signature
+
         return signatures_dict

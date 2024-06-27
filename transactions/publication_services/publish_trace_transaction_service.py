@@ -42,6 +42,7 @@ class PublishTraceTransactionService:
         choice_search_verifier_public_keys_list = protocol_dict[
             "choice_search_verifier_public_keys_list"
         ]
+        trace_signatures = protocol_dict["trace_signatures"]
 
         trace_array = []
         for word_length in trace_words_lengths:
@@ -79,6 +80,7 @@ class PublishTraceTransactionService:
         trace_prover_public_keys = protocol_dict["trace_prover_public_keys"]
 
         trace_script = self.execution_trace_script_generator_service(
+            protocol_dict["public_keys"],
             trace_prover_public_keys,
             trace_words_lengths,
             amount_of_bits_per_digit_checksum,
@@ -97,10 +99,9 @@ class PublishTraceTransactionService:
 
         trace_tx.witnesses.append(
             TxWitnessInput(
-                trace_witness
+                trace_signatures
+                + trace_witness
                 + [
-                    # third_signature_bob,
-                    # third_signature_alice,
                     trace_script.to_hex(),
                     trace_control_block.to_hex(),
                 ]

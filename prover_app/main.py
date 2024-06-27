@@ -231,20 +231,10 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     )
     signatures_dict = generate_signatures_service(protocol_dict, scripts_dict)
 
-    #
-    # hash_result_signature_prover = prover_private_key.sign_taproot_input(
-    #     hash_result_tx,
-    #     0,
-    #     [hash_result_script_address.to_script_pub_key()],
-    #     [funding_result_output_amount],
-    #     script_path=True,
-    #     tapleaf_script=hash_result_script,
-    #     sighash=TAPROOT_SIGHASH_ALL,
-    #     tweak=False,
-    # )
-
     # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
     hash_result_signatures = [signatures_dict["hash_result_signature"]]
+    search_hash_signatures = [signatures_dict["search_hash_signatures"]]
+    trace_signatures = [signatures_dict["trace_signature"]]
     for verifier in verifier_list:
         url = f"http://{verifier}/signatures"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
@@ -260,9 +250,15 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         signatures_response_json = signatures_response.json()
 
         hash_result_signatures.append(signatures_response_json["verifier_hash_result_signature"])
+        search_hash_signatures.append(signatures_response_json["verifier_search_hash_signatures"])
+        trace_signatures.append(signatures_response_json["verifier_trace_signature"])
 
     hash_result_signatures.reverse()
+    search_hash_signatures.reverse()
+    trace_signatures.reverse()
     protocol_dict["hash_result_signatures"] = hash_result_signatures
+    protocol_dict["search_hash_signatures"] = search_hash_signatures
+    protocol_dict["trace_signatures"] = trace_signatures
 
     verify_verifier_signatures_service = VerifyVerifierSignaturesService(destroyed_public_key)
     for i in range(len(protocol_dict["public_keys"]) - 1):
@@ -271,6 +267,12 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
             scripts_dict=scripts_dict,
             public_key=protocol_dict["public_keys"][i],
             hash_result_signature=protocol_dict["hash_result_signatures"][
+                len(protocol_dict["public_keys"]) - i - 2
+            ],
+            search_hash_signatures=protocol_dict["search_hash_signatures"][
+                len(protocol_dict["public_keys"]) - i - 2
+            ],
+            trace_signature=protocol_dict["trace_signatures"][
                 len(protocol_dict["public_keys"]) - i - 2
             ],
         )
