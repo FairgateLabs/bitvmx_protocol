@@ -1,5 +1,7 @@
 from typing import List, Optional
 
+from bitcoinutils.keys import PublicKey
+
 from scripts.bitcoin_script import BitcoinScript
 from scripts.services.confirm_single_word_script_generator_service import (
     ConfirmSingleWordScriptGeneratorService,
@@ -23,6 +25,7 @@ class CommitSearchHashesScriptGeneratorService:
 
     def __call__(
         self,
+        signature_public_keys,
         public_keys,
         n0,
         bits_per_digit_checksum,
@@ -51,5 +54,13 @@ class CommitSearchHashesScriptGeneratorService:
                 prover_choice_public_keys,
                 verifier_choice_public_keys,
             )
+
+        # script.append("OP_CODESEPARATOR")
+
+        for signature_public_key in reversed(signature_public_keys):
+            script.extend(
+                [PublicKey(hex_str=signature_public_key).to_x_only_hex(), "OP_CHECKSIGVERIFY"]
+            )
+
         script.append(1)
         return script

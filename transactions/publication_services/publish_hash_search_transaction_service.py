@@ -53,6 +53,8 @@ class PublishHashSearchTransactionService:
         choice_search_verifier_public_keys_list = protocol_dict[
             "choice_search_verifier_public_keys_list"
         ]
+        signature_public_keys = protocol_dict["public_keys"]
+        search_hash_signatures = protocol_dict["search_hash_signatures"]
 
         iteration_hashes = 3 * ["1111111111111111111111111111111111111111111111111111111111111112"]
         hash_search_witness = []
@@ -66,6 +68,7 @@ class PublishHashSearchTransactionService:
             previous_choice_verifier_public_keys = choice_search_verifier_public_keys_list[i - 1]
             current_choice_prover_public_keys = choice_search_prover_public_keys_list[i - 1]
             current_hash_search_script = self.commit_search_hashes_script_generator_service(
+                signature_public_keys,
                 current_hash_public_keys,
                 amount_of_nibbles_hash,
                 amount_of_bits_per_digit_checksum,
@@ -86,6 +89,7 @@ class PublishHashSearchTransactionService:
 
         else:
             current_hash_search_script = self.commit_search_hashes_script_generator_service(
+                signature_public_keys,
                 current_hash_public_keys,
                 amount_of_nibbles_hash,
                 amount_of_bits_per_digit_checksum,
@@ -114,9 +118,14 @@ class PublishHashSearchTransactionService:
             is_odd=current_hash_search_scripts_address.is_odd(),
         )
 
+        current_hash_signatures = []
+        for signature_list in search_hash_signatures:
+            current_hash_signatures.append(signature_list[i])
+
         search_hash_tx_list[i].witnesses.append(
             TxWitnessInput(
-                hash_search_witness
+                current_hash_signatures
+                + hash_search_witness
                 + [
                     current_hash_search_script.to_hex(),
                     current_hash_search_control_block.to_hex(),

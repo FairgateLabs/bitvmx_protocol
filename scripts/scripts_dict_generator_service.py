@@ -44,18 +44,19 @@ class ScriptsDictGeneratorService:
         ]
         trace_words_lengths = protocol_dict["trace_words_lengths"]
         trace_prover_public_keys = protocol_dict["trace_prover_public_keys"]
+        signature_public_keys = protocol_dict["public_keys"]
 
         scripts_dict = {}
 
         scripts_dict["hash_result_script"] = self.hash_result_script_generator(
-            protocol_dict["public_keys"],
+            signature_public_keys,
             hash_result_public_keys,
             amount_of_nibbles_hash,
             amount_of_bits_per_digit_checksum,
         )
 
         scripts_dict["trigger_protocol_script"] = self.trigger_protocol_script_generator(
-            protocol_dict["public_keys"]
+            signature_public_keys
         )
 
         hash_search_scripts = []
@@ -71,6 +72,7 @@ class ScriptsDictGeneratorService:
                     iter_count - 1
                 ]
                 current_search_script = self.commit_search_hashes_script_generator_service(
+                    signature_public_keys,
                     current_hash_public_keys,
                     amount_of_nibbles_hash,
                     amount_of_bits_per_digit_checksum,
@@ -80,6 +82,7 @@ class ScriptsDictGeneratorService:
                 )
             else:
                 current_search_script = self.commit_search_hashes_script_generator_service(
+                    signature_public_keys,
                     current_hash_public_keys,
                     amount_of_nibbles_hash,
                     amount_of_bits_per_digit_checksum,
@@ -99,7 +102,7 @@ class ScriptsDictGeneratorService:
         scripts_dict["choice_search_scripts"] = choice_search_scripts
 
         scripts_dict["trace_script"] = self.execution_trace_script_generator_service(
-            protocol_dict["public_keys"],
+            signature_public_keys,
             trace_prover_public_keys,
             trace_words_lengths,
             amount_of_bits_per_digit_checksum,
