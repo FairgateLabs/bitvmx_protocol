@@ -78,9 +78,9 @@ class PublishHashSearchTransactionService:
             )
 
             hash_search_witness += previous_witness[
-                len(search_hash_signatures) + 0 : len(search_hash_signatures) + 4
+                len(signature_public_keys) + 0 : len(signature_public_keys) + 4
             ]
-            current_choice = int(previous_witness[len(search_hash_signatures) + 1])
+            current_choice = int(previous_witness[len(signature_public_keys) + 1])
             protocol_dict["search_choice_" + str(i - 1)] = current_choice
             hash_search_witness += self.generate_prover_witness_from_input_single_word_service(
                 step=(3 + (i - 1) * 2 + 1),
@@ -120,13 +120,9 @@ class PublishHashSearchTransactionService:
             is_odd=current_hash_search_scripts_address.is_odd(),
         )
 
-        current_hash_signatures = []
-        for signature_list in search_hash_signatures:
-            current_hash_signatures.append(signature_list[i])
-
         search_hash_tx_list[i].witnesses.append(
             TxWitnessInput(
-                current_hash_signatures
+                search_hash_signatures[i]
                 + hash_search_witness
                 + [
                     current_hash_search_script.to_hex(),

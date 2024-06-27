@@ -233,7 +233,9 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
     # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
     hash_result_signatures = [signatures_dict["hash_result_signature"]]
-    search_hash_signatures = [signatures_dict["search_hash_signatures"]]
+    search_hash_signatures = [
+        [signature] for signature in signatures_dict["search_hash_signatures"]
+    ]
     trace_signatures = [signatures_dict["trace_signature"]]
     for verifier in verifier_list:
         url = f"http://{verifier}/signatures"
@@ -248,13 +250,17 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
             raise Exception("Some error when exchanging the signatures")
 
         signatures_response_json = signatures_response.json()
+        for j in range(len(signatures_response_json["verifier_search_hash_signatures"])):
+            search_hash_signatures[j].append(
+                signatures_response_json["verifier_search_hash_signatures"][j]
+            )
 
         hash_result_signatures.append(signatures_response_json["verifier_hash_result_signature"])
-        search_hash_signatures.append(signatures_response_json["verifier_search_hash_signatures"])
         trace_signatures.append(signatures_response_json["verifier_trace_signature"])
 
     hash_result_signatures.reverse()
-    search_hash_signatures.reverse()
+    for signature_list in search_hash_signatures:
+        signature_list.reverse()
     trace_signatures.reverse()
     protocol_dict["hash_result_signatures"] = hash_result_signatures
     protocol_dict["search_hash_signatures"] = search_hash_signatures
@@ -269,8 +275,9 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
             hash_result_signature=protocol_dict["hash_result_signatures"][
                 len(protocol_dict["public_keys"]) - i - 2
             ],
-            search_hash_signatures=protocol_dict["search_hash_signatures"][
-                len(protocol_dict["public_keys"]) - i - 2
+            search_hash_signatures=[
+                signatures_list[len(protocol_dict["public_keys"]) - i - 2]
+                for signatures_list in protocol_dict["search_hash_signatures"]
             ],
             trace_signature=protocol_dict["trace_signatures"][
                 len(protocol_dict["public_keys"]) - i - 2
