@@ -77,8 +77,10 @@ class PublishHashSearchTransactionService:
                 previous_choice_verifier_public_keys[0],
             )
 
-            hash_search_witness += previous_witness[0:4]
-            current_choice = int(previous_witness[1])
+            hash_search_witness += previous_witness[
+                len(search_hash_signatures) + 0 : len(search_hash_signatures) + 4
+            ]
+            current_choice = int(previous_witness[len(search_hash_signatures) + 1])
             protocol_dict["search_choice_" + str(i - 1)] = current_choice
             hash_search_witness += self.generate_prover_witness_from_input_single_word_service(
                 step=(3 + (i - 1) * 2 + 1),

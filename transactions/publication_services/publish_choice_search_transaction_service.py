@@ -30,9 +30,12 @@ class PublishChoiceSearchTransactionService:
         choice_search_verifier_public_keys_list = protocol_dict[
             "choice_search_verifier_public_keys_list"
         ]
+        signature_public_keys = protocol_dict["public_keys"]
+        search_choice_signatures = protocol_dict["search_choice_signatures"]
 
         current_choice_public_keys = choice_search_verifier_public_keys_list[i]
         current_choice_search_script = self.commit_search_choice_script_generator_service(
+            signature_public_keys,
             current_choice_public_keys[0],
             amount_of_bits_wrong_step_search,
         )
@@ -57,10 +60,9 @@ class PublishChoiceSearchTransactionService:
 
         search_choice_tx_list[i].witnesses.append(
             TxWitnessInput(
-                choice_search_witness
+                search_choice_signatures[i]
+                + choice_search_witness
                 + [
-                    # third_signature_bob,
-                    # third_signature_alice,
                     current_choice_search_script.to_hex(),
                     current_choice_search_control_block.to_hex(),
                 ]

@@ -53,8 +53,8 @@ class PublishTraceTransactionService:
         previous_choice_tx = protocol_dict["search_choice_tx_list"][-1].get_txid()
         previous_choice_transaction_info = self.transaction_info_service(previous_choice_tx)
         previous_witness = previous_choice_transaction_info.inputs[0].witness
-        trace_witness += previous_witness[0:4]
-        current_choice = int(previous_witness[1])
+        trace_witness += previous_witness[len(trace_signatures) + 0 : len(trace_signatures) + 4]
+        current_choice = int(previous_witness[len(trace_signatures) + 1])
 
         trace_witness += self.generate_prover_witness_from_input_single_word_service(
             step=(3 + (amount_of_wrong_step_search_iterations - 1) * 2 + 1),

@@ -93,6 +93,7 @@ class ScriptsDictGeneratorService:
             # Choice
             current_choice_public_keys = choice_search_verifier_public_keys_list[iter_count]
             current_choice_script = self.commit_search_choice_script_generator_service(
+                signature_public_keys,
                 current_choice_public_keys[0],
                 amount_of_bits_wrong_step_search,
             )
