@@ -12,8 +12,9 @@ from winternitz_keys_handling.services.generate_witness_from_input_nibbles_servi
 )
 
 
-def _get_result_hash_value() -> List[int]:
-    hash_value = "1111111111111111111111111111111111111111111111111111111111111112"
+def _get_result_hash_value(execution_result) -> List[int]:
+    hash_value = execution_result[-1]["step_hash"]
+    print(hash_value)
     hash_result_split_number = []
     for letter in hash_value:
         hash_result_split_number.append(int(letter, 16))
@@ -32,14 +33,14 @@ class PublishHashTransactionService:
 
     def __call__(self, protocol_dict) -> Transaction:
 
-        hash_result_split_number = _get_result_hash_value()
         amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
         amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
         hash_result_tx = protocol_dict["hash_result_tx"]
         hash_result_signatures = protocol_dict["hash_result_signatures"]
 
-        self.execution_trace_generation_service(protocol_dict)
+        execution_result = self.execution_trace_generation_service(protocol_dict)
+        hash_result_split_number = _get_result_hash_value(execution_result)
 
         hash_result_witness = []
         hash_result_witness += self.generate_witness_from_input_nibbles_service(

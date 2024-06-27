@@ -11,6 +11,7 @@ from bitcoinutils.keys import PrivateKey, PublicKey
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
+from mutinyet_api.services.transaction_info_service import TransactionInfoService
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionStepType
 from transactions.generate_signatures_service import GenerateSignaturesService
@@ -269,11 +270,17 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
 
     last_confirmed_step = protocol_dict["last_confirmed_step"]
     last_confirmed_step_tx_id = protocol_dict["last_confirmed_step_tx_id"]
+    transaction_info_service = TransactionInfoService()
 
-    if last_confirmed_step is None:
-        # VERIFY THAT THE FIRST HASH HAS BEEN PUBLISHED #
+    if last_confirmed_step is None and (
+        hash_result_transaction := transaction_info_service(
+            protocol_dict["hash_result_tx"].get_txid()
+        )
+    ):
         trigger_protocol_transaction_service = TriggerProtocolTransactionService()
-        last_confirmed_step_tx = trigger_protocol_transaction_service(protocol_dict)
+        last_confirmed_step_tx = trigger_protocol_transaction_service(
+            protocol_dict, hash_result_transaction
+        )
         last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
         last_confirmed_step = TransactionStepType.TRIGGER_PROTOCOL
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id

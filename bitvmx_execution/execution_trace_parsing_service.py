@@ -129,4 +129,6 @@ class ExecutionTraceParsingService:
                     writer.writerow(step_dict)
                     result.append(step_dict)
                     i += 1
+        if i > protocol_dict["amount_of_trace_steps"]:
+            raise Exception("Execution longer than the setup amount of steps")
         return result
