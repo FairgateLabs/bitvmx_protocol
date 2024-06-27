@@ -10,6 +10,6 @@ class ExecutionTraceGenerationService:
         )
 
     def __call__(self, protocol_dict):
-        self.execution_trace_parsing_service(
-            self.base_path + protocol_dict["setup_uuid"] + "/execution_trace.csv"
+        return self.execution_trace_parsing_service(
+            self.base_path + protocol_dict["setup_uuid"] + "/execution_trace.csv", protocol_dict
         )

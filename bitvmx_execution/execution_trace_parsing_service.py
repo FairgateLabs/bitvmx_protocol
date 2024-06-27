@@ -9,7 +9,7 @@ class ExecutionTraceParsingService:
     def __init__(self, input_file_path):
         self.input_file_path = input_file_path
 
-    def __call__(self, output_file_path):
+    def __call__(self, output_file_path, protocol_dict):
         # Regular expressions to match the different parts of each step
         read_pattern = re.compile(r"TraceRead \{ address: (\d+), value: (\d+), last_step: (\d+) \}")
         read_pc_pattern = re.compile(
@@ -45,6 +45,7 @@ class ExecutionTraceParsingService:
             step_hash = byte_sha256(bytes.fromhex("ff")).hex().zfill(64)
 
             with open(self.input_file_path, "r") as file:
+                i = 0
                 while True:
                     step_line = file.readline().strip()
                     ok_line = file.readline().strip()
@@ -65,9 +66,8 @@ class ExecutionTraceParsingService:
                     read_pc = read_pc[0]
                     write = write[0]
 
-                    write_address_hex = hex(int(write[0]))[2:].zfill(
-                        8
-                    )  # Ensure 8 hex characters (32 bits)
+                    # Important to not forget the zfill so the size is as intended
+                    write_address_hex = hex(int(write[0]))[2:].zfill(8)
                     write_value_hex = hex(int(write[1]))[2:].zfill(8)
                     write_pc_hex = hex(int(write[2]))[2:].zfill(8)
                     write_micro_hex = hex(int(write[3]))[2:].zfill(2)
@@ -96,3 +96,37 @@ class ExecutionTraceParsingService:
                     }
                     writer.writerow(step_dict)
                     result.append(step_dict)
+                    i += 1
+                while i < protocol_dict["amount_of_trace_steps"]:
+                    # Important to not forget the zfill so the size is as intended
+                    write_address_hex = "f" * 8
+                    write_value_hex = "f" * 8
+                    write_pc_hex = "f" * 8
+                    write_micro_hex = "f" * 2
+                    write_trace = (
+                        write_address_hex + write_value_hex + write_pc_hex + write_micro_hex
+                    )
+
+                    step_hash = byte_sha256(bytes.fromhex(step_hash + write_trace)).hex().zfill(64)
+
+                    step_dict = {
+                        "read1_address": "f" * 8,
+                        "read1_value": "f" * 8,
+                        "read1_last_step": "f" * 8,
+                        "read2_address": "f" * 8,
+                        "read2_value": "f" * 8,
+                        "read2_last_step": "f" * 8,
+                        "read_pc_address": "f" * 8,
+                        "read_pc_micro": "f" * 2,
+                        "read_pc_opcode": "f" * 8,
+                        "write_address": "f" * 8,
+                        "write_value": "f" * 8,
+                        "write_pc": "f" * 8,
+                        "write_micro": "f" * 2,
+                        "write_trace": write_trace,
+                        "step_hash": step_hash,
+                    }
+                    writer.writerow(step_dict)
+                    result.append(step_dict)
+                    i += 1
+        return result
