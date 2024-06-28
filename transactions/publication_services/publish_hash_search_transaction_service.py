@@ -1,3 +1,4 @@
+import pandas as pd
 from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
@@ -97,6 +98,8 @@ class PublishHashSearchTransactionService:
                 amount_of_bits_per_digit_checksum,
             )
 
+        iteration_hashes = self._get_hashes(i, protocol_dict)
+
         for word_count in range(amount_of_wrong_step_search_hashes_per_iteration):
 
             input_number = []
@@ -136,3 +139,31 @@ class PublishHashSearchTransactionService:
             "Search hash iteration transaction " + str(i) + ": " + search_hash_tx_list[i].get_txid()
         )
         return search_hash_tx_list[i]
+
+    def _get_hashes(self, i, protocol_dict):
+        amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
+        amount_of_wrong_step_search_iterations = protocol_dict[
+            "amount_of_wrong_step_search_iterations"
+        ]
+        prefix = ""
+        for j in range(i):
+            prefix += bin(protocol_dict["search_choice_" + str(j)])[2:].zfill(
+                amount_of_bits_wrong_step_search
+            )
+        suffix = (
+            "1"
+            * amount_of_bits_wrong_step_search
+            * (amount_of_wrong_step_search_iterations - i - 1)
+        )
+        index_list = []
+        for j in range(2**amount_of_bits_wrong_step_search - 1):
+            index_list.append(
+                int(prefix + bin(j)[2:].zfill(amount_of_bits_wrong_step_search) + suffix, 2)
+            )
+        trace_df = pd.read_csv(
+            "prover_files/" + protocol_dict["setup_uuid"] + "/execution_trace.csv", sep=";"
+        )
+        hash_list = []
+        for index in index_list:
+            hash_list.append(trace_df.iloc[index]["step_hash"])
+        return hash_list
