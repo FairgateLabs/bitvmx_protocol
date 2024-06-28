@@ -32,6 +32,7 @@ class TriggerProtocolTransactionService:
         execution_result = self.execution_trace_generation_service(protocol_dict)
 
         if not execution_result[-1]["step_hash"] == published_result_hash:
+            protocol_dict["search_hashes"][len(execution_result) - 1] = published_result_hash
             destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
             trigger_protocol_tx = protocol_dict["trigger_protocol_tx"]
             trigger_protocol_signatures = protocol_dict["trigger_protocol_signatures"]

@@ -81,8 +81,12 @@ class PublishHashSearchTransactionService:
             hash_search_witness += previous_witness[
                 len(signature_public_keys) + 0 : len(signature_public_keys) + 4
             ]
-            current_choice = int(previous_witness[len(signature_public_keys) + 1])
-            protocol_dict["search_choice_" + str(i - 1)] = current_choice
+            current_choice = (
+                int(previous_witness[len(signature_public_keys) + 1])
+                if len(previous_witness[len(signature_public_keys) + 1]) > 0
+                else 0
+            )
+            protocol_dict["search_choices"].append(current_choice)
             hash_search_witness += self.generate_prover_witness_from_input_single_word_service(
                 step=(3 + (i - 1) * 2 + 1),
                 case=0,
@@ -146,10 +150,8 @@ class PublishHashSearchTransactionService:
             "amount_of_wrong_step_search_iterations"
         ]
         prefix = ""
-        for j in range(i):
-            prefix += bin(protocol_dict["search_choice_" + str(j)])[2:].zfill(
-                amount_of_bits_wrong_step_search
-            )
+        for search_choice in protocol_dict["search_choices"]:
+            prefix += bin(search_choice)[2:].zfill(amount_of_bits_wrong_step_search)
         suffix = (
             "1"
             * amount_of_bits_wrong_step_search

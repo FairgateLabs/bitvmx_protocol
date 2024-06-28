@@ -58,6 +58,8 @@ async def init_setup(body: InitSetupBody) -> InitSetupResponse:
         "last_confirmed_step": None,
         "last_confirmed_step_tx_id": None,
         "setup_uuid": setup_uuid,
+        "search_choices": [],
+        "search_hashes": {},
     }
     os.makedirs(f"verifier_files/{setup_uuid}")
     with open(f"verifier_files/{setup_uuid}/file_database.pkl", "xb") as f:
@@ -133,6 +135,9 @@ async def public_keys(public_keys_body: PublicKeysBody) -> PublicKeysResponse:
     protocol_dict["funds_tx_id"] = public_keys_body.funds_tx_id
     protocol_dict["funds_index"] = public_keys_body.funds_index
     protocol_dict["amount_of_nibbles_hash"] = public_keys_body.amount_of_nibbles_hash
+    protocol_dict["amount_of_nibbles_hash_with_checksum"] = len(
+        public_keys_body.hash_result_public_keys
+    )
 
     protocol_dict["amount_of_trace_steps"] = (
         2 ** protocol_dict["amount_of_bits_wrong_step_search"]

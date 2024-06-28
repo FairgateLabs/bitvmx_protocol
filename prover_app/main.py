@@ -117,6 +117,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         amount_of_wrong_step_search_hashes_per_iteration
     )
     protocol_dict["amount_of_nibbles_hash"] = amount_of_nibbles_hash
+    protocol_dict["search_choices"] = []
 
     public_keys = []
     for verifier in verifier_list:

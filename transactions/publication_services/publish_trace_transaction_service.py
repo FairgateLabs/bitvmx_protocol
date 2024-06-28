@@ -1,3 +1,4 @@
+import pandas as pd
 from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
@@ -44,17 +45,39 @@ class PublishTraceTransactionService:
         ]
         trace_signatures = protocol_dict["trace_signatures"]
 
-        trace_array = []
-        for word_length in trace_words_lengths:
-            trace_array.append("1" * word_length)
-
         trace_witness = []
 
         previous_choice_tx = protocol_dict["search_choice_tx_list"][-1].get_txid()
         previous_choice_transaction_info = self.transaction_info_service(previous_choice_tx)
         previous_witness = previous_choice_transaction_info.inputs[0].witness
         trace_witness += previous_witness[len(trace_signatures) + 0 : len(trace_signatures) + 4]
-        current_choice = int(previous_witness[len(trace_signatures) + 1])
+        current_choice = (
+            int(previous_witness[len(trace_signatures) + 1])
+            if len(previous_witness[len(trace_signatures) + 1]) > 0
+            else 0
+        )
+
+        protocol_dict["search_choices"].append(current_choice)
+        first_wrong_step = int(
+            "".join(
+                map(
+                    lambda digit: bin(digit)[2:].zfill(amount_of_bits_wrong_step_search),
+                    protocol_dict["search_choices"],
+                )
+            ),
+            2,
+        )
+        print("First wrong step: " + str(first_wrong_step))
+
+        trace_df = pd.read_csv(
+            "prover_files/" + protocol_dict["setup_uuid"] + "/execution_trace.csv", sep=";"
+        )
+        current_trace_values = trace_df.iloc[current_choice][:13].to_list()
+        current_trace_values.reverse()
+        trace_array = []
+        for j in range(len(trace_words_lengths)):
+            word_length = trace_words_lengths[j]
+            trace_array.append(hex(int(current_trace_values[j]))[2:].zfill(word_length))
 
         trace_witness += self.generate_prover_witness_from_input_single_word_service(
             step=(3 + (amount_of_wrong_step_search_iterations - 1) * 2 + 1),
