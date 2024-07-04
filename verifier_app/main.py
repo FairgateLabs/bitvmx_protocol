@@ -18,6 +18,9 @@ from transactions.generate_signatures_service import GenerateSignaturesService
 from transactions.publication_services.publish_choice_search_transaction_service import (
     PublishChoiceSearchTransactionService,
 )
+from transactions.publication_services.trigger_execution_challenge_transaction_service import (
+    TriggerExeecutionChallengeTransactionService,
+)
 from transactions.publication_services.trigger_protocol_transaction_service import (
     TriggerProtocolTransactionService,
 )
@@ -91,6 +94,7 @@ class PublicKeysBody(BaseModel):
 class PublicKeysResponse(BaseModel):
     choice_search_verifier_public_keys_list: List[List[List[str]]]
     verifier_public_key: str
+    trace_verifier_public_keys: List[List[str]]
 
 
 @app.post("/public_keys")
@@ -160,6 +164,7 @@ async def public_keys(public_keys_body: PublicKeysBody) -> PublicKeysResponse:
         choice_search_verifier_public_keys_list=protocol_dict[
             "choice_search_verifier_public_keys_list"
         ],
+        trace_verifier_public_keys=protocol_dict["trace_verifier_public_keys"],
         verifier_public_key=verifier_private_key.get_public_key().to_hex(),
     )
 
@@ -168,6 +173,7 @@ class SignaturesBody(BaseModel):
     setup_uuid: str
     trigger_protocol_signature: str
     search_choice_signatures: List[str]
+    trigger_execution_signature: str
 
 
 class SignaturesResponse(BaseModel):
@@ -188,6 +194,7 @@ async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
     # step_fees_satoshis = protocol_dict["step_fees_satoshis"]
     protocol_dict["trigger_protocol_prover_signature"] = signatures_body.trigger_protocol_signature
     protocol_dict["search_choice_prover_signatures"] = signatures_body.search_choice_signatures
+    protocol_dict["trigger_execution_signature"] = signatures_body.trigger_execution_signature
 
     # Transaction construction
     transaction_generator_from_public_keys_service = TransactionGeneratorFromPublicKeysService()
@@ -206,6 +213,7 @@ async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
         protocol_dict["prover_public_key"],
         protocol_dict["trigger_protocol_prover_signature"],
         protocol_dict["search_choice_prover_signatures"],
+        protocol_dict["trigger_execution_signature"],
     )
 
     generate_signatures_service = GenerateSignaturesService(
@@ -300,6 +308,19 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         last_confirmed_step_tx = publish_choice_search_transaction_service(protocol_dict, i)
         last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
         last_confirmed_step = TransactionStepType.SEARCH_STEP_CHOICE
+        protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
+        protocol_dict["last_confirmed_step"] = last_confirmed_step
+    elif (
+        last_confirmed_step is TransactionStepType.SEARCH_STEP_CHOICE
+        and last_confirmed_step_tx_id == protocol_dict["search_choice_tx_list"][-1].get_txid()
+    ):
+        verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
+        trigger_challenge_transaction_service = TriggerExeecutionChallengeTransactionService(
+            verifier_private_key
+        )
+        last_confirmed_step_tx = trigger_challenge_transaction_service(protocol_dict)
+        last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
+        last_confirmed_step = TransactionStepType.TRIGGER_CHALLENGE
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
         protocol_dict["last_confirmed_step"] = last_confirmed_step
     elif last_confirmed_step is TransactionStepType.SEARCH_STEP_CHOICE:

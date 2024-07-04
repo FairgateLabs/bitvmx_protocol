@@ -3,22 +3,22 @@ from typing import List, Optional
 from bitcoinutils.keys import PublicKey
 
 from scripts.bitcoin_script import BitcoinScript
-from scripts.services.confirm_single_word_script_generator_service import (
+from winternitz_keys_handling.scripts.confirm_single_word_script_generator_service import (
     ConfirmSingleWordScriptGeneratorService,
 )
-from winternitz_keys_handling.scripts.verify_digit_signature_nibble_service import (
-    VerifyDigitSignatureNibbleService,
+from winternitz_keys_handling.scripts.verify_digit_signature_nibbles_service import (
+    VerifyDigitSignatureNibblesService,
 )
-from winternitz_keys_handling.scripts.verify_digit_signature_service import (
-    VerifyDigitSignatureService,
+from winternitz_keys_handling.scripts.verify_digit_signature_single_word_service import (
+    VerifyDigitSignatureSingleWordService,
 )
 
 
 class CommitSearchHashesScriptGeneratorService:
 
     def __init__(self):
-        self.verify_input_nibble_message_from_public_keys = VerifyDigitSignatureNibbleService()
-        self.verify_input_single_word_from_public_keys = VerifyDigitSignatureService()
+        self.verify_input_nibble_message_from_public_keys = VerifyDigitSignatureNibblesService()
+        self.verify_input_single_word_from_public_keys = VerifyDigitSignatureSingleWordService()
         self.confirm_single_word_script_generator_service = (
             ConfirmSingleWordScriptGeneratorService()
         )

@@ -1,14 +1,14 @@
 from bitcoinutils.keys import PublicKey
 
 from scripts.bitcoin_script import BitcoinScript
-from winternitz_keys_handling.scripts.verify_digit_signature_service import (
-    VerifyDigitSignatureService,
+from winternitz_keys_handling.scripts.verify_digit_signature_single_word_service import (
+    VerifyDigitSignatureSingleWordService,
 )
 
 
 class CommitSearchChoiceScriptGeneratorService:
     def __init__(self):
-        self.verify_input_single_word_from_public_keys = VerifyDigitSignatureService()
+        self.verify_input_single_word_from_public_keys = VerifyDigitSignatureSingleWordService()
 
     def __call__(self, signature_public_keys, public_keys, amount_of_bits):
         script = BitcoinScript()

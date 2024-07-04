@@ -121,14 +121,35 @@ class TransactionGeneratorFromPublicKeysService:
         protocol_dict["search_hash_tx_list"] = search_hash_tx_list
         protocol_dict["search_choice_tx_list"] = search_choice_tx_list
 
+        # We should put all triggers here
+        trigger_challenge_script_address = destroyed_public_key.get_taproot_address(
+            scripts_dict["challenge_scripts"]
+        )
+
         trace_txin = TxInput(search_choice_tx_list[-1].get_txid(), 0)
         trace_output_amount = current_output_amount - step_fees_satoshis
-        faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
-        trace_output_address = P2wpkhAddress.from_address(address=faucet_address)
-        trace_txout = TxOutput(trace_output_amount, trace_output_address.to_script_pub_key())
+        trace_txout = TxOutput(
+            trace_output_amount, trigger_challenge_script_address.to_script_pub_key()
+        )
 
         trace_tx = Transaction([trace_txin], [trace_txout], has_segwit=True)
         protocol_dict["trace_tx"] = trace_tx
+
+        trigger_challenge_output_amount = trace_output_amount - step_fees_satoshis
+
+        trigger_execution_challenge_txin = TxInput(trace_tx.get_txid(), 0)
+        faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
+        trigger_execution_challenge_output_address = P2wpkhAddress.from_address(
+            address=faucet_address
+        )
+        trigger_execution_challenge_txout = TxOutput(
+            trigger_challenge_output_amount,
+            trigger_execution_challenge_output_address.to_script_pub_key(),
+        )
+        trigger_execution_challenge_tx = Transaction(
+            [trigger_execution_challenge_txin], [trigger_execution_challenge_txout], has_segwit=True
+        )
+        protocol_dict["trigger_execution_challenge_tx"] = trigger_execution_challenge_tx
 
         protocol_dict["transactions"] = protocol_dict
 

@@ -215,6 +215,8 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     )
     verifier_public_key = public_keys_response_json["verifier_public_key"]
     protocol_dict["verifier_public_key"] = verifier_public_key
+    trace_verifier_public_keys = public_keys_response_json["trace_verifier_public_keys"]
+    protocol_dict["trace_verifier_public_keys"] = trace_verifier_public_keys
 
     ## Scripts building ##
 
@@ -253,6 +255,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
             "setup_uuid": setup_uuid,
             "trigger_protocol_signature": signatures_dict["trigger_protocol_signature"],
             "search_choice_signatures": signatures_dict["search_choice_signatures"],
+            "trigger_execution_signature": signatures_dict["trigger_execution_signature"],
         }
         signatures_response = requests.post(url, headers=headers, json=data)
         if signatures_response.status_code != 200:
@@ -413,6 +416,7 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         TransactionStepType.HASH_RESULT,
         TransactionStepType.SEARCH_STEP_HASH,
         TransactionStepType.SEARCH_STEP_CHOICE,
+        TransactionStepType.TRACE,
     ]:
         asyncio.create_task(_trigger_next_step_verifier(publish_next_step_body))
 

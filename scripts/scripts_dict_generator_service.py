@@ -11,6 +11,9 @@ from scripts.services.hash_result_script_generator_service import HashResultScri
 from scripts.services.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
 )
+from scripts.services.verifier_challenge_execution_script_generator_service import (
+    VerifierChallengeExecutionScriptGeneratorService,
+)
 
 
 class ScriptsDictGeneratorService:
@@ -25,6 +28,9 @@ class ScriptsDictGeneratorService:
             CommitSearchChoiceScriptGeneratorService()
         )
         self.execution_trace_script_generator_service = ExecutionTraceScriptGeneratorService()
+        self.verifier_challenge_execution_script_generator_service = (
+            VerifierChallengeExecutionScriptGeneratorService()
+        )
 
     def __call__(self, protocol_dict):
 
@@ -44,6 +50,7 @@ class ScriptsDictGeneratorService:
         ]
         trace_words_lengths = protocol_dict["trace_words_lengths"]
         trace_prover_public_keys = protocol_dict["trace_prover_public_keys"]
+        trace_verifier_public_keys = protocol_dict["trace_verifier_public_keys"]
         signature_public_keys = protocol_dict["public_keys"]
 
         scripts_dict = {}
@@ -111,5 +118,17 @@ class ScriptsDictGeneratorService:
             choice_search_prover_public_keys_list[-1][0],
             choice_search_verifier_public_keys_list[-1][0],
         )
+
+        scripts_dict["trigger_execution_script"] = (
+            self.verifier_challenge_execution_script_generator_service(
+                trace_prover_public_keys,
+                trace_verifier_public_keys,
+                signature_public_keys,
+                trace_words_lengths,
+                amount_of_bits_per_digit_checksum,
+            )
+        )
+
+        scripts_dict["challenge_scripts"] = [[scripts_dict["trigger_execution_script"]]]
 
         return scripts_dict

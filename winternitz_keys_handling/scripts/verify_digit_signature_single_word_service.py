@@ -3,46 +3,45 @@ import math
 from winternitz_keys_handling.services.compute_max_checksum_service import ComputeMaxChecksumService
 
 
-class VerifyDigitSignatureNibbleService:
-
+class VerifyDigitSignatureSingleWordService:
     def __init__(self):
         self.compute_max_checksum_service = ComputeMaxChecksumService()
-        self.d0 = 2**4
 
-    def __call__(self, script, public_keys, n0, bits_per_digit_checksum, to_alt_stack=False):
+    def __call__(self, script, public_keys, amount_of_bits, to_alt_stack=False):
+        d0 = 2**amount_of_bits
+        n0 = 1
+        bits_per_digit_checksum = amount_of_bits
+
         d1, n1, max_checksum_value = self.compute_max_checksum_service(
-            self.d0, n0, bits_per_digit_checksum
+            d0, n0, bits_per_digit_checksum
         )
 
-        i = 0
-        while i < n1:
-            self.verify_digit_signature_nibble(script, public_keys[i], d1)
-            i += 1
+        assert d0 == d1
 
-        while i < n0 + n1:
-            self.verify_digit_signature_nibble(script, public_keys[i], self.d0)
-            i += 1
+        for i in range(len(public_keys)):
+            self.verify_digit_signature(script, public_keys[i], d0)
 
-        self.verify_checksum(script, n0, n1, max_checksum_value, bits_per_digit_checksum)
+        self.verify_checksum(script, 1, 1, max_checksum_value, amount_of_bits)
 
         if to_alt_stack:
             for i in range(n0):
                 script.append("OP_TOALTSTACK")
 
-        return n0 + n1
+        return 2
 
     @staticmethod
-    def verify_digit_signature_nibble(script, public_key, d):
+    def verify_digit_signature(script, public_key, d):
         script.extend([d - 1, "OP_MIN", "OP_DUP", "OP_TOALTSTACK", "OP_TOALTSTACK"])
 
         for _ in range(d):
             script.extend(["OP_DUP", "OP_HASH160"])
 
-        script.extend(["OP_FROMALTSTACK", "OP_PICK", public_key, "OP_EQUALVERIFY"])
+        script.extend(["OP_FROMALTSTACK", "OP_ROLL", public_key, "OP_EQUALVERIFY"])
 
         for _ in range(math.floor(d / 2)):
             script.append("OP_2DROP")
-        script.append("OP_DROP")
+        if d % 2 == 1:
+            script.append("OP_DROP")
 
     @staticmethod
     def verify_checksum(script, n0, n1, max_checksum_value, bits_per_digit_checksum):

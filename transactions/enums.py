@@ -7,3 +7,4 @@ class TransactionStepType(Enum):
     SEARCH_STEP_HASH = "search_step_hash"
     SEARCH_STEP_CHOICE = "search_step_choice"
     TRACE = "trace"
+    TRIGGER_CHALLENGE = "trigger_challenge"
