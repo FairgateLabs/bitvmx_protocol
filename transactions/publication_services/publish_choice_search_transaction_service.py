@@ -74,6 +74,12 @@ class PublishChoiceSearchTransactionService:
         )
 
         self.broadcast_transaction_service(transaction=search_choice_tx_list[i].serialize())
+        print(
+            "Search choice iteration transaction "
+            + str(i)
+            + ": "
+            + search_choice_tx_list[i].get_txid()
+        )
         return search_choice_tx_list[i]
 
     def _get_choice(self, i, protocol_dict):

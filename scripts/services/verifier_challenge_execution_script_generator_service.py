@@ -1,4 +1,3 @@
-
 from scripts.bitcoin_script import BitcoinScript
 from winternitz_keys_handling.scripts.confirm_nibbles_script_generator_service import (
     ConfirmNibblesScriptGeneratorService,

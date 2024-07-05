@@ -51,17 +51,17 @@ class GenerateVerifierPublicKeysService:
         protocol_dict["trace_words_lengths"] = trace_words_lengths
 
         current_step = 3 + 2 * amount_of_wrong_step_search_iterations
-        trace_prover_keys = []
+        trace_verifier_keys = []
         for i in range(len(trace_words_lengths)):
-            trace_prover_keys.append(
+            trace_verifier_keys.append(
                 self.verifier_winternitz_keys_nibbles_service(
                     step=current_step, case=i, n0=trace_words_lengths[i]
                 )
             )
-        trace_prover_public_keys = []
-        for keys_list_of_lists in trace_prover_keys:
-            trace_prover_public_keys.append(
+        trace_verifier_public_keys = []
+        for keys_list_of_lists in trace_verifier_keys:
+            trace_verifier_public_keys.append(
                 list(map(lambda key_list: key_list[-1], keys_list_of_lists))
             )
 
-        protocol_dict["trace_verifier_public_keys"] = trace_prover_public_keys
+        protocol_dict["trace_verifier_public_keys"] = trace_verifier_public_keys
