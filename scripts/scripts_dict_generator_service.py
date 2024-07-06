@@ -138,7 +138,12 @@ class ScriptsDictGeneratorService:
         scripts_dict["trigger_challenge_scripts"] = [[scripts_dict["trigger_execution_script"]]]
 
         scripts_dict["execution_challenge_script"] = (
-            self.execution_challenge_script_generator_service(signature_public_keys)
+            self.execution_challenge_script_generator_service(
+                signature_public_keys,
+                trace_verifier_public_keys,
+                trace_words_lengths,
+                amount_of_bits_per_digit_checksum,
+            )
         )
 
         return scripts_dict

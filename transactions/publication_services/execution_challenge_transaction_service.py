@@ -25,6 +25,8 @@ class ExecutionChallengeTransactionService:
         execution_challenge_tx = protocol_dict["execution_challenge_tx"]
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
         signature_public_keys = protocol_dict["public_keys"]
+        trace_verifier_public_keys = protocol_dict["trace_verifier_public_keys"]
+        amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
 
         trigger_execution_challenge_published_transaction = self.transaction_info_service(
             trigger_execution_challenge_transaction.get_txid()
@@ -34,6 +36,7 @@ class ExecutionChallengeTransactionService:
         )
         verifier_keys_witness = []
         processed_values = 0
+        real_values = []
         for i in reversed(range(len(trace_words_lengths))):
             current_keys_length = len(trace_prover_public_keys[i])
             current_verifier_witness = trigger_execution_challenge_witness[
@@ -41,11 +44,22 @@ class ExecutionChallengeTransactionService:
                 + 2 * current_keys_length : processed_values
                 + 4 * current_keys_length
             ]
-            verifier_keys_witness.append(current_verifier_witness)
+            verifier_keys_witness.extend(current_verifier_witness)
             processed_values += 4 * current_keys_length
+            real_values.append(
+                "".join(
+                    map(
+                        lambda elem: "0" if len(elem) == 0 else elem[1],
+                        current_verifier_witness[1 : 2 * trace_words_lengths[i] : 2],
+                    )
+                )
+            )
 
         execution_challenge_script = self.execution_challenge_script_generator_service(
-            signature_public_keys
+            signature_public_keys,
+            trace_verifier_public_keys,
+            trace_words_lengths,
+            amount_of_bits_per_digit_checksum,
         )
         execution_challenge_taptree = [[execution_challenge_script]]
         execution_challenge_script_address = destroyed_public_key.get_taproot_address(
@@ -62,6 +76,7 @@ class ExecutionChallengeTransactionService:
         execution_challenge_tx.witnesses.append(
             TxWitnessInput(
                 execution_challenge_signatures
+                + verifier_keys_witness
                 + [
                     execution_challenge_script.to_hex(),
                     execution_challenge_control_block.to_hex(),
