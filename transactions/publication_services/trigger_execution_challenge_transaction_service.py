@@ -4,8 +4,8 @@ from bitcoinutils.utils import ControlBlock
 
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
 from mutinyet_api.services.transaction_info_service import TransactionInfoService
-from scripts.services.verifier_challenge_execution_script_generator_service import (
-    VerifierChallengeExecutionScriptGeneratorService,
+from scripts.services.trigger_challenge_execution_script_generator_service import (
+    TriggerChallengeExecutionScriptGeneratorService,
 )
 from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,
@@ -17,7 +17,7 @@ class TriggerExeecutionChallengeTransactionService:
         self.transaction_info_service = TransactionInfoService()
         self.broadcast_transaction_service = BroadcastTransactionService()
         self.verifier_challenge_execution_script_generator_service = (
-            VerifierChallengeExecutionScriptGeneratorService()
+            TriggerChallengeExecutionScriptGeneratorService()
         )
         self.generate_witness_from_input_nibbles_service = GenerateWitnessFromInputNibblesService(
             verifier_private_key
@@ -43,6 +43,7 @@ class TriggerExeecutionChallengeTransactionService:
         amount_of_wrong_step_search_iterations = protocol_dict[
             "amount_of_wrong_step_search_iterations"
         ]
+        trigger_execution_signatures = protocol_dict["trigger_execution_signatures"]
 
         consumed_items = 0
         trace_values = []
@@ -88,12 +89,14 @@ class TriggerExeecutionChallengeTransactionService:
         )
 
         # TODO: we should load this address from protocol dict as we add more challenges
-        challenge_scripts = [[trigger_execution_script]]
-        challenge_scripts_address = destroyed_public_key.get_taproot_address(challenge_scripts)
+        trigger_challenge_taptree = [[trigger_execution_script]]
+        challenge_scripts_address = destroyed_public_key.get_taproot_address(
+            trigger_challenge_taptree
+        )
 
         challenge_scripts_control_block = ControlBlock(
             destroyed_public_key,
-            scripts=[[trigger_execution_script]],
+            scripts=trigger_challenge_taptree,
             index=0,
             is_odd=challenge_scripts_address.is_odd(),
         )
@@ -112,8 +115,8 @@ class TriggerExeecutionChallengeTransactionService:
 
         trigger_execution_challenge_tx.witnesses.append(
             TxWitnessInput(
-                # trace_signatures
-                trigger_challenge_witness
+                trigger_execution_signatures
+                + trigger_challenge_witness
                 + [
                     trigger_execution_script.to_hex(),
                     challenge_scripts_control_block.to_hex(),

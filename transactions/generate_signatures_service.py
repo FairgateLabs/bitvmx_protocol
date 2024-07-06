@@ -102,11 +102,10 @@ class GenerateSignaturesService:
         )
         signatures_dict["trace_signature"] = trace_signature
 
-        trigger_challenge_address = self.destroyed_public_key.get_taproot_address(
-            scripts_dict["challenge_scripts"]
-        )
-
         trigger_execution_challenge_tx = protocol_dict["trigger_execution_challenge_tx"]
+        trigger_challenge_address = self.destroyed_public_key.get_taproot_address(
+            scripts_dict["trigger_challenge_scripts"]
+        )
         trigger_execution_challenge_signature = self.private_key.sign_taproot_input(
             trigger_execution_challenge_tx,
             0,
@@ -121,5 +120,24 @@ class GenerateSignaturesService:
             tweak=False,
         )
         signatures_dict["trigger_execution_signature"] = trigger_execution_challenge_signature
+
+        execution_challenge_tx = protocol_dict["execution_challenge_tx"]
+        execution_challenge_address = self.destroyed_public_key.get_taproot_address(
+            scripts_dict["execution_challenge_script"]
+        )
+        execution_challenge_signature = self.private_key.sign_taproot_input(
+            execution_challenge_tx,
+            0,
+            [execution_challenge_address.to_script_pub_key()],
+            [
+                funding_result_output_amount
+                - (2 * len(protocol_dict["search_hash_tx_list"]) + 4) * step_fees_satoshis
+            ],
+            script_path=True,
+            tapleaf_script=scripts_dict["execution_challenge_script"],
+            sighash=TAPROOT_SIGHASH_ALL,
+            tweak=False,
+        )
+        signatures_dict["execution_challenge_signature"] = execution_challenge_signature
 
         return signatures_dict

@@ -23,6 +23,9 @@ from prover_app.config import protocol_properties
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionStepType
 from transactions.generate_signatures_service import GenerateSignaturesService
+from transactions.publication_services.execution_challenge_transaction_service import (
+    ExecutionChallengeTransactionService,
+)
 from transactions.publication_services.publish_hash_search_transaction_service import (
     PublishHashSearchTransactionService,
 )
@@ -248,6 +251,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         [signature] for signature in signatures_dict["search_hash_signatures"]
     ]
     trace_signatures = [signatures_dict["trace_signature"]]
+    execution_challenge_signatures = [signatures_dict["execution_challenge_signature"]]
     for verifier in verifier_list:
         url = f"http://{verifier}/signatures"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
@@ -269,14 +273,20 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
         hash_result_signatures.append(signatures_response_json["verifier_hash_result_signature"])
         trace_signatures.append(signatures_response_json["verifier_trace_signature"])
+        execution_challenge_signatures.append(
+            signatures_response_json["verifier_execution_challenge_signature"]
+        )
 
     hash_result_signatures.reverse()
     for signature_list in search_hash_signatures:
         signature_list.reverse()
     trace_signatures.reverse()
+    execution_challenge_signatures.reverse()
+
     protocol_dict["hash_result_signatures"] = hash_result_signatures
     protocol_dict["search_hash_signatures"] = search_hash_signatures
     protocol_dict["trace_signatures"] = trace_signatures
+    protocol_dict["execution_challenge_signatures"] = execution_challenge_signatures
 
     verify_verifier_signatures_service = VerifyVerifierSignaturesService(destroyed_public_key)
     for i in range(len(protocol_dict["public_keys"]) - 1):
@@ -292,6 +302,9 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
                 for signatures_list in protocol_dict["search_hash_signatures"]
             ],
             trace_signature=protocol_dict["trace_signatures"][
+                len(protocol_dict["public_keys"]) - i - 2
+            ],
+            execution_challenge_signature=protocol_dict["execution_challenge_signatures"][
                 len(protocol_dict["public_keys"]) - i - 2
             ],
         )
@@ -408,6 +421,14 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
                 last_confirmed_step = TransactionStepType.SEARCH_STEP_HASH
                 protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
                 protocol_dict["last_confirmed_step"] = last_confirmed_step
+    elif last_confirmed_step == TransactionStepType.TRACE:
+        # Here we should check which is the challenge that should be triggered
+        execution_challenge_transaction_service = ExecutionChallengeTransactionService()
+        last_confirmed_step_tx = execution_challenge_transaction_service(protocol_dict)
+        last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
+        last_confirmed_step = TransactionStepType.EXECUTION_CHALLENGE
+        protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
+        protocol_dict["last_confirmed_step"] = last_confirmed_step
 
     with open(f"prover_files/{setup_uuid}/file_database.pkl", "wb") as f:
         pickle.dump(protocol_dict, f)

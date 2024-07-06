@@ -4,15 +4,18 @@ from scripts.services.commit_search_choice_script_generator_service import (
 from scripts.services.commit_search_hashes_script_generator_service import (
     CommitSearchHashesScriptGeneratorService,
 )
+from scripts.services.execution_challenge_script_generator_service import (
+    ExecutionChallengeScriptGeneratorService,
+)
 from scripts.services.execution_trace_script_generator_service import (
     ExecutionTraceScriptGeneratorService,
 )
 from scripts.services.hash_result_script_generator_service import HashResultScriptGeneratorService
+from scripts.services.trigger_challenge_execution_script_generator_service import (
+    TriggerChallengeExecutionScriptGeneratorService,
+)
 from scripts.services.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
-)
-from scripts.services.verifier_challenge_execution_script_generator_service import (
-    VerifierChallengeExecutionScriptGeneratorService,
 )
 
 
@@ -29,7 +32,10 @@ class ScriptsDictGeneratorService:
         )
         self.execution_trace_script_generator_service = ExecutionTraceScriptGeneratorService()
         self.verifier_challenge_execution_script_generator_service = (
-            VerifierChallengeExecutionScriptGeneratorService()
+            TriggerChallengeExecutionScriptGeneratorService()
+        )
+        self.execution_challenge_script_generator_service = (
+            ExecutionChallengeScriptGeneratorService()
         )
 
     def __call__(self, protocol_dict):
@@ -129,6 +135,10 @@ class ScriptsDictGeneratorService:
             )
         )
 
-        scripts_dict["challenge_scripts"] = [[scripts_dict["trigger_execution_script"]]]
+        scripts_dict["trigger_challenge_scripts"] = [[scripts_dict["trigger_execution_script"]]]
+
+        scripts_dict["execution_challenge_script"] = (
+            self.execution_challenge_script_generator_service(signature_public_keys)
+        )
 
         return scripts_dict

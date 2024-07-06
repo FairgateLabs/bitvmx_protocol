@@ -180,6 +180,7 @@ class SignaturesResponse(BaseModel):
     verifier_hash_result_signature: str
     verifier_search_hash_signatures: List[str]
     verifier_trace_signature: str
+    verifier_execution_challenge_signature: str
 
 
 @app.post("/signatures")
@@ -237,6 +238,11 @@ async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
         )
     protocol_dict["search_choice_signatures"] = search_choice_signatures
     trace_signature = signatures_dict["trace_signature"]
+    protocol_dict["trigger_execution_signatures"] = [
+        signatures_dict["trigger_execution_signature"],
+        protocol_dict["trigger_execution_signature"],
+    ]
+    execution_challenge_signature = signatures_dict["execution_challenge_signature"]
 
     with open(f"verifier_files/{setup_uuid}/file_database.pkl", "wb") as f:
         pickle.dump(protocol_dict, f)
@@ -245,6 +251,7 @@ async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
         verifier_hash_result_signature=hash_result_signature_verifier,
         verifier_search_hash_signatures=search_hash_signatures,
         verifier_trace_signature=trace_signature,
+        verifier_execution_challenge_signature=execution_challenge_signature,
     )
 
 
@@ -347,6 +354,7 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
     if last_confirmed_step in [
         TransactionStepType.TRIGGER_PROTOCOL,
         TransactionStepType.SEARCH_STEP_CHOICE,
+        TransactionStepType.TRIGGER_CHALLENGE,
     ]:
         asyncio.create_task(_trigger_next_step_prover(publish_next_step_body))
 

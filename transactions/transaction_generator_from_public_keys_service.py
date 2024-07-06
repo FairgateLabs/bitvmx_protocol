@@ -121,9 +121,8 @@ class TransactionGeneratorFromPublicKeysService:
         protocol_dict["search_hash_tx_list"] = search_hash_tx_list
         protocol_dict["search_choice_tx_list"] = search_choice_tx_list
 
-        # We should put all triggers here
         trigger_challenge_script_address = destroyed_public_key.get_taproot_address(
-            scripts_dict["challenge_scripts"]
+            [[scripts_dict["trigger_challenge_scripts"]]]
         )
 
         trace_txin = TxInput(search_choice_tx_list[-1].get_txid(), 0)
@@ -136,20 +135,38 @@ class TransactionGeneratorFromPublicKeysService:
         protocol_dict["trace_tx"] = trace_tx
 
         trigger_challenge_output_amount = trace_output_amount - step_fees_satoshis
+        challenge_output_amount = trigger_challenge_output_amount - step_fees_satoshis
+
+        #  Here we should put all the challenges
+
+        ## Execution challenge
+        execution_challenge_address = destroyed_public_key.get_taproot_address(
+            [[scripts_dict["execution_challenge_script"]]]
+        )
 
         trigger_execution_challenge_txin = TxInput(trace_tx.get_txid(), 0)
-        faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
-        trigger_execution_challenge_output_address = P2wpkhAddress.from_address(
-            address=faucet_address
-        )
         trigger_execution_challenge_txout = TxOutput(
             trigger_challenge_output_amount,
-            trigger_execution_challenge_output_address.to_script_pub_key(),
+            execution_challenge_address.to_script_pub_key(),
         )
         trigger_execution_challenge_tx = Transaction(
             [trigger_execution_challenge_txin], [trigger_execution_challenge_txout], has_segwit=True
         )
         protocol_dict["trigger_execution_challenge_tx"] = trigger_execution_challenge_tx
+
+        execution_challenge_txin = TxInput(trigger_execution_challenge_tx.get_txid(), 0)
+
+        faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
+        execution_challenge_output_address = P2wpkhAddress.from_address(address=faucet_address)
+        execution_challenge_txout = TxOutput(
+            challenge_output_amount,
+            execution_challenge_output_address.to_script_pub_key(),
+        )
+
+        execution_challenge_tx = Transaction(
+            [execution_challenge_txin], [execution_challenge_txout], has_segwit=True
+        )
+        protocol_dict["execution_challenge_tx"] = execution_challenge_tx
 
         protocol_dict["transactions"] = protocol_dict
 

@@ -1,10 +1,12 @@
+from bitcoinutils.keys import PublicKey
+
 from scripts.bitcoin_script import BitcoinScript
 from winternitz_keys_handling.scripts.confirm_nibbles_script_generator_service import (
     ConfirmNibblesScriptGeneratorService,
 )
 
 
-class VerifierChallengeExecutionScriptGeneratorService:
+class TriggerChallengeExecutionScriptGeneratorService:
     def __init__(self):
         self.confirm_nibbles_script_generator_service = ConfirmNibblesScriptGeneratorService()
 
@@ -32,10 +34,10 @@ class VerifierChallengeExecutionScriptGeneratorService:
 
         # script.append("OP_CODESEPARATOR")
 
-        # for signature_public_key in reversed(signature_public_keys):
-        #     script.extend(
-        #         [PublicKey(hex_str=signature_public_key).to_x_only_hex(), "OP_CHECKSIGVERIFY"]
-        #     )
+        for signature_public_key in reversed(signature_public_keys):
+            script.extend(
+                [PublicKey(hex_str=signature_public_key).to_x_only_hex(), "OP_CHECKSIGVERIFY"]
+            )
 
         script.append(1)
         return script

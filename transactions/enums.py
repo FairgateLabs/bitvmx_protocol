@@ -8,3 +8,4 @@ class TransactionStepType(Enum):
     SEARCH_STEP_CHOICE = "search_step_choice"
     TRACE = "trace"
     TRIGGER_CHALLENGE = "trigger_challenge"
+    EXECUTION_CHALLENGE = "execution_challenge"
