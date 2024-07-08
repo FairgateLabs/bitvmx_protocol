@@ -56,7 +56,9 @@ class ExecutionChallengeTransactionService:
                 )
             )
 
-        trace_to_script_mapping = self.execution_challenge_script_generator_service.trace_to_script_mapping()
+        trace_to_script_mapping = (
+            self.execution_challenge_script_generator_service.trace_to_script_mapping()
+        )
         verifier_keys_witness = []
         witness_real_values = []
         for i in trace_to_script_mapping:
