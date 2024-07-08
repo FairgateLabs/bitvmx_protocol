@@ -72,7 +72,7 @@ class PublishTraceTransactionService:
         trace_df = pd.read_csv(
             "prover_files/" + protocol_dict["setup_uuid"] + "/execution_trace.csv", sep=";"
         )
-        current_trace_values = trace_df.iloc[current_choice][:13].to_list()
+        current_trace_values = trace_df.iloc[first_wrong_step][:13].to_list()
         current_trace_values.reverse()
         trace_array = []
         for j in range(len(trace_words_lengths)):
