@@ -89,7 +89,7 @@ class PublishTraceTransactionService:
         for word_count in range(len(trace_words_lengths)):
 
             input_number = []
-            for letter in trace_array[len(trace_array) - word_count - 1]:
+            for letter in reversed(trace_array[len(trace_array) - word_count - 1]):
                 input_number.append(int(letter, 16))
 
             trace_witness += self.generate_witness_from_input_nibbles_service(
