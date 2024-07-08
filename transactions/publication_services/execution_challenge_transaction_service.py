@@ -34,7 +34,8 @@ class ExecutionChallengeTransactionService:
         trigger_execution_challenge_witness = (
             trigger_execution_challenge_published_transaction.inputs[0].witness[2:]
         )
-        verifier_keys_witness = []
+
+        verifier_keys_witness_values = []
         processed_values = 0
         real_values = []
         for i in reversed(range(len(trace_words_lengths))):
@@ -44,7 +45,7 @@ class ExecutionChallengeTransactionService:
                 + 2 * current_keys_length : processed_values
                 + 4 * current_keys_length
             ]
-            verifier_keys_witness.extend(current_verifier_witness)
+            verifier_keys_witness_values.append(current_verifier_witness)
             processed_values += 4 * current_keys_length
             real_values.append(
                 "".join(
@@ -54,6 +55,13 @@ class ExecutionChallengeTransactionService:
                     )
                 )
             )
+
+        trace_to_script_mapping = self.execution_challenge_script_generator_service.trace_to_script_mapping()
+        verifier_keys_witness = []
+        witness_real_values = []
+        for i in trace_to_script_mapping:
+            verifier_keys_witness.extend(verifier_keys_witness_values[i])
+            witness_real_values.append(real_values[i])
 
         execution_challenge_script = self.execution_challenge_script_generator_service(
             signature_public_keys,
