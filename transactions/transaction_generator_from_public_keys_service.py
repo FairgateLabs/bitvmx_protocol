@@ -141,7 +141,7 @@ class TransactionGeneratorFromPublicKeysService:
 
         ## Execution challenge
         execution_challenge_address = destroyed_public_key.get_taproot_address(
-            [[scripts_dict["execution_challenge_script"]]]
+            scripts_dict["execution_challenge_script_list"].to_scripts_tree()
         )
 
         trigger_execution_challenge_txin = TxInput(trace_tx.get_txid(), 0)

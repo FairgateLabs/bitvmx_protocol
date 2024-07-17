@@ -251,7 +251,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         [signature] for signature in signatures_dict["search_hash_signatures"]
     ]
     trace_signatures = [signatures_dict["trace_signature"]]
-    execution_challenge_signatures = [signatures_dict["execution_challenge_signature"]]
+    # execution_challenge_signatures = [signatures_dict["execution_challenge_signature"]]
     for verifier in verifier_list:
         url = f"http://{verifier}/signatures"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
@@ -273,20 +273,20 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
         hash_result_signatures.append(signatures_response_json["verifier_hash_result_signature"])
         trace_signatures.append(signatures_response_json["verifier_trace_signature"])
-        execution_challenge_signatures.append(
-            signatures_response_json["verifier_execution_challenge_signature"]
-        )
+        # execution_challenge_signatures.append(
+        #     signatures_response_json["verifier_execution_challenge_signature"]
+        # )
 
     hash_result_signatures.reverse()
     for signature_list in search_hash_signatures:
         signature_list.reverse()
     trace_signatures.reverse()
-    execution_challenge_signatures.reverse()
+    # execution_challenge_signatures.reverse()
 
     protocol_dict["hash_result_signatures"] = hash_result_signatures
     protocol_dict["search_hash_signatures"] = search_hash_signatures
     protocol_dict["trace_signatures"] = trace_signatures
-    protocol_dict["execution_challenge_signatures"] = execution_challenge_signatures
+    # protocol_dict["execution_challenge_signatures"] = execution_challenge_signatures
 
     verify_verifier_signatures_service = VerifyVerifierSignaturesService(destroyed_public_key)
     for i in range(len(protocol_dict["public_keys"]) - 1):
@@ -304,9 +304,9 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
             trace_signature=protocol_dict["trace_signatures"][
                 len(protocol_dict["public_keys"]) - i - 2
             ],
-            execution_challenge_signature=protocol_dict["execution_challenge_signatures"][
-                len(protocol_dict["public_keys"]) - i - 2
-            ],
+            # execution_challenge_signature=protocol_dict["execution_challenge_signatures"][
+            #     len(protocol_dict["public_keys"]) - i - 2
+            # ],
         )
 
     os.makedirs(f"prover_files/{setup_uuid}")

@@ -4,8 +4,8 @@ from scripts.services.commit_search_choice_script_generator_service import (
 from scripts.services.commit_search_hashes_script_generator_service import (
     CommitSearchHashesScriptGeneratorService,
 )
-from scripts.services.execution_challenge_script_generator_service import (
-    ExecutionChallengeScriptGeneratorService,
+from scripts.services.execution_challenge_script_list_generator_service import (
+    ExecutionChallengeScriptListGeneratorService,
 )
 from scripts.services.execution_trace_script_generator_service import (
     ExecutionTraceScriptGeneratorService,
@@ -34,8 +34,8 @@ class ScriptsDictGeneratorService:
         self.verifier_challenge_execution_script_generator_service = (
             TriggerChallengeExecutionScriptGeneratorService()
         )
-        self.execution_challenge_script_generator_service = (
-            ExecutionChallengeScriptGeneratorService()
+        self.execution_challenge_script_list_generator_service = (
+            ExecutionChallengeScriptListGeneratorService()
         )
 
     def __call__(self, protocol_dict):
@@ -137,8 +137,8 @@ class ScriptsDictGeneratorService:
 
         scripts_dict["trigger_challenge_scripts"] = [[scripts_dict["trigger_execution_script"]]]
 
-        scripts_dict["execution_challenge_script"] = (
-            self.execution_challenge_script_generator_service(
+        scripts_dict["execution_challenge_script_list"] = (
+            self.execution_challenge_script_list_generator_service(
                 signature_public_keys,
                 trace_verifier_public_keys,
                 trace_words_lengths,

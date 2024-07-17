@@ -1,11 +1,12 @@
-from bitcoinutils.keys import PublicKey
+from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
+from bitcoinutils.keys import PublicKey, PrivateKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
 from mutinyet_api.services.transaction_info_service import TransactionInfoService
-from scripts.services.execution_challenge_script_generator_service import (
-    ExecutionChallengeScriptGeneratorService,
+from scripts.services.execution_challenge_script_list_generator_service import (
+    ExecutionChallengeScriptListGeneratorService,
 )
 
 
@@ -14,19 +15,20 @@ class ExecutionChallengeTransactionService:
         self.transaction_info_service = TransactionInfoService()
         self.broadcast_transaction_service = BroadcastTransactionService()
         self.execution_challenge_script_generator_service = (
-            ExecutionChallengeScriptGeneratorService()
+            ExecutionChallengeScriptListGeneratorService()
         )
 
     def __call__(self, protocol_dict):
         trace_words_lengths = protocol_dict["trace_words_lengths"]
         trace_prover_public_keys = protocol_dict["trace_prover_public_keys"]
         trigger_execution_challenge_transaction = protocol_dict["trigger_execution_challenge_tx"]
-        execution_challenge_signatures = protocol_dict["execution_challenge_signatures"]
+        # execution_challenge_signatures = protocol_dict["execution_challenge_signatures"]
         execution_challenge_tx = protocol_dict["execution_challenge_tx"]
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
         signature_public_keys = protocol_dict["public_keys"]
         trace_verifier_public_keys = protocol_dict["trace_verifier_public_keys"]
         amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
+        step_fees_satoshis = protocol_dict["step_fees_satoshis"]
 
         trigger_execution_challenge_published_transaction = self.transaction_info_service(
             trigger_execution_challenge_transaction.get_txid()
@@ -65,30 +67,45 @@ class ExecutionChallengeTransactionService:
             verifier_keys_witness.extend(verifier_keys_witness_values[i])
             witness_real_values.append(real_values[i])
 
-        execution_challenge_script = self.execution_challenge_script_generator_service(
+        execution_challenge_script_list = self.execution_challenge_script_generator_service(
             signature_public_keys,
             trace_verifier_public_keys,
             trace_words_lengths,
             amount_of_bits_per_digit_checksum,
         )
-        execution_challenge_taptree = [[execution_challenge_script]]
+        execution_challenge_script_tree = execution_challenge_script_list.to_scripts_tree()
+
         execution_challenge_script_address = destroyed_public_key.get_taproot_address(
-            execution_challenge_taptree
+            execution_challenge_script_tree
         )
 
         execution_challenge_control_block = ControlBlock(
             destroyed_public_key,
-            scripts=execution_challenge_taptree,
+            scripts=execution_challenge_script_tree,
             index=0,
             is_odd=execution_challenge_script_address.is_odd(),
         )
 
+        current_script_index = 0
+
+        private_key = PrivateKey(b=bytes.fromhex(protocol_dict["prover_secret_key"]))
+        execution_challenge_signature = private_key.sign_taproot_input(
+            execution_challenge_tx,
+            0,
+            [execution_challenge_script_address.to_script_pub_key()],
+            [execution_challenge_tx.outputs[0].amount + step_fees_satoshis],
+            script_path=True,
+            tapleaf_script=execution_challenge_script_list[current_script_index],
+            sighash=TAPROOT_SIGHASH_ALL,
+            tweak=False,
+        )
+
         execution_challenge_tx.witnesses.append(
             TxWitnessInput(
-                execution_challenge_signatures
+                [execution_challenge_signature]
                 + verifier_keys_witness
                 + [
-                    execution_challenge_script.to_hex(),
+                    execution_challenge_script_list[current_script_index].to_hex(),
                     execution_challenge_control_block.to_hex(),
                 ]
             )

@@ -180,7 +180,7 @@ class SignaturesResponse(BaseModel):
     verifier_hash_result_signature: str
     verifier_search_hash_signatures: List[str]
     verifier_trace_signature: str
-    verifier_execution_challenge_signature: str
+    # verifier_execution_challenge_signature: str
 
 
 @app.post("/signatures")
@@ -242,7 +242,7 @@ async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
         signatures_dict["trigger_execution_signature"],
         protocol_dict["trigger_execution_signature"],
     ]
-    execution_challenge_signature = signatures_dict["execution_challenge_signature"]
+    # execution_challenge_signature = signatures_dict["execution_challenge_signature"]
 
     with open(f"verifier_files/{setup_uuid}/file_database.pkl", "wb") as f:
         pickle.dump(protocol_dict, f)
@@ -251,7 +251,7 @@ async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
         verifier_hash_result_signature=hash_result_signature_verifier,
         verifier_search_hash_signatures=search_hash_signatures,
         verifier_trace_signature=trace_signature,
-        verifier_execution_challenge_signature=execution_challenge_signature,
+        # verifier_execution_challenge_signature=execution_challenge_signature,
     )
 
 

@@ -1,12 +1,13 @@
 from bitcoinutils.keys import PublicKey
 
 from scripts.bitcoin_script import BitcoinScript
+from scripts.bitcoin_script_list import BitcoinScriptList
 from winternitz_keys_handling.scripts.verify_digit_signature_nibbles_service import (
     VerifyDigitSignatureNibblesService,
 )
 
 
-class ExecutionChallengeScriptGeneratorService:
+class ExecutionChallengeScriptListGeneratorService:
 
     @staticmethod
     def trace_to_script_mapping():
@@ -18,7 +19,7 @@ class ExecutionChallengeScriptGeneratorService:
 
     def __call__(
         self, signature_public_keys, public_keys, trace_words_lengths, bits_per_digit_checksum
-    ):
+    ) -> BitcoinScriptList:
         script = BitcoinScript()
         trace_to_script_mapping = reversed(self.trace_to_script_mapping())
         max_value = 12
@@ -58,10 +59,10 @@ class ExecutionChallengeScriptGeneratorService:
 
         script.extend([1, "OP_EQUALVERIFY"])
 
-        for signature_public_key in reversed(signature_public_keys):
-            script.extend(
-                [PublicKey(hex_str=signature_public_key).to_x_only_hex(), "OP_CHECKSIGVERIFY"]
-            )
+        # for signature_public_key in reversed(signature_public_keys):
+        script.extend(
+            [PublicKey(hex_str=signature_public_keys[-1]).to_x_only_hex(), "OP_CHECKSIGVERIFY"]
+        )
 
         script.append(1)
-        return script
+        return BitcoinScriptList([script])
