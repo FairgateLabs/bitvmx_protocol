@@ -1,5 +1,5 @@
 from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
-from bitcoinutils.keys import PublicKey, PrivateKey
+from bitcoinutils.keys import PrivateKey, PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
@@ -79,14 +79,14 @@ class ExecutionChallengeTransactionService:
             execution_challenge_script_tree
         )
 
+        current_script_index = 458
+
         execution_challenge_control_block = ControlBlock(
             destroyed_public_key,
             scripts=execution_challenge_script_tree,
-            index=0,
+            index=current_script_index,
             is_odd=execution_challenge_script_address.is_odd(),
         )
-
-        current_script_index = 0
 
         private_key = PrivateKey(b=bytes.fromhex(protocol_dict["prover_secret_key"]))
         execution_challenge_signature = private_key.sign_taproot_input(

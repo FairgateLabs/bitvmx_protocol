@@ -2,6 +2,8 @@ from bitvmx_execution.execution_trace_parsing_service import ExecutionTraceParsi
 
 
 class ExecutionTraceGenerationService:
+    # This service should execute the program and generate the txt with the trace,
+    # as of now, it is done manually
 
     def __init__(self, base_path):
         self.base_path = base_path

@@ -8,7 +8,8 @@ RUN pip install -r /tmp/requirements/base.txt
 
 ## We need to install it manually due to the existent bug
 
-RUN pip install --no-cache-dir git+https://github.com/karask/python-bitcoin-utils.git@65a4a49c84a4e1c23b08c0527f8b2d0000e5d5ca
+#RUN pip install --no-cache-dir git+https://github.com/karask/python-bitcoin-utils.git@65a4a49c84a4e1c23b08c0527f8b2d0000e5d5ca
+RUN pip install --no-cache-dir git+https://github.com/ramonamela/python-bitcoin-utils.git@5392fec4f6b149cf7d913d65640b619727e976ef
 
 RUN mkdir /bitvmx-backend
 

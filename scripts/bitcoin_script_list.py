@@ -1,4 +1,5 @@
-from typing import Optional, Union, List
+import math
+from typing import List, Optional, Union
 
 from scripts.bitcoin_script import BitcoinScript
 
@@ -32,4 +33,15 @@ class BitcoinScriptList:
         if len(self.script_list) == 1:
             return [self.script_list]
         else:
-            raise Exception("Still not implemented")
+
+            def split_list(input_list):
+                if len(input_list) == 1:
+                    return input_list[0]
+                else:
+                    middle_point = int(2 ** math.ceil(math.log2(len(input_list))) / 2)
+                    return [
+                        split_list(input_list[:middle_point]),
+                        split_list(input_list[middle_point:]),
+                    ]
+
+            return split_list(self.script_list)
