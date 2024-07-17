@@ -30,12 +30,12 @@ class ExecutionTraceCommitmentGenerationService:
             pc = match.group(1)[2:]
             micro = match.group(2).zfill(2)
             # This is not really necessary (we can add the verification)
-            opcode = match.group(3)
+            # opcode = match.group(3)
             key = match.group(4)
             composed_key = pc + micro
             key_list.append(composed_key)
             instruction_dict[composed_key] = mapping_dict[key]
 
-        # Just in case, but this should not be necessary since its ordered in origin
+        # Just in case, but this should not be necessary since it's ordered in origin
         key_list.sort()
         return key_list, instruction_dict

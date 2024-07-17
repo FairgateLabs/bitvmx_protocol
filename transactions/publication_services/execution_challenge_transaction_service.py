@@ -3,6 +3,9 @@ from bitcoinutils.keys import PrivateKey, PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
+from bitvmx_execution.execution_trace_commitment_generation_service import (
+    ExecutionTraceCommitmentGenerationService,
+)
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
 from mutinyet_api.services.transaction_info_service import TransactionInfoService
 from scripts.services.execution_challenge_script_list_generator_service import (
@@ -16,6 +19,12 @@ class ExecutionChallengeTransactionService:
         self.broadcast_transaction_service = BroadcastTransactionService()
         self.execution_challenge_script_generator_service = (
             ExecutionChallengeScriptListGeneratorService()
+        )
+        self.execution_trace_commitment_generation_service = (
+            ExecutionTraceCommitmentGenerationService(
+                "./execution_files/instruction_commitment.txt",
+                "./execution_files/instruction_mapping.txt",
+            )
         )
 
     def __call__(self, protocol_dict):
@@ -79,7 +88,12 @@ class ExecutionChallengeTransactionService:
             execution_challenge_script_tree
         )
 
-        current_script_index = 458
+        key_list, instruction_dict = self.execution_trace_commitment_generation_service()
+        pc_read_addr = real_values[6]
+        pc_read_micro = real_values[7]
+        instruction_index = pc_read_addr + pc_read_micro
+        print("Instruction index: " + str(instruction_index))
+        current_script_index = key_list.index(instruction_index)
 
         execution_challenge_control_block = ControlBlock(
             destroyed_public_key,
