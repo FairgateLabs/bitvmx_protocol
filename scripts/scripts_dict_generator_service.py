@@ -11,8 +11,8 @@ from scripts.services.execution_trace_script_generator_service import (
     ExecutionTraceScriptGeneratorService,
 )
 from scripts.services.hash_result_script_generator_service import HashResultScriptGeneratorService
-from scripts.services.trigger_challenge_execution_script_generator_service import (
-    TriggerChallengeExecutionScriptGeneratorService,
+from scripts.services.trigger_generic_challenge_script_generator_service import (
+    TriggerGenericChallengeScriptGeneratorService,
 )
 from scripts.services.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
@@ -32,7 +32,7 @@ class ScriptsDictGeneratorService:
         )
         self.execution_trace_script_generator_service = ExecutionTraceScriptGeneratorService()
         self.verifier_challenge_execution_script_generator_service = (
-            TriggerChallengeExecutionScriptGeneratorService()
+            TriggerGenericChallengeScriptGeneratorService()
         )
         self.execution_challenge_script_list_generator_service = (
             ExecutionChallengeScriptListGeneratorService()

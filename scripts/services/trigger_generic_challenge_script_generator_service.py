@@ -6,7 +6,7 @@ from winternitz_keys_handling.scripts.confirm_nibbles_script_generator_service i
 )
 
 
-class TriggerChallengeExecutionScriptGeneratorService:
+class TriggerGenericChallengeScriptGeneratorService:
     def __init__(self):
         self.confirm_nibbles_script_generator_service = ConfirmNibblesScriptGeneratorService()
 

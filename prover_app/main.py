@@ -425,7 +425,9 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
                 protocol_dict["last_confirmed_step"] = last_confirmed_step
     elif last_confirmed_step == TransactionProverStepType.TRACE:
         # Here we should check which is the challenge that should be triggered
-        if transaction_published_service(protocol_dict["trigger_execution_challenge_tx"].get_txid()):
+        if transaction_published_service(
+            protocol_dict["trigger_execution_challenge_tx"].get_txid()
+        ):
             execution_challenge_transaction_service = ExecutionChallengeTransactionService()
             last_confirmed_step_tx = execution_challenge_transaction_service(protocol_dict)
             last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()

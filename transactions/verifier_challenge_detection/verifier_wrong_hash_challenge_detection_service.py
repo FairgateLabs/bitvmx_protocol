@@ -1,4 +1,3 @@
-
 from transactions.enums import TransactionVerifierStepType
 from transactions.publication_services.trigger_wrong_hash_challenge_transaction_service import (
     TriggerWrongHashChallengeTransactionService,
