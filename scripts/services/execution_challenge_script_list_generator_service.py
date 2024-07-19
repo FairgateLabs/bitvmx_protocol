@@ -1,6 +1,6 @@
 from bitcoinutils.keys import PublicKey
 
-from bitvmx_execution.execution_trace_commitment_generation_service import (
+from bitvmx_execution.services.execution_trace_commitment_generation_service import (
     ExecutionTraceCommitmentGenerationService,
 )
 from scripts.bitcoin_script import BitcoinScript

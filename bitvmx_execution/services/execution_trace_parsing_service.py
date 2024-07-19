@@ -77,6 +77,11 @@ class ExecutionTraceParsingService:
 
                     step_hash = byte_sha256(bytes.fromhex(step_hash + write_trace)).hex().zfill(64)
 
+                    if "prover_files" in output_file_path and i == -1:
+                        step_hash = (
+                            byte_sha256(bytes.fromhex(step_hash + write_trace)).hex().zfill(64)
+                        )
+
                     step_dict = {
                         "read1_address": read1[0],
                         "read1_value": read1[1],

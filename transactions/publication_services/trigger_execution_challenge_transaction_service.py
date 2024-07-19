@@ -12,7 +12,7 @@ from winternitz_keys_handling.services.generate_witness_from_input_nibbles_servi
 )
 
 
-class TriggerExeecutionChallengeTransactionService:
+class TriggerExecutionChallengeTransactionService:
     def __init__(self, verifier_private_key):
         self.transaction_info_service = TransactionInfoService()
         self.broadcast_transaction_service = BroadcastTransactionService()
@@ -25,14 +25,16 @@ class TriggerExeecutionChallengeTransactionService:
 
     def __call__(self, protocol_dict):
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
-        trace_tx_id = protocol_dict["trace_tx"].get_txid()
-        trace_transaction_info = self.transaction_info_service(trace_tx_id)
-        previous_trace_witness = trace_transaction_info.inputs[0].witness
+        # trace_tx_id = protocol_dict["trace_tx"].get_txid()
+        # trace_transaction_info = self.transaction_info_service(trace_tx_id)
+        # previous_trace_witness = trace_transaction_info.inputs[0].witness
 
         # Ugly hardcoding here that should be computed somehow but it depends a lot on the structure of the
         # previous script
         # -> Make static call that gets checked when the script gets generated
-        prover_trigger_challenge_witness = previous_trace_witness[10:246]
+        # prover_trigger_challenge_witness = previous_trace_witness[10:246]
+
+        prover_trace_witness = protocol_dict["prover_trace_witness"]
 
         trigger_execution_challenge_tx = protocol_dict["trigger_execution_challenge_tx"]
         trace_prover_public_keys = protocol_dict["trace_prover_public_keys"]
@@ -50,11 +52,9 @@ class TriggerExeecutionChallengeTransactionService:
         for i in range(len(trace_verifier_public_keys)):
             current_public_keys = trace_verifier_public_keys[i]
             current_length = trace_words_lengths[i]
-            current_witness = prover_trigger_challenge_witness[
-                len(prover_trigger_challenge_witness)
-                - (len(current_public_keys) * 2 + consumed_items) : len(
-                    prover_trigger_challenge_witness
-                )
+            current_witness = prover_trace_witness[
+                len(prover_trace_witness)
+                - (len(current_public_keys) * 2 + consumed_items) : len(prover_trace_witness)
                 - consumed_items
             ]
             consumed_items += len(current_public_keys) * 2
@@ -105,7 +105,7 @@ class TriggerExeecutionChallengeTransactionService:
 
         processed_values = 0
         for i in reversed(range(len(trace_words_lengths))):
-            trigger_challenge_witness += prover_trigger_challenge_witness[
+            trigger_challenge_witness += prover_trace_witness[
                 processed_values : processed_values + len(trace_prover_public_keys[i]) * 2
             ]
             trigger_challenge_witness += verifier_trigger_challenge_witness[

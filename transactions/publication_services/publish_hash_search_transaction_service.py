@@ -57,9 +57,7 @@ class PublishHashSearchTransactionService:
         signature_public_keys = protocol_dict["public_keys"]
         search_hash_signatures = protocol_dict["search_hash_signatures"]
 
-        iteration_hashes = 3 * ["1111111111111111111111111111111111111111111111111111111111111112"]
         hash_search_witness = []
-
         current_hash_public_keys = hash_search_public_keys_list[i]
 
         if i > 0:
@@ -168,4 +166,6 @@ class PublishHashSearchTransactionService:
         hash_list = []
         for index in index_list:
             hash_list.append(trace_df.iloc[index]["step_hash"])
+        for j in range(len(index_list)):
+            protocol_dict["published_hashes_dict"][index_list[j]] = hash_list[j]
         return hash_list

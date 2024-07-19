@@ -18,9 +18,6 @@ from transactions.generate_signatures_service import GenerateSignaturesService
 from transactions.publication_services.publish_choice_search_transaction_service import (
     PublishChoiceSearchTransactionService,
 )
-from transactions.publication_services.trigger_execution_challenge_transaction_service import (
-    TriggerExeecutionChallengeTransactionService,
-)
 from transactions.publication_services.trigger_protocol_transaction_service import (
     TriggerProtocolTransactionService,
 )
@@ -28,6 +25,7 @@ from transactions.signatures.verify_prover_signatures_service import VerifyProve
 from transactions.transaction_generator_from_public_keys_service import (
     TransactionGeneratorFromPublicKeysService,
 )
+from transactions.verifier_challenge_detection_service import VerifierChallengeDetectionService
 from verifier_app.config import protocol_properties
 from winternitz_keys_handling.services.generate_verifier_public_keys_service import (
     GenerateVerifierPublicKeysService,
@@ -321,15 +319,23 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         last_confirmed_step is TransactionVerifierStepType.SEARCH_STEP_CHOICE
         and last_confirmed_step_tx_id == protocol_dict["search_choice_tx_list"][-1].get_txid()
     ):
-        verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
-        trigger_challenge_transaction_service = TriggerExeecutionChallengeTransactionService(
-            verifier_private_key
+        verifier_challenge_detection_service = VerifierChallengeDetectionService()
+        challenge_transaction_service, transaction_step_type = verifier_challenge_detection_service(
+            protocol_dict
         )
-        last_confirmed_step_tx = trigger_challenge_transaction_service(protocol_dict)
-        last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-        last_confirmed_step = TransactionVerifierStepType.TRIGGER_EXECUTION_CHALLENGE
-        protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-        protocol_dict["last_confirmed_step"] = last_confirmed_step
+        # As of now, this only holds for single step challenges
+        if challenge_transaction_service is not None and transaction_step_type is not None:
+            verifier_private_key = PrivateKey(
+                b=bytes.fromhex(protocol_dict["verifier_private_key"])
+            )
+            trigger_challenge_transaction_service = challenge_transaction_service(
+                verifier_private_key
+            )
+            last_confirmed_step_tx = trigger_challenge_transaction_service(protocol_dict)
+            last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
+            last_confirmed_step = transaction_step_type
+            protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
+            protocol_dict["last_confirmed_step"] = last_confirmed_step
     elif last_confirmed_step is TransactionVerifierStepType.SEARCH_STEP_CHOICE:
         ## VERIFY THE PREVIOUS STEP ##
         verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
@@ -355,6 +361,7 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         TransactionVerifierStepType.TRIGGER_PROTOCOL,
         TransactionVerifierStepType.SEARCH_STEP_CHOICE,
         TransactionVerifierStepType.TRIGGER_EXECUTION_CHALLENGE,
+        TransactionVerifierStepType.TRIGGER_WRONG_HASH_CHALLENGE,
     ]:
         asyncio.create_task(_trigger_next_step_prover(publish_next_step_body))
 

@@ -1,4 +1,4 @@
-from bitvmx_execution.execution_trace_parsing_service import ExecutionTraceParsingService
+from bitvmx_execution.services.execution_trace_parsing_service import ExecutionTraceParsingService
 
 
 class ExecutionTraceGenerationService:

@@ -4,7 +4,9 @@ from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import Transaction, TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
-from bitvmx_execution.execution_trace_generation_service import ExecutionTraceGenerationService
+from bitvmx_execution.services.execution_trace_generation_service import (
+    ExecutionTraceGenerationService,
+)
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
 from scripts.services.hash_result_script_generator_service import HashResultScriptGeneratorService
 from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (

@@ -2,7 +2,9 @@ from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
-from bitvmx_execution.execution_trace_generation_service import ExecutionTraceGenerationService
+from bitvmx_execution.services.execution_trace_generation_service import (
+    ExecutionTraceGenerationService,
+)
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
 from scripts.services.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
