@@ -21,7 +21,7 @@ from mutinyet_api.services.faucet_service import FaucetService
 from mutinyet_api.services.transaction_published_service import TransactionPublishedService
 from prover_app.config import protocol_properties
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
-from transactions.enums import TransactionStepType
+from transactions.enums import TransactionProverStepType
 from transactions.generate_signatures_service import GenerateSignaturesService
 from transactions.publication_services.execution_challenge_transaction_service import (
     ExecutionChallengeTransactionService,
@@ -124,7 +124,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
     public_keys = []
     for verifier in verifier_list:
-        url = f"http://{verifier}/init_setup"
+        url = f"{verifier}/init_setup"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
         data = {"setup_uuid": setup_uuid}
 
@@ -182,7 +182,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     print("Faucet tx: " + faucet_tx_id)
 
     # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
-    url = f"http://{verifier_list[0]}/public_keys"
+    url = f"{verifier_list[0]}/public_keys"
     headers = {"accept": "application/json", "Content-Type": "application/json"}
     data = {
         "setup_uuid": setup_uuid,
@@ -253,7 +253,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     trace_signatures = [signatures_dict["trace_signature"]]
     # execution_challenge_signatures = [signatures_dict["execution_challenge_signature"]]
     for verifier in verifier_list:
-        url = f"http://{verifier}/signatures"
+        url = f"{verifier}/signatures"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
         data = {
             "setup_uuid": setup_uuid,
@@ -343,7 +343,7 @@ class PublishNextStepBody(BaseModel):
 
 async def _trigger_next_step_prover(publish_hash_body: PublishNextStepBody):
     prover_host = protocol_properties.prover_host
-    url = f"http://{prover_host}/publish_next_step"
+    url = f"{prover_host}/publish_next_step"
     headers = {"accept": "application/json", "Content-Type": "application/json"}
 
     # Make the POST request
@@ -353,7 +353,7 @@ async def _trigger_next_step_prover(publish_hash_body: PublishNextStepBody):
 
 async def _trigger_next_step_verifier(publish_hash_body: PublishNextStepBody):
     verifier_host = protocol_properties.verifier_list[0]
-    url = f"http://{verifier_host}/publish_next_step"
+    url = f"{verifier_host}/publish_next_step"
     headers = {"accept": "application/json", "Content-Type": "application/json"}
 
     # Make the POST request
@@ -376,21 +376,22 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         publish_hash_transaction_service = PublishHashTransactionService(prover_private_key)
         last_confirmed_step_tx = publish_hash_transaction_service(protocol_dict)
         last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-        last_confirmed_step = TransactionStepType.HASH_RESULT
+        last_confirmed_step = TransactionProverStepType.HASH_RESULT
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
         protocol_dict["last_confirmed_step"] = last_confirmed_step
-    elif last_confirmed_step == TransactionStepType.HASH_RESULT and transaction_published_service(
-        protocol_dict["trigger_protocol_tx"].get_txid()
+    elif (
+        last_confirmed_step == TransactionProverStepType.HASH_RESULT
+        and transaction_published_service(protocol_dict["trigger_protocol_tx"].get_txid())
     ):
         publish_hash_search_transaction_service = PublishHashSearchTransactionService(
             prover_private_key
         )
         last_confirmed_step_tx = publish_hash_search_transaction_service(protocol_dict, 0)
         last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-        last_confirmed_step = TransactionStepType.SEARCH_STEP_HASH
+        last_confirmed_step = TransactionProverStepType.SEARCH_STEP_HASH
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
         protocol_dict["last_confirmed_step"] = last_confirmed_step
-    elif last_confirmed_step == TransactionStepType.SEARCH_STEP_HASH:
+    elif last_confirmed_step == TransactionProverStepType.SEARCH_STEP_HASH:
         if (
             protocol_dict["search_hash_tx_list"][-1].get_txid()
             == protocol_dict["last_confirmed_step_tx_id"]
@@ -398,7 +399,7 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
             publish_trace_transaction_service = PublishTraceTransactionService(prover_private_key)
             last_confirmed_step_tx = publish_trace_transaction_service(protocol_dict)
             last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-            last_confirmed_step = TransactionStepType.TRACE
+            last_confirmed_step = TransactionProverStepType.TRACE
             protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
             protocol_dict["last_confirmed_step"] = last_confirmed_step
         else:
@@ -418,15 +419,15 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
                 )
                 last_confirmed_step_tx = publish_hash_search_transaction_service(protocol_dict, i)
                 last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-                last_confirmed_step = TransactionStepType.SEARCH_STEP_HASH
+                last_confirmed_step = TransactionProverStepType.SEARCH_STEP_HASH
                 protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
                 protocol_dict["last_confirmed_step"] = last_confirmed_step
-    elif last_confirmed_step == TransactionStepType.TRACE:
+    elif last_confirmed_step == TransactionProverStepType.TRACE:
         # Here we should check which is the challenge that should be triggered
         execution_challenge_transaction_service = ExecutionChallengeTransactionService()
         last_confirmed_step_tx = execution_challenge_transaction_service(protocol_dict)
         last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-        last_confirmed_step = TransactionStepType.EXECUTION_CHALLENGE
+        last_confirmed_step = TransactionProverStepType.EXECUTION_CHALLENGE
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
         protocol_dict["last_confirmed_step"] = last_confirmed_step
 
@@ -434,10 +435,9 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         pickle.dump(protocol_dict, f)
 
     if last_confirmed_step in [
-        TransactionStepType.HASH_RESULT,
-        TransactionStepType.SEARCH_STEP_HASH,
-        TransactionStepType.SEARCH_STEP_CHOICE,
-        TransactionStepType.TRACE,
+        TransactionProverStepType.HASH_RESULT,
+        TransactionProverStepType.SEARCH_STEP_HASH,
+        TransactionProverStepType.TRACE,
     ]:
         asyncio.create_task(_trigger_next_step_verifier(publish_next_step_body))
 

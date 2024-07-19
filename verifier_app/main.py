@@ -13,7 +13,7 @@ from pydantic import BaseModel
 
 from mutinyet_api.services.transaction_info_service import TransactionInfoService
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
-from transactions.enums import TransactionStepType
+from transactions.enums import TransactionVerifierStepType
 from transactions.generate_signatures_service import GenerateSignaturesService
 from transactions.publication_services.publish_choice_search_transaction_service import (
     PublishChoiceSearchTransactionService,
@@ -274,7 +274,7 @@ class PublishNextStepBody(BaseModel):
 
 async def _trigger_next_step_prover(publish_hash_body: PublishNextStepBody):
     prover_host = protocol_properties.prover_host
-    url = f"http://{prover_host}/publish_next_step"
+    url = f"{prover_host}/publish_next_step"
     headers = {"accept": "application/json", "Content-Type": "application/json"}
 
     # Make the POST request
@@ -302,10 +302,10 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
             protocol_dict, hash_result_transaction
         )
         last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-        last_confirmed_step = TransactionStepType.TRIGGER_PROTOCOL
+        last_confirmed_step = TransactionVerifierStepType.TRIGGER_PROTOCOL
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
         protocol_dict["last_confirmed_step"] = last_confirmed_step
-    elif last_confirmed_step is TransactionStepType.TRIGGER_PROTOCOL:
+    elif last_confirmed_step is TransactionVerifierStepType.TRIGGER_PROTOCOL:
         ## VERIFY THE PREVIOUS STEP ##
         verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
         i = 0
@@ -314,11 +314,11 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         )
         last_confirmed_step_tx = publish_choice_search_transaction_service(protocol_dict, i)
         last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-        last_confirmed_step = TransactionStepType.SEARCH_STEP_CHOICE
+        last_confirmed_step = TransactionVerifierStepType.SEARCH_STEP_CHOICE
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
         protocol_dict["last_confirmed_step"] = last_confirmed_step
     elif (
-        last_confirmed_step is TransactionStepType.SEARCH_STEP_CHOICE
+        last_confirmed_step is TransactionVerifierStepType.SEARCH_STEP_CHOICE
         and last_confirmed_step_tx_id == protocol_dict["search_choice_tx_list"][-1].get_txid()
     ):
         verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
@@ -327,10 +327,10 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         )
         last_confirmed_step_tx = trigger_challenge_transaction_service(protocol_dict)
         last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-        last_confirmed_step = TransactionStepType.TRIGGER_CHALLENGE
+        last_confirmed_step = TransactionVerifierStepType.TRIGGER_EXECUTION_CHALLENGE
         protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
         protocol_dict["last_confirmed_step"] = last_confirmed_step
-    elif last_confirmed_step is TransactionStepType.SEARCH_STEP_CHOICE:
+    elif last_confirmed_step is TransactionVerifierStepType.SEARCH_STEP_CHOICE:
         ## VERIFY THE PREVIOUS STEP ##
         verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
         i = 0
@@ -347,14 +347,14 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
             )
             last_confirmed_step_tx = publish_choice_search_transaction_service(protocol_dict, i)
             last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-            last_confirmed_step = TransactionStepType.SEARCH_STEP_CHOICE
+            last_confirmed_step = TransactionVerifierStepType.SEARCH_STEP_CHOICE
             protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
             protocol_dict["last_confirmed_step"] = last_confirmed_step
 
     if last_confirmed_step in [
-        TransactionStepType.TRIGGER_PROTOCOL,
-        TransactionStepType.SEARCH_STEP_CHOICE,
-        TransactionStepType.TRIGGER_CHALLENGE,
+        TransactionVerifierStepType.TRIGGER_PROTOCOL,
+        TransactionVerifierStepType.SEARCH_STEP_CHOICE,
+        TransactionVerifierStepType.TRIGGER_EXECUTION_CHALLENGE,
     ]:
         asyncio.create_task(_trigger_next_step_prover(publish_next_step_body))
 
