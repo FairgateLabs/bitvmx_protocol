@@ -236,6 +236,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     protocol_dict["funding_amount_satoshis"] = funding_result_output_amount
 
     # Transaction construction
+
     transaction_generator_from_public_keys_service = TransactionGeneratorFromPublicKeysService()
     transaction_generator_from_public_keys_service(protocol_dict)
 

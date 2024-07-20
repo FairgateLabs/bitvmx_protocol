@@ -35,7 +35,6 @@ class ExecutionTraceCommitmentGenerationService:
             composed_key = pc + micro
             key_list.append(composed_key)
             instruction_dict[composed_key] = mapping_dict[key]
-
         # Just in case, but this should not be necessary since it's ordered in origin
-        key_list.sort()
+        # key_list.sort()
         return key_list, instruction_dict
