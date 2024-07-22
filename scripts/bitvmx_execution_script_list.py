@@ -314,30 +314,78 @@ class BitVMXExecutionScriptList:
         leaf_version = bytes([(1 if is_odd else 0) + LEAF_VERSION_TAPSCRIPT])
         pub_key = bytes.fromhex(public_key.to_x_only_hex())
 
-        def traverse_level(level, already_traversed, depth):
+        def traverse_level(level, already_traversed, depth, shared_list=None):
             if isinstance(level, list):
                 if len(level) == 1:
-                    return traverse_level(level[0], already_traversed, depth + 1)
+                    result = traverse_level(level[0], already_traversed, depth)
+                    if shared_list is None:
+                        return result
+                    else:
+                        shared_list[0] = result
+                        return
                 if len(level) == 2:
                     current_low_values_per_branch = int((2 ** get_tree_depth([level[0]])) / 2)
-                    a = traverse_level(level[0], already_traversed, depth + 1)
-                    b = traverse_level(
-                        level[1], already_traversed + current_low_values_per_branch, depth + 1
-                    )
+                    if depth < 4:
+                        manager = Manager()
+                        new_left_shared_list = manager.list([None])
+                        new_right_shared_list = manager.list([None])
+                        a_process = Process(
+                            target=traverse_level,
+                            args=(level[0], already_traversed, depth + 1, new_left_shared_list)
+                        )
+                        b_process = Process(
+                            target=traverse_level,
+                            args=(level[1], already_traversed + current_low_values_per_branch, depth + 1, new_right_shared_list)
+                        )
+                        a_process.start()
+                        b_process.start()
+                        a_process.join()
+                        b_process.join()
+                        a = new_left_shared_list[0]
+                        b = new_right_shared_list[0]
+                    else:
+                        a = traverse_level(level[0], already_traversed, depth + 1)
+                        b = traverse_level(level[1], already_traversed + current_low_values_per_branch, depth + 1)
+
                     if (already_traversed <= index) and (
                         index < already_traversed + current_low_values_per_branch
                     ):
-                        return a + b
+                        result = a + b
+                        if shared_list is None:
+                            return result
+                        else:
+                            shared_list[0] = result
+                            return
                     if (already_traversed + current_low_values_per_branch <= index) and (
                         index < (already_traversed + 2 * current_low_values_per_branch)
                     ):
-                        return b + a
-                    return tapbranch_tagged_hash(a, b)
+                        result = b + a
+                        if shared_list is None:
+                            return result
+                        else:
+                            shared_list[0] = result
+                            return
+                    result = tapbranch_tagged_hash(a, b)
+                    if shared_list is None:
+                        return result
+                    else:
+                        shared_list[0] = result
+                        return
                 raise ValueError("Invalid Merkle branch: List cannot have more than 2 branches.")
             else:
                 if already_traversed == index:
-                    return b""
-                return tapleaf_tagged_hash(level)
+                    result = b""
+                    if shared_list is None:
+                        return result
+                    else:
+                        shared_list[0] = result
+                        return
+                result = tapleaf_tagged_hash(level)
+                if shared_list is None:
+                    return result
+                else:
+                    shared_list[0] = result
+                    return
 
         merkle_path = traverse_level(split_list(script_list), 0, 0)
 
