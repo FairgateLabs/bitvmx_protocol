@@ -282,6 +282,7 @@ async def _trigger_next_step_prover(publish_hash_body: PublishNextStepBody):
 
 @app.post("/publish_next_step")
 async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()) -> dict[str, str]:
+    print("Processing new step")
     setup_uuid = publish_next_step_body.setup_uuid
     with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
         protocol_dict = pickle.load(f)

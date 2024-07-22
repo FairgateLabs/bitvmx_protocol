@@ -1,7 +1,6 @@
 from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
 from bitcoinutils.keys import PrivateKey, PublicKey
 from bitcoinutils.transactions import TxWitnessInput
-from bitcoinutils.utils import ControlBlock
 
 from bitvmx_execution.services.execution_trace_commitment_generation_service import (
     ExecutionTraceCommitmentGenerationService,
@@ -82,10 +81,10 @@ class ExecutionChallengeTransactionService:
             trace_words_lengths,
             amount_of_bits_per_digit_checksum,
         )
-        execution_challenge_script_tree = execution_challenge_script_list.to_scripts_tree()
+        # execution_challenge_script_tree = execution_challenge_script_list.to_scripts_tree()
 
-        execution_challenge_script_address = destroyed_public_key.get_taproot_address(
-            execution_challenge_script_tree
+        execution_challenge_script_address = execution_challenge_script_list.get_taproot_address(
+            destroyed_public_key
         )
 
         key_list, instruction_dict = self.execution_trace_commitment_generation_service()
@@ -95,11 +94,19 @@ class ExecutionChallengeTransactionService:
         print("Instruction index: " + str(instruction_index))
         current_script_index = key_list.index(instruction_index)
 
-        execution_challenge_control_block = ControlBlock(
-            destroyed_public_key,
-            scripts=execution_challenge_script_tree,
-            index=current_script_index,
-            is_odd=execution_challenge_script_address.is_odd(),
+        # execution_challenge_control_block = ControlBlock(
+        #     destroyed_public_key,
+        #     scripts=execution_challenge_script_tree,
+        #     index=current_script_index,
+        #     is_odd=execution_challenge_script_address.is_odd(),
+        # )
+        # execution_challenge_control_block_hex = execution_challenge_control_block.to_hex()
+        execution_challenge_control_block_hex = (
+            execution_challenge_script_list.get_control_block_hex(
+                destroyed_public_key,
+                current_script_index,
+                execution_challenge_script_address.is_odd(),
+            )
         )
 
         private_key = PrivateKey(b=bytes.fromhex(protocol_dict["prover_secret_key"]))
@@ -120,7 +127,7 @@ class ExecutionChallengeTransactionService:
                 + verifier_keys_witness
                 + [
                     execution_challenge_script_list[current_script_index].to_hex(),
-                    execution_challenge_control_block.to_hex(),
+                    execution_challenge_control_block_hex,
                 ]
             )
         )

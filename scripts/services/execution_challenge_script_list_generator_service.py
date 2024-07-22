@@ -7,7 +7,7 @@ from bitvmx_execution.services.execution_trace_commitment_generation_service imp
     ExecutionTraceCommitmentGenerationService,
 )
 from scripts.bitcoin_script import BitcoinScript
-from scripts.bitcoin_script_list import BitcoinScriptList
+from scripts.bitvmx_execution_script_list import BitVMXExecutionScriptList
 from winternitz_keys_handling.scripts.verify_digit_signature_nibbles_service import (
     VerifyDigitSignatureNibblesService,
 )
@@ -162,24 +162,44 @@ class ExecutionChallengeScriptListGeneratorService:
 
         init_time = time()
         for j in range(len(key_list)):
-            if j % 1000 == 0:
+            if j % 100 == 0:
                 print("Queue item get " + str(j) + " " + str(time() - init_time))
             script_list.append(output_queues[j % amount_of_queues].get())
 
         for process in processes:
-            print("Waiting for end of process" + str(i))
             i -= 1
+            print("Waiting for end of process" + str(i))
             process.join()
 
         return script_list
 
     def __call__(
         self, signature_public_keys, public_keys, trace_words_lengths, bits_per_digit_checksum
-    ) -> BitcoinScriptList:
-        script_list = self._generate_script_for_file(
+    ) -> BitVMXExecutionScriptList:
+        # Original method
+        # script_list = self._generate_script_for_file(
+        #     signature_public_keys,
+        #     public_keys,
+        #     trace_words_lengths,
+        #     bits_per_digit_checksum,
+        # )
+        # bitcoin_script_list = BitcoinScriptList(script_list)
+
+        # New method
+        key_list, instruction_dict = self.execution_trace_commitment_generation_service()
+
+        bitvmx_execution_script_list = BitVMXExecutionScriptList(
+            key_list,
+            instruction_dict,
             signature_public_keys,
             public_keys,
             trace_words_lengths,
             bits_per_digit_checksum,
         )
-        return BitcoinScriptList(script_list)
+
+        # test_public_key = PublicKey(hex_str=signature_public_keys[0])
+        # assert (
+        #     bitcoin_script_list.get_taproot_address(test_public_key).to_string()
+        #     == bitvmx_execution_script_list.get_taproot_address(test_public_key).to_string()
+        # )
+        return bitvmx_execution_script_list

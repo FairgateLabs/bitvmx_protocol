@@ -140,9 +140,9 @@ class TransactionGeneratorFromPublicKeysService:
         #  Here we should put all the challenges
 
         ## Execution challenge
-        execution_challenge_address = destroyed_public_key.get_taproot_address(
-            scripts_dict["execution_challenge_script_list"].to_scripts_tree()
-        )
+        execution_challenge_address = scripts_dict[
+            "execution_challenge_script_list"
+        ].get_taproot_address(destroyed_public_key)
 
         trigger_execution_challenge_txin = TxInput(trace_tx.get_txid(), 0)
         trigger_execution_challenge_txout = TxOutput(
