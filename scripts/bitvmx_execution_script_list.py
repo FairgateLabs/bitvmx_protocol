@@ -320,26 +320,26 @@ class BitVMXExecutionScriptList:
                     return traverse_level(level[0], already_traversed, depth + 1)
                 if len(level) == 2:
                     current_low_values_per_branch = int((2 ** get_tree_depth([level[0]])) / 2)
-                    a, a1 = traverse_level(level[0], already_traversed, depth + 1)
-                    b, b1 = traverse_level(
+                    a = traverse_level(level[0], already_traversed, depth + 1)
+                    b = traverse_level(
                         level[1], already_traversed + current_low_values_per_branch, depth + 1
                     )
                     if (already_traversed <= index) and (
                         index < already_traversed + current_low_values_per_branch
                     ):
-                        return (a + b), True
+                        return a + b
                     if (already_traversed + current_low_values_per_branch <= index) and (
                         index < (already_traversed + 2 * current_low_values_per_branch)
                     ):
-                        return (b + a), True
-                    return tapbranch_tagged_hash(a, b), False
+                        return b + a
+                    return tapbranch_tagged_hash(a, b)
                 raise ValueError("Invalid Merkle branch: List cannot have more than 2 branches.")
             else:
                 if already_traversed == index:
-                    return b"", True
-                return tapleaf_tagged_hash(level), False
+                    return b""
+                return tapleaf_tagged_hash(level)
 
-        merkle_path = traverse_level(split_list(script_list), 0, 0)[0]
+        merkle_path = traverse_level(split_list(script_list), 0, 0)
 
         control_block_bytes = leaf_version + pub_key + merkle_path
         return control_block_bytes.hex()
