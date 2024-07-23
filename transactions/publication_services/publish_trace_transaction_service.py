@@ -1,8 +1,8 @@
-import pandas as pd
 from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
+from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
 from mutinyet_api.services.transaction_info_service import TransactionInfoService
 from scripts.services.execution_trace_script_generator_service import (
@@ -28,6 +28,7 @@ class PublishTraceTransactionService:
         )
         self.broadcast_transaction_service = BroadcastTransactionService()
         self.transaction_info_service = TransactionInfoService()
+        self.execution_trace_query_service = ExecutionTraceQueryService("prover_files/")
 
     def __call__(self, protocol_dict):
         trace_words_lengths = protocol_dict["trace_words_lengths"]
@@ -69,10 +70,8 @@ class PublishTraceTransactionService:
         )
         print("First wrong step: " + str(first_wrong_step))
 
-        trace_df = pd.read_csv(
-            "prover_files/" + protocol_dict["setup_uuid"] + "/execution_trace.csv", sep=";"
-        )
-        current_trace_values = trace_df.iloc[first_wrong_step][:13].to_list()
+        current_trace = self.execution_trace_query_service(protocol_dict, first_wrong_step)
+        current_trace_values = current_trace[:13].to_list()
         current_trace_values.reverse()
         trace_array = []
         for j in range(len(trace_words_lengths)):

@@ -165,11 +165,8 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     generate_prover_public_keys_service = GenerateProverPublicKeysService(prover_private_key)
     generate_prover_public_keys_service(protocol_dict)
 
-    if amount_of_wrong_step_search_iterations < 4:
-        initial_amount_satoshis = 100000
-    elif amount_of_wrong_step_search_iterations > 3:
-        initial_amount_satoshis = 1000000
-    step_fees_satoshis = 10000
+    initial_amount_satoshis = 1000000
+    step_fees_satoshis = 30000
 
     faucet_service = FaucetService()
     faucet_tx_id, faucet_index = faucet_service(
@@ -349,7 +346,7 @@ async def _trigger_next_step_prover(publish_hash_body: PublishNextStepBody):
     headers = {"accept": "application/json", "Content-Type": "application/json"}
 
     # Make the POST request
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=1200.0) as client:
         await client.post(url, headers=headers, json=json.loads(publish_hash_body.json()))
 
 
@@ -359,7 +356,7 @@ async def _trigger_next_step_verifier(publish_hash_body: PublishNextStepBody):
     headers = {"accept": "application/json", "Content-Type": "application/json"}
 
     # Make the POST request
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=1200.0) as client:
         await client.post(url, headers=headers, json=json.loads(publish_hash_body.json()))
 
 

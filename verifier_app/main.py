@@ -276,7 +276,7 @@ async def _trigger_next_step_prover(publish_hash_body: PublishNextStepBody):
     headers = {"accept": "application/json", "Content-Type": "application/json"}
 
     # Make the POST request
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=1200.0) as client:
         await client.post(url, headers=headers, json=json.loads(publish_hash_body.json()))
 
 

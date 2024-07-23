@@ -1,8 +1,8 @@
-import pandas as pd
 from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
+from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
 from mutinyet_api.services.transaction_info_service import TransactionInfoService
 from scripts.services.commit_search_choice_script_generator_service import (
@@ -24,6 +24,7 @@ class PublishChoiceSearchTransactionService:
             GenerateWitnessFromInputSingleWordService(verifier_private_key)
         )
         self.transaction_info_service = TransactionInfoService()
+        self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
 
     def __call__(self, protocol_dict, i):
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
@@ -143,11 +144,9 @@ class PublishChoiceSearchTransactionService:
                 2,
             )
         )
-        trace_df = pd.read_csv(
-            "verifier_files/" + protocol_dict["setup_uuid"] + "/execution_trace.csv", sep=";"
-        )
         for j in range(len(index_list)):
             index = index_list[j]
-            if not trace_df.iloc[index]["step_hash"] == protocol_dict["search_hashes"][index]:
+            current_hash = self.execution_trace_query_service(protocol_dict, index)["step_hash"]
+            if not current_hash == protocol_dict["search_hashes"][index]:
                 return j
         raise Exception("There was some error when choosing the wrong step")
