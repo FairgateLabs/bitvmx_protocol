@@ -7,6 +7,7 @@ from bitcoinutils.utils import ControlBlock
 from bitvmx_execution.services.execution_trace_generation_service import (
     ExecutionTraceGenerationService,
 )
+from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
 from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
 from scripts.services.hash_result_script_generator_service import HashResultScriptGeneratorService
 from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
@@ -14,8 +15,8 @@ from winternitz_keys_handling.services.generate_witness_from_input_nibbles_servi
 )
 
 
-def _get_result_hash_value(execution_result) -> List[int]:
-    hash_value = execution_result[-1]["step_hash"]
+def _get_result_hash_value(last_step_trace) -> List[int]:
+    hash_value = last_step_trace["step_hash"]
     print(hash_value)
     hash_result_split_number = []
     for letter in hash_value:
@@ -32,6 +33,7 @@ class PublishHashTransactionService:
         self.hash_result_script_generator = HashResultScriptGeneratorService()
         self.broadcast_transaction_service = BroadcastTransactionService()
         self.execution_trace_generation_service = ExecutionTraceGenerationService("prover_files/")
+        self.execution_trace_query_service = ExecutionTraceQueryService("prover_files/")
 
     def __call__(self, protocol_dict) -> Transaction:
 
@@ -41,8 +43,11 @@ class PublishHashTransactionService:
         hash_result_tx = protocol_dict["hash_result_tx"]
         hash_result_signatures = protocol_dict["hash_result_signatures"]
 
-        execution_result = self.execution_trace_generation_service(protocol_dict)
-        hash_result_split_number = _get_result_hash_value(execution_result)
+        self.execution_trace_generation_service(protocol_dict)
+        last_step_trace = self.execution_trace_query_service(
+            protocol_dict, protocol_dict["amount_of_trace_steps"] - 1
+        )
+        hash_result_split_number = _get_result_hash_value(last_step_trace)
 
         hash_result_witness = []
         hash_result_witness += self.generate_witness_from_input_nibbles_service(

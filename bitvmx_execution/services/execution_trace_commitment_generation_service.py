@@ -1,13 +1,17 @@
 import re
 
+from bitvmx_execution.services.execution_trace_generation_service import (
+    ExecutionTraceGenerationService,
+)
+
 
 class ExecutionTraceCommitmentGenerationService:
 
-    def __init__(self, instruction_commitment_path, instruction_mapping_path):
-        self.instruction_commitment_path = instruction_commitment_path
+    def __init__(self, instruction_mapping_path):
         self.instruction_mapping_path = instruction_mapping_path
 
     def __call__(self):
+        instruction_commitment_path = ExecutionTraceGenerationService.commitment_file()
         with open(self.instruction_mapping_path) as mapping_file:
             mapping_lines = mapping_file.readlines()
 
@@ -17,7 +21,7 @@ class ExecutionTraceCommitmentGenerationService:
             match = re.search(pattern, line)
             mapping_dict[match.group(1)] = match.group(2)
 
-        with open(self.instruction_commitment_path) as commitment_file:
+        with open(instruction_commitment_path) as commitment_file:
             commitment_lines = commitment_file.readlines()
 
         key_list = []
@@ -36,5 +40,4 @@ class ExecutionTraceCommitmentGenerationService:
             key_list.append(composed_key)
             instruction_dict[composed_key] = mapping_dict[key]
         # Just in case, but this should not be necessary since it's ordered in origin
-        # key_list.sort()
         return key_list, instruction_dict

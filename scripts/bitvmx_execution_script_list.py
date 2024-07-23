@@ -331,11 +331,16 @@ class BitVMXExecutionScriptList:
                         new_right_shared_list = manager.list([None])
                         a_process = Process(
                             target=traverse_level,
-                            args=(level[0], already_traversed, depth + 1, new_left_shared_list)
+                            args=(level[0], already_traversed, depth + 1, new_left_shared_list),
                         )
                         b_process = Process(
                             target=traverse_level,
-                            args=(level[1], already_traversed + current_low_values_per_branch, depth + 1, new_right_shared_list)
+                            args=(
+                                level[1],
+                                already_traversed + current_low_values_per_branch,
+                                depth + 1,
+                                new_right_shared_list,
+                            ),
                         )
                         a_process.start()
                         b_process.start()
@@ -345,7 +350,9 @@ class BitVMXExecutionScriptList:
                         b = new_right_shared_list[0]
                     else:
                         a = traverse_level(level[0], already_traversed, depth + 1)
-                        b = traverse_level(level[1], already_traversed + current_low_values_per_branch, depth + 1)
+                        b = traverse_level(
+                            level[1], already_traversed + current_low_values_per_branch, depth + 1
+                        )
 
                     if (already_traversed <= index) and (
                         index < already_traversed + current_low_values_per_branch

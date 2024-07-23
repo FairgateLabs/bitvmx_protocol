@@ -21,7 +21,6 @@ class ExecutionChallengeTransactionService:
         )
         self.execution_trace_commitment_generation_service = (
             ExecutionTraceCommitmentGenerationService(
-                "./execution_files/instruction_commitment.txt",
                 "./execution_files/instruction_mapping.txt",
             )
         )
