@@ -1,4 +1,3 @@
-
 from bitvmx_execution.services.bitvmx_wrapper import BitVMXWrapper
 
 

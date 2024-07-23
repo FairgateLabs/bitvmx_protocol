@@ -12,7 +12,7 @@ class ExecutionTraceQueryService:
 
     def __init__(self, base_path):
         self.base_path = base_path
-        self.hashes_checkpoing_interval = 100
+        self.hashes_checkpoint_interval = 1000000
         self.bitvmx_wrapper = BitVMXWrapper(base_path)
 
     def get_last_step(self, protocol_dict):
@@ -24,12 +24,8 @@ class ExecutionTraceQueryService:
 
         # Filter files that match the pattern
         checkpoint_files = [f for f in files if pattern.match(f)]
-
-        greater_file = max(checkpoint_files)
-        pattern = re.compile(r"^checkpoint\.(\d+)\.json$")
-        match = pattern.search(greater_file)
-        last_step_number = int(match.group(1))
-        return last_step_number
+        checkpoint_indexes = list(map(lambda filename: int(filename[11:-5]), checkpoint_files))
+        return max(checkpoint_indexes)
 
     @staticmethod
     def trace_header():
@@ -74,8 +70,9 @@ class ExecutionTraceQueryService:
             while i < max_index:
                 i += 1
                 step_hash = byte_sha256(bytes.fromhex(step_hash + write_trace)).hex().zfill(64)
-                if i % self.hashes_checkpoing_interval == 0:
+                if i % self.hashes_checkpoint_interval == 0:
                     checkpoint_json[i] = step_hash
+                    print("Computing hash for step " + str(i))
             checkpoint_json[max_index] = step_hash
             with open(checkpoint_hashes_filepath, "w") as f:
                 json.dump(checkpoint_json, f)
