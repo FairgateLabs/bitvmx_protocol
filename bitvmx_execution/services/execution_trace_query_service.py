@@ -47,57 +47,15 @@ class ExecutionTraceQueryService:
             "step_hash",
         ]
 
-    def get_checkpoint_hashes(self, protocol_dict, last_step):
-        checkpoint_hashes_filepath = (
-            self.base_path + protocol_dict["setup_uuid"] + "/checkpoint_hashes.json"
-        )
-        if os.path.isfile(checkpoint_hashes_filepath):
-            with open(checkpoint_hashes_filepath, "r") as f:
-                return json.load(f)
-        else:
-            result = self.bitvmx_wrapper.get_execution_trace(protocol_dict, last_step)
-
-            checkpoint_json = {}
-            max_index = protocol_dict["amount_of_trace_steps"]
-            i = last_step
-            step_hash = result.replace("\n", "").split(";")[-1]
-            write_address_hex = "f" * 8
-            write_value_hex = "f" * 8
-            write_pc_hex = "f" * 8
-            write_micro_hex = "f" * 2
-            write_trace = write_address_hex + write_value_hex + write_pc_hex + write_micro_hex
-            checkpoint_json[last_step] = step_hash
-            while i < max_index:
-                i += 1
-                step_hash = byte_sha256(bytes.fromhex(step_hash + write_trace)).hex().zfill(64)
-                if i % self.hashes_checkpoint_interval == 0:
-                    checkpoint_json[i] = step_hash
-                    print("Computing hash for step " + str(i))
-            checkpoint_json[max_index] = step_hash
-            with open(checkpoint_hashes_filepath, "w") as f:
-                json.dump(checkpoint_json, f)
-            return checkpoint_json
-
     def get_overflow_trace(self, protocol_dict, last_step, index):
         assert index > last_step
-        checkpoint_hashes = self.get_checkpoint_hashes(protocol_dict, last_step)
-        # This can be highly optimized by returning the orderd list but it's not critical
-        best_key = -1
-        for key in checkpoint_hashes.keys():
-            current_key = int(key)
-            if (current_key <= index) and (current_key > int(best_key)):
-                best_key = key
-        step_hash = checkpoint_hashes[best_key]
-        i = int(best_key)
         write_address_hex = "f" * 8
         write_value_hex = "f" * 8
         write_pc_hex = "f" * 8
         write_micro_hex = "f" * 2
         write_trace = write_address_hex + write_value_hex + write_pc_hex + write_micro_hex
-        while i < index:
-            i += 1
-            step_hash = byte_sha256(bytes.fromhex(step_hash + write_trace)).hex().zfill(64)
-
+        result = self.bitvmx_wrapper.get_execution_trace(protocol_dict, last_step)
+        step_hash = result.replace("\n", "").split(";")[-1]
         step_dict = {
             "read1_address": "f" * 8,
             "read1_value": "f" * 8,
@@ -129,8 +87,4 @@ class ExecutionTraceQueryService:
 
     def __call__(self, protocol_dict, index):
         trace = self.get_step_trace(protocol_dict, index + 1)
-        # trace_df = pd.read_csv(
-        #     self.base_path + protocol_dict["setup_uuid"] + "/execution_trace.csv", sep=";"
-        # )
-        # return trace_df.iloc[index]
         return trace

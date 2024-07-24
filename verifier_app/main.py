@@ -54,6 +54,7 @@ class InitSetupResponse(BaseModel):
 async def init_setup(body: InitSetupBody) -> InitSetupResponse:
     private_key = PrivateKey(b=secrets.token_bytes(32))
     setup_uuid = body.setup_uuid
+    print("Init setup for id " + str(setup_uuid))
     protocol_dict = {
         "verifier_private_key": private_key.to_bytes().hex(),
         "last_confirmed_step": None,

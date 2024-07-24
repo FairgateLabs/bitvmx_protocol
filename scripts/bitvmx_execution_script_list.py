@@ -296,28 +296,35 @@ class BitVMXExecutionScriptList:
         return self.taproot_address
 
     def get_control_block_hex(self, public_key: PublicKey, index: int, is_odd: bool):
-        script_list = list(
-            map(
-                lambda key: _generate_script_from_key(
-                    key,
-                    self.signature_public_keys,
-                    self.public_keys,
-                    self.trace_words_lengths,
-                    self.bits_per_digit_checksum,
-                    self.instruction_dict,
-                    self.trace_to_script_mapping(),
-                ),
-                self.key_list,
-            )
-        )
 
         leaf_version = bytes([(1 if is_odd else 0) + LEAF_VERSION_TAPSCRIPT])
         pub_key = bytes.fromhex(public_key.to_x_only_hex())
 
-        def traverse_level(level, already_traversed, depth, shared_list=None):
+        def traverse_level(
+                level,
+                already_traversed,
+                depth,
+                signature_public_keys,
+                public_keys,
+                trace_words_lengths,
+                bits_per_digit_checksum,
+                instruction_dict,
+                trace_to_script_mapping,
+                shared_list=None
+        ):
             if isinstance(level, list):
                 if len(level) == 1:
-                    result = traverse_level(level[0], already_traversed, depth)
+                    result = traverse_level(
+                        level[0],
+                        already_traversed,
+                        depth,
+                        signature_public_keys,
+                        public_keys,
+                        trace_words_lengths,
+                        bits_per_digit_checksum,
+                        instruction_dict,
+                        trace_to_script_mapping,
+                    )
                     if shared_list is None:
                         return result
                     else:
@@ -331,7 +338,18 @@ class BitVMXExecutionScriptList:
                         new_right_shared_list = manager.list([None])
                         a_process = Process(
                             target=traverse_level,
-                            args=(level[0], already_traversed, depth + 1, new_left_shared_list),
+                            args=(
+                                level[0],
+                                already_traversed,
+                                depth + 1,
+                                signature_public_keys,
+                                public_keys,
+                                trace_words_lengths,
+                                bits_per_digit_checksum,
+                                instruction_dict,
+                                trace_to_script_mapping,
+                                new_left_shared_list
+                            ),
                         )
                         b_process = Process(
                             target=traverse_level,
@@ -339,6 +357,12 @@ class BitVMXExecutionScriptList:
                                 level[1],
                                 already_traversed + current_low_values_per_branch,
                                 depth + 1,
+                                signature_public_keys,
+                                public_keys,
+                                trace_words_lengths,
+                                bits_per_digit_checksum,
+                                instruction_dict,
+                                trace_to_script_mapping,
                                 new_right_shared_list,
                             ),
                         )
@@ -349,9 +373,27 @@ class BitVMXExecutionScriptList:
                         a = new_left_shared_list[0]
                         b = new_right_shared_list[0]
                     else:
-                        a = traverse_level(level[0], already_traversed, depth + 1)
+                        a = traverse_level(
+                            level[0],
+                            already_traversed,
+                            depth + 1,
+                            signature_public_keys,
+                            public_keys,
+                            trace_words_lengths,
+                            bits_per_digit_checksum,
+                            instruction_dict,
+                            trace_to_script_mapping,
+                        )
                         b = traverse_level(
-                            level[1], already_traversed + current_low_values_per_branch, depth + 1
+                            level[1],
+                            already_traversed + current_low_values_per_branch,
+                            depth + 1,
+                            signature_public_keys,
+                            public_keys,
+                            trace_words_lengths,
+                            bits_per_digit_checksum,
+                            instruction_dict,
+                            trace_to_script_mapping,
                         )
 
                     if (already_traversed <= index) and (
@@ -387,14 +429,37 @@ class BitVMXExecutionScriptList:
                     else:
                         shared_list[0] = result
                         return
-                result = tapleaf_tagged_hash(level)
+                result = tapleaf_tagged_hash(
+                    _generate_script_from_key(
+                        level,
+                        signature_public_keys,
+                        public_keys,
+                        trace_words_lengths,
+                        bits_per_digit_checksum,
+                        instruction_dict,
+                        trace_to_script_mapping,
+                    )
+                )
                 if shared_list is None:
                     return result
                 else:
                     shared_list[0] = result
                     return
 
-        merkle_path = traverse_level(split_list(script_list), 0, 0)
+        init_time = time()
+        print("Start control block computation")
+        merkle_path = traverse_level(
+            split_list(self.key_list),
+            0,
+            0,
+            self.signature_public_keys,
+            self.public_keys,
+            self.trace_words_lengths,
+            self.bits_per_digit_checksum,
+            self.instruction_dict,
+            self.trace_to_script_mapping(),
+        )
+        print("End of control block computation in " + str(time() - init_time) + " seconds.")
 
         control_block_bytes = leaf_version + pub_key + merkle_path
         return control_block_bytes.hex()

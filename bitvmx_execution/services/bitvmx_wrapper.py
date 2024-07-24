@@ -9,22 +9,22 @@ class BitVMXWrapper:
     def __init__(self, base_path):
         self.base_path = base_path
         self.execution_checkpoint_interval = 50000000
-        self.fail_actor = "prover"
-        self.fail_step = "500"
+        self.fail_actor = "verifier"
+        #self.fail_step = "1234567890"
+        self.fail_step = "50"
+        self.fail_type = "--fail-execute"
+        #self.fail_type = "--fail-hash"
 
     def get_execution_trace(self, protocol_dict, index):
+        base_point = math.floor((index - 1) / self.execution_checkpoint_interval) * self.execution_checkpoint_interval
         print(
-            "Executing command for step "
+            "Executing command for list "
             + str(index)
             + " with step "
-            + str(
-                math.floor(index / self.execution_checkpoint_interval)
-                * self.execution_checkpoint_interval
-            )
-            + " and index "
+            + str(base_point)
+            + " and limit "
             + str(index)
         )
-        base_point = math.floor(index / self.execution_checkpoint_interval) * self.execution_checkpoint_interval
         command = [
             "cargo",
             "run",
@@ -44,7 +44,7 @@ class BitVMXWrapper:
             str(index),
         ]
         if self.fail_actor is not None and self.fail_actor in self.base_path:
-            command.extend(["--fail", self.fail_step])
+            command.extend([self.fail_type, self.fail_step])
 
         execution_directory = self.base_path + protocol_dict["setup_uuid"]
 
@@ -91,7 +91,7 @@ class BitVMXWrapper:
                 "--checkpoints",
             ]
             if self.fail_actor is not None and self.fail_actor in self.base_path:
-                command.extend(["--fail", self.fail_step])
+                command.extend([self.fail_type, self.fail_step])
             execution_directory = self.base_path + protocol_dict["setup_uuid"]
 
             try:

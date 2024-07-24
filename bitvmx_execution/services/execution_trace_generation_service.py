@@ -6,6 +6,7 @@ class ExecutionTraceGenerationService:
     @staticmethod
     def elf_file():
         return "plainc.elf"
+        #return "zkverifier.elf"
 
     @staticmethod
     def commitment_file():

@@ -80,11 +80,15 @@ class ExecutionChallengeTransactionService:
             trace_words_lengths,
             amount_of_bits_per_digit_checksum,
         )
-        # execution_challenge_script_tree = execution_challenge_script_list.to_scripts_tree()
 
-        execution_challenge_script_address = execution_challenge_script_list.get_taproot_address(
-            destroyed_public_key
-        )
+        if "execution_challenge_address" in protocol_dict:
+            execution_challenge_script_address = protocol_dict["execution_challenge_address"]
+        else:
+            execution_challenge_script_address = execution_challenge_script_list.get_taproot_address(
+                destroyed_public_key
+            )
+
+            protocol_dict["execution_challenge_address"] = execution_challenge_script_address
 
         key_list, instruction_dict = self.execution_trace_commitment_generation_service()
         pc_read_addr = real_values[6]
