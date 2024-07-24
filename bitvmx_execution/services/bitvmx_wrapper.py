@@ -10,6 +10,7 @@ class BitVMXWrapper:
         self.base_path = base_path
         self.execution_checkpoint_interval = 50000000
         self.fail_actor = "verifier"
+        # self.fail_actor = "prover"
         # self.fail_step = "1234567890"
         self.fail_step = "50"
         self.fail_type = "--fail-execute"

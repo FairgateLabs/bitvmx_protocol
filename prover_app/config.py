@@ -16,6 +16,7 @@ class ProtocolProperties(BaseSettings):
     prover_host: str
     initial_amount_satoshis: int
     step_fees_satoshis: int
+    prover_address: str
     network: Optional[Networks] = Networks.MUTINYNET
     prover_private_key: Optional[str] = None
     funding_tx_id: Optional[str] = None

@@ -141,15 +141,21 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
     # Generate prover private key
     if protocol_properties.prover_private_key is None:
-        prover_private_key = PrivateKey(b=secrets.token_bytes(32))
+        controled_prover_private_key = PrivateKey(b=secrets.token_bytes(32))
     else:
-        prover_private_key = PrivateKey(b=bytes.fromhex(protocol_properties.prover_private_key))
+        controled_prover_private_key = PrivateKey(b=bytes.fromhex(protocol_properties.prover_private_key))
 
-    prover_public_key = prover_private_key.get_public_key()
-    public_keys.append(prover_public_key.to_hex())
+    controled_prover_public_key = controled_prover_private_key.get_public_key()
+    # public_keys.append(prover_public_key.to_hex())
+
+    protocol_dict["controled_prover_secret_key"] = controled_prover_private_key.to_bytes().hex()
+    protocol_dict["controled_prover_public_key"] = controled_prover_public_key.to_hex()
 
     destroyed_public_key = None
     seed_destroyed_public_key_hex = ""
+    prover_private_key = PrivateKey(b=secrets.token_bytes(32))
+    prover_public_key = prover_private_key.get_public_key()
+    public_keys.append(prover_public_key.to_hex())
     while destroyed_public_key is None:
         try:
             seed_destroyed_public_key_hex = "".join(public_keys)
@@ -170,7 +176,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     protocol_dict["public_keys"] = public_keys
     protocol_dict["network"] = protocol_properties.network
 
-    prover_private_key = PrivateKey(b=bytes.fromhex(prover_private_key.to_bytes().hex()))
+    # prover_private_key = PrivateKey(b=bytes.fromhex(prover_private_key.to_bytes().hex()))
 
     generate_prover_public_keys_service = GenerateProverPublicKeysService(prover_private_key)
     generate_prover_public_keys_service(protocol_dict)
@@ -182,7 +188,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         faucet_service = FaucetService()
         funding_tx_id, funding_index = faucet_service(
             amount=initial_amount_satoshis + step_fees_satoshis,
-            destination_address=prover_public_key.get_segwit_address().to_string(),
+            destination_address=controled_prover_public_key.get_segwit_address().to_string(),
         )
     else:
         funding_tx_id = protocol_properties.funding_tx_id
@@ -330,14 +336,14 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     #################################################################
     funding_tx = protocol_dict["funding_tx"]
 
-    funding_sig = prover_private_key.sign_segwit_input(
+    funding_sig = controled_prover_private_key.sign_segwit_input(
         funding_tx,
         0,
-        prover_public_key.get_address().to_script_pub_key(),
+        controled_prover_public_key.get_address().to_script_pub_key(),
         initial_amount_satoshis + step_fees_satoshis,
     )
 
-    funding_tx.witnesses.append(TxWitnessInput([funding_sig, prover_public_key.to_hex()]))
+    funding_tx.witnesses.append(TxWitnessInput([funding_sig, controled_prover_public_key.to_hex()]))
 
     broadcast_transaction_service = BroadcastTransactionService()
     broadcast_transaction_service(transaction=funding_tx.serialize())
