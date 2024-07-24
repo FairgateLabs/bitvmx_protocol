@@ -1,11 +1,9 @@
-import json
 import os
 import re
 
 import pandas as pd
 
 from bitvmx_execution.services.bitvmx_wrapper import BitVMXWrapper
-from winternitz_keys_handling.functions.signature_functions import byte_sha256
 
 
 class ExecutionTraceQueryService:

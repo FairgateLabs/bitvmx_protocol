@@ -301,16 +301,16 @@ class BitVMXExecutionScriptList:
         pub_key = bytes.fromhex(public_key.to_x_only_hex())
 
         def traverse_level(
-                level,
-                already_traversed,
-                depth,
-                signature_public_keys,
-                public_keys,
-                trace_words_lengths,
-                bits_per_digit_checksum,
-                instruction_dict,
-                trace_to_script_mapping,
-                shared_list=None
+            level,
+            already_traversed,
+            depth,
+            signature_public_keys,
+            public_keys,
+            trace_words_lengths,
+            bits_per_digit_checksum,
+            instruction_dict,
+            trace_to_script_mapping,
+            shared_list=None,
         ):
             if isinstance(level, list):
                 if len(level) == 1:
@@ -348,7 +348,7 @@ class BitVMXExecutionScriptList:
                                 bits_per_digit_checksum,
                                 instruction_dict,
                                 trace_to_script_mapping,
-                                new_left_shared_list
+                                new_left_shared_list,
                             ),
                         )
                         b_process = Process(

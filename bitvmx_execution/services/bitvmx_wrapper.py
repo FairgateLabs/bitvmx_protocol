@@ -10,13 +10,16 @@ class BitVMXWrapper:
         self.base_path = base_path
         self.execution_checkpoint_interval = 50000000
         self.fail_actor = "verifier"
-        #self.fail_step = "1234567890"
+        # self.fail_step = "1234567890"
         self.fail_step = "50"
         self.fail_type = "--fail-execute"
-        #self.fail_type = "--fail-hash"
+        # self.fail_type = "--fail-hash"
 
     def get_execution_trace(self, protocol_dict, index):
-        base_point = math.floor((index - 1) / self.execution_checkpoint_interval) * self.execution_checkpoint_interval
+        base_point = (
+            math.floor((index - 1) / self.execution_checkpoint_interval)
+            * self.execution_checkpoint_interval
+        )
         print(
             "Executing command for list "
             + str(index)
