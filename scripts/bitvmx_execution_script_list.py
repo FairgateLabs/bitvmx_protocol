@@ -279,11 +279,19 @@ class BitVMXExecutionScriptList:
                 self.trace_to_script_mapping(),
                 0,
             )
-            print(
-                "End of parallel hashed merkle root in "
-                + str((time() - init_time) / 60)
-                + " minutes."
-            )
+            end_time = time()
+            if end_time - init_time > 60:
+                print(
+                    "End of parallel hashed merkle root in "
+                    + str((time() - init_time) / 60)
+                    + " minutes."
+                )
+            else:
+                print(
+                    "End of parallel hashed merkle root in "
+                    + str(time() - init_time)
+                    + " seconds."
+                )
             tweak = tagged_hash(key_x + merkle_root, "TapTweak")
 
         tweak_int = b_to_i(tweak)

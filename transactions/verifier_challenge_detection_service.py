@@ -1,5 +1,9 @@
 from bitvmx_execution.bo.execution_trace_bo import ExecutionTraceBO
-from mutinyet_api.services.transaction_info_service import TransactionInfoService
+from prover_app.config import protocol_properties, Networks
+if protocol_properties.network == Networks.MUTINYNET:
+    from mutinyet_api.services.transaction_info_service import TransactionInfoService
+elif protocol_properties.network == Networks.TESTNET:
+    from testnet_api.services.transaction_info_service import TransactionInfoService
 from transactions.verifier_challenge_detection.verifier_execution_challenge_detection_service import (
     VerifierExecutionChallengeDetectionService,
 )

@@ -3,8 +3,13 @@ from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
 from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
-from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
-from mutinyet_api.services.transaction_info_service import TransactionInfoService
+from prover_app.config import protocol_properties, Networks
+if protocol_properties.network == Networks.MUTINYNET:
+    from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
+    from mutinyet_api.services.transaction_info_service import TransactionInfoService
+elif protocol_properties.network == Networks.TESTNET:
+    from testnet_api.services.broadcast_transaction_service import BroadcastTransactionService
+    from testnet_api.services.transaction_info_service import TransactionInfoService
 from scripts.services.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
 )

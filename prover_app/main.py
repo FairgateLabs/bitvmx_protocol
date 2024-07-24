@@ -16,10 +16,7 @@ from bitcoinutils.transactions import TxWitnessInput
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
-from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
-from mutinyet_api.services.faucet_service import FaucetService
-from mutinyet_api.services.transaction_published_service import TransactionPublishedService
-from prover_app.config import protocol_properties
+from prover_app.config import protocol_properties, Networks
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionProverStepType
 from transactions.generate_signatures_service import GenerateSignaturesService
@@ -44,6 +41,15 @@ from transactions.transaction_generator_from_public_keys_service import (
 from winternitz_keys_handling.services.generate_prover_public_keys_service import (
     GenerateProverPublicKeysService,
 )
+
+if protocol_properties.network == Networks.MUTINYNET:
+    from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
+    from mutinyet_api.services.faucet_service import FaucetService
+    from mutinyet_api.services.transaction_published_service import TransactionPublishedService
+elif protocol_properties.network == Networks.TESTNET:
+    from testnet_api.services.broadcast_transaction_service import BroadcastTransactionService
+    from testnet_api.services.transaction_published_service import TransactionPublishedService
+
 
 app = FastAPI(
     title="Prover service",
@@ -134,7 +140,10 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         public_keys.append(response_json["public_key"])
 
     # Generate prover private key
-    prover_private_key = PrivateKey(b=secrets.token_bytes(32))
+    if protocol_properties.prover_private_key is None:
+        prover_private_key = PrivateKey(b=secrets.token_bytes(32))
+    else:
+        prover_private_key = PrivateKey(b=bytes.fromhex(protocol_properties.prover_private_key))
 
     prover_public_key = prover_private_key.get_public_key()
     public_keys.append(prover_public_key.to_hex())
@@ -159,25 +168,30 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     protocol_dict["prover_secret_key"] = prover_private_key.to_bytes().hex()
     protocol_dict["prover_public_key"] = prover_public_key.to_hex()
     protocol_dict["public_keys"] = public_keys
+    protocol_dict["network"] = protocol_properties.network
 
     prover_private_key = PrivateKey(b=bytes.fromhex(prover_private_key.to_bytes().hex()))
 
     generate_prover_public_keys_service = GenerateProverPublicKeysService(prover_private_key)
     generate_prover_public_keys_service(protocol_dict)
 
-    initial_amount_satoshis = 1000000
-    step_fees_satoshis = 30000
+    initial_amount_satoshis = protocol_properties.initial_amount_satoshis
+    step_fees_satoshis = protocol_properties.step_fees_satoshis
 
-    faucet_service = FaucetService()
-    faucet_tx_id, faucet_index = faucet_service(
-        amount=initial_amount_satoshis + step_fees_satoshis,
-        destination_address=prover_public_key.get_segwit_address().to_string(),
-    )
+    if protocol_properties.network == Networks.MUTINYNET:
+        faucet_service = FaucetService()
+        funding_tx_id, funding_index = faucet_service(
+            amount=initial_amount_satoshis + step_fees_satoshis,
+            destination_address=prover_public_key.get_segwit_address().to_string(),
+        )
+    else:
+        funding_tx_id = protocol_properties.funding_tx_id
+        funding_index = protocol_properties.funding_index
 
-    protocol_dict["funds_tx_id"] = faucet_tx_id
-    protocol_dict["funds_index"] = faucet_index
+    protocol_dict["funds_tx_id"] = funding_tx_id
+    protocol_dict["funds_index"] = funding_index
 
-    print("Faucet tx: " + faucet_tx_id)
+    print("Faucet tx: " + funding_tx_id)
 
     # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
     url = f"{verifier_list[0]}/public_keys"
@@ -198,8 +212,8 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         "amount_of_bits_per_digit_checksum": amount_of_bits_per_digit_checksum,
         "funding_amount_satoshis": initial_amount_satoshis,
         "step_fees_satoshis": step_fees_satoshis,
-        "funds_tx_id": faucet_tx_id,
-        "funds_index": faucet_index,
+        "funds_tx_id": funding_tx_id,
+        "funds_index": funding_index,
         "amount_of_nibbles_hash": amount_of_nibbles_hash,
     }
 

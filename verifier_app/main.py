@@ -11,7 +11,11 @@ from bitcoinutils.keys import PrivateKey, PublicKey
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
-from mutinyet_api.services.transaction_info_service import TransactionInfoService
+from prover_app.config import protocol_properties, Networks
+if protocol_properties.network == Networks.MUTINYNET:
+    from mutinyet_api.services.transaction_info_service import TransactionInfoService
+elif protocol_properties.network == Networks.TESTNET:
+    from testnet_api.services.transaction_info_service import TransactionInfoService
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionVerifierStepType
 from transactions.generate_signatures_service import GenerateSignaturesService
