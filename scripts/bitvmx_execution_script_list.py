@@ -288,9 +288,7 @@ class BitVMXExecutionScriptList:
                 )
             else:
                 print(
-                    "End of parallel hashed merkle root in "
-                    + str(time() - init_time)
-                    + " seconds."
+                    "End of parallel hashed merkle root in " + str(time() - init_time) + " seconds."
                 )
             tweak = tagged_hash(key_x + merkle_root, "TapTweak")
 

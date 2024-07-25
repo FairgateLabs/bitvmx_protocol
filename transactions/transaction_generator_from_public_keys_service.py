@@ -162,6 +162,7 @@ class TransactionGeneratorFromPublicKeysService:
         execution_challenge_txin = TxInput(trigger_execution_challenge_tx.get_txid(), 0)
 
         faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
+        # controlled_prover_address = protocol_dict["controlled_prover_address"]
         execution_challenge_output_address = P2wpkhAddress.from_address(address=faucet_address)
         execution_challenge_txout = TxOutput(
             challenge_output_amount,

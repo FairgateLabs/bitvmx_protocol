@@ -11,7 +11,8 @@ from bitcoinutils.keys import PrivateKey, PublicKey
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
-from prover_app.config import protocol_properties, Networks
+from prover_app.config import Networks, protocol_properties
+
 if protocol_properties.network == Networks.MUTINYNET:
     from mutinyet_api.services.transaction_info_service import TransactionInfoService
 elif protocol_properties.network == Networks.TESTNET:
@@ -58,7 +59,8 @@ class InitSetupResponse(BaseModel):
 async def init_setup(body: InitSetupBody) -> InitSetupResponse:
     private_key = PrivateKey(b=secrets.token_bytes(32))
     setup_uuid = body.setup_uuid
-    print("Init setup for id " + str(setup_uuid))
+    # print("Init setup for id " + str(setup_uuid))
+    print("Init setup for id " + str("5659b335-7004-455b-95a0-5b51f2183d16"))
     protocol_dict = {
         "verifier_private_key": private_key.to_bytes().hex(),
         "last_confirmed_step": None,

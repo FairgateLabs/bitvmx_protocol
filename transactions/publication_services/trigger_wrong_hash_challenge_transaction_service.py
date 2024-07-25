@@ -1,4 +1,5 @@
-from prover_app.config import protocol_properties, Networks
+from prover_app.config import Networks, protocol_properties
+
 if protocol_properties.network == Networks.MUTINYNET:
     from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
     from mutinyet_api.services.transaction_info_service import TransactionInfoService

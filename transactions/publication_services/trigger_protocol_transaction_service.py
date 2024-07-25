@@ -6,7 +6,8 @@ from bitvmx_execution.services.execution_trace_generation_service import (
     ExecutionTraceGenerationService,
 )
 from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
-from prover_app.config import protocol_properties, Networks
+from prover_app.config import Networks, protocol_properties
+
 if protocol_properties.network == Networks.MUTINYNET:
     from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
 elif protocol_properties.network == Networks.TESTNET:

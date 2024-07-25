@@ -16,7 +16,7 @@ from bitcoinutils.transactions import TxWitnessInput
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
-from prover_app.config import protocol_properties, Networks
+from prover_app.config import Networks, protocol_properties
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionProverStepType
 from transactions.generate_signatures_service import GenerateSignaturesService
@@ -141,15 +141,19 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
 
     # Generate prover private key
     if protocol_properties.prover_private_key is None:
-        controled_prover_private_key = PrivateKey(b=secrets.token_bytes(32))
+        controlled_prover_private_key = PrivateKey(b=secrets.token_bytes(32))
     else:
-        controled_prover_private_key = PrivateKey(b=bytes.fromhex(protocol_properties.prover_private_key))
+        controlled_prover_private_key = PrivateKey(
+            b=bytes.fromhex(protocol_properties.prover_private_key)
+        )
 
-    controled_prover_public_key = controled_prover_private_key.get_public_key()
+    controlled_prover_public_key = controlled_prover_private_key.get_public_key()
+    controlled_prover_address = controlled_prover_public_key.get_segwit_address().to_string()
     # public_keys.append(prover_public_key.to_hex())
 
-    protocol_dict["controled_prover_secret_key"] = controled_prover_private_key.to_bytes().hex()
-    protocol_dict["controled_prover_public_key"] = controled_prover_public_key.to_hex()
+    protocol_dict["controlled_prover_secret_key"] = controlled_prover_private_key.to_bytes().hex()
+    protocol_dict["controlled_prover_public_key"] = controlled_prover_public_key.to_hex()
+    protocol_dict["controlled_prover_address"] = controlled_prover_address
 
     destroyed_public_key = None
     seed_destroyed_public_key_hex = ""
@@ -188,7 +192,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         faucet_service = FaucetService()
         funding_tx_id, funding_index = faucet_service(
             amount=initial_amount_satoshis + step_fees_satoshis,
-            destination_address=controled_prover_public_key.get_segwit_address().to_string(),
+            destination_address=controlled_prover_public_key.get_segwit_address().to_string(),
         )
     else:
         funding_tx_id = protocol_properties.funding_tx_id
@@ -336,14 +340,16 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     #################################################################
     funding_tx = protocol_dict["funding_tx"]
 
-    funding_sig = controled_prover_private_key.sign_segwit_input(
+    funding_sig = controlled_prover_private_key.sign_segwit_input(
         funding_tx,
         0,
-        controled_prover_public_key.get_address().to_script_pub_key(),
+        controlled_prover_public_key.get_address().to_script_pub_key(),
         initial_amount_satoshis + step_fees_satoshis,
     )
 
-    funding_tx.witnesses.append(TxWitnessInput([funding_sig, controled_prover_public_key.to_hex()]))
+    funding_tx.witnesses.append(
+        TxWitnessInput([funding_sig, controlled_prover_public_key.to_hex()])
+    )
 
     broadcast_transaction_service = BroadcastTransactionService()
     broadcast_transaction_service(transaction=funding_tx.serialize())
