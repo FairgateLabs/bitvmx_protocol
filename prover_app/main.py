@@ -21,6 +21,28 @@ from bitvmx_protocol_library.enums import BitcoinNetwork
 from bitvmx_protocol_library.script_generation.services.scripts_dict_generator_service import (
     ScriptsDictGeneratorService,
 )
+from bitvmx_protocol_library.transaction_generation.enums import TransactionProverStepType
+from bitvmx_protocol_library.transaction_generation.generate_signatures_service import (
+    GenerateSignaturesService,
+)
+from bitvmx_protocol_library.transaction_generation.publication_services.execution_challenge_transaction_service import (
+    ExecutionChallengeTransactionService,
+)
+from bitvmx_protocol_library.transaction_generation.publication_services.publish_hash_search_transaction_service import (
+    PublishHashSearchTransactionService,
+)
+from bitvmx_protocol_library.transaction_generation.publication_services.publish_hash_transaction_service import (
+    PublishHashTransactionService,
+)
+from bitvmx_protocol_library.transaction_generation.publication_services.publish_trace_transaction_service import (
+    PublishTraceTransactionService,
+)
+from bitvmx_protocol_library.transaction_generation.signatures.verify_verifier_signatures_service import (
+    VerifyVerifierSignaturesService,
+)
+from bitvmx_protocol_library.transaction_generation.transaction_generator_from_public_keys_service import (
+    TransactionGeneratorFromPublicKeysService,
+)
 from blockchain_query_services.common.transaction_published_service import (
     TransactionPublishedService,
 )
@@ -29,26 +51,6 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 )
 from blockchain_query_services.services.mutinynet_api.faucet_service import FaucetService
 from prover_app.config import protocol_properties
-from transactions.enums import TransactionProverStepType
-from transactions.generate_signatures_service import GenerateSignaturesService
-from transactions.publication_services.execution_challenge_transaction_service import (
-    ExecutionChallengeTransactionService,
-)
-from transactions.publication_services.publish_hash_search_transaction_service import (
-    PublishHashSearchTransactionService,
-)
-from transactions.publication_services.publish_hash_transaction_service import (
-    PublishHashTransactionService,
-)
-from transactions.publication_services.publish_trace_transaction_service import (
-    PublishTraceTransactionService,
-)
-from transactions.signatures.verify_verifier_signatures_service import (
-    VerifyVerifierSignaturesService,
-)
-from transactions.transaction_generator_from_public_keys_service import (
-    TransactionGeneratorFromPublicKeysService,
-)
 from winternitz_keys_handling.services.generate_prover_public_keys_service import (
     GenerateProverPublicKeysService,
 )

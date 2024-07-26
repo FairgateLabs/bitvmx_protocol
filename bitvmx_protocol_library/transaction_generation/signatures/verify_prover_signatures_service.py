@@ -1,4 +1,6 @@
-from transactions.signatures.verify_signature_service import VerifySignatureService
+from bitvmx_protocol_library.transaction_generation.signatures.verify_signature_service import (
+    VerifySignatureService,
+)
 
 
 class VerifyProverSignaturesService:
