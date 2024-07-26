@@ -11,18 +11,12 @@ from bitvmx_execution.services.execution_trace_query_service import ExecutionTra
 from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.enums import BitcoinNetwork
 
-if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
-        BroadcastTransactionService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
-    from blockchain_query_services.testnet_api.services import BroadcastTransactionService
-elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
-    from blockchain_query_services.mainnet_api.services import BroadcastTransactionService
 from scripts.services.hash_result_script_generator_service import HashResultScriptGeneratorService
 from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,
 )
+
+from blockchain_query_services.blockchain_query_services_dependency_injection import broadcast_transaction_service
 
 
 def _get_result_hash_value(last_step_trace) -> List[int]:
@@ -41,7 +35,6 @@ class PublishHashTransactionService:
             prover_private_key
         )
         self.hash_result_script_generator = HashResultScriptGeneratorService()
-        self.broadcast_transaction_service = BroadcastTransactionService()
         self.execution_trace_generation_service = ExecutionTraceGenerationService("prover_files/")
         self.execution_trace_query_service = ExecutionTraceQueryService("prover_files/")
 
@@ -97,6 +90,6 @@ class PublishHashTransactionService:
             )
         )
 
-        self.broadcast_transaction_service(transaction=hash_result_tx.serialize())
+        broadcast_transaction_service(transaction=hash_result_tx.serialize())
         print("Hash result revelation transaction: " + hash_result_tx.get_txid())
         return hash_result_tx

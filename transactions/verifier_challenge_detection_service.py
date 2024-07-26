@@ -1,17 +1,6 @@
 from bitvmx_execution.bo.execution_trace_bo import ExecutionTraceBO
-from bitvmx_protocol_library.config import common_protocol_properties
-from bitvmx_protocol_library.enums import BitcoinNetwork
 
-if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
-    from blockchain_query_services.testnet_api.services import TransactionInfoService
-elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
-    from blockchain_query_services.mainnet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
+from blockchain_query_services.blockchain_query_services_dependency_injection import transaction_info_service
 from transactions.verifier_challenge_detection.verifier_execution_challenge_detection_service import (
     VerifierExecutionChallengeDetectionService,
 )
@@ -22,7 +11,6 @@ from transactions.verifier_challenge_detection.verifier_wrong_hash_challenge_det
 
 class VerifierChallengeDetectionService:
     def __init__(self):
-        self.transaction_info_service = TransactionInfoService()
         self.verifier_challenge_detection_services = [
             VerifierWrongHashChallengeDetectionService(),
             VerifierExecutionChallengeDetectionService(),
@@ -30,7 +18,7 @@ class VerifierChallengeDetectionService:
 
     def __call__(self, protocol_dict):
         trace_tx_id = protocol_dict["trace_tx"].get_txid()
-        trace_transaction_info = self.transaction_info_service(trace_tx_id)
+        trace_transaction_info = transaction_info_service(trace_tx_id)
         previous_trace_witness = trace_transaction_info.inputs[0].witness
 
         # Ugly hardcoding here that should be computed somehow but it depends a lot on the structure of the

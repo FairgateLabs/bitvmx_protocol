@@ -9,23 +9,16 @@ from bitvmx_execution.services.execution_trace_query_service import ExecutionTra
 from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.enums import BitcoinNetwork
 
-if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
-        BroadcastTransactionService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
-    from blockchain_query_services.testnet_api.services import BroadcastTransactionService
-elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
-    from blockchain_query_services.mainnet_api.services import BroadcastTransactionService
 from scripts.services.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
 )
+
+from blockchain_query_services.blockchain_query_services_dependency_injection import broadcast_transaction_service
 
 
 class TriggerProtocolTransactionService:
 
     def __init__(self):
-        self.broadcast_transaction_service = BroadcastTransactionService()
         self.execution_trace_generation_service = ExecutionTraceGenerationService("verifier_files/")
         self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
 
@@ -81,7 +74,7 @@ class TriggerProtocolTransactionService:
                 )
             )
 
-            self.broadcast_transaction_service(transaction=trigger_protocol_tx.serialize())
+            broadcast_transaction_service(transaction=trigger_protocol_tx.serialize())
             print("Trigger protocol transaction: " + trigger_protocol_tx.get_txid())
             return trigger_protocol_tx
 

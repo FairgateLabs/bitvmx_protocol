@@ -12,8 +12,8 @@ class BitVMXWrapper:
         self.fail_actor = "verifier"
         # self.fail_actor = "prover"
         # self.fail_step = "1234567890"
-        # self.fail_step = "50"
-        self.fail_step = None
+        self.fail_step = "50"
+        # self.fail_step = None
         self.fail_type = "--fail-execute"
         # self.fail_type = "--fail-hash"
         self.contains_fail = (

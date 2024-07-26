@@ -2,19 +2,17 @@ from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.enums import BitcoinNetwork
 
 if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
+    from blockchain_query_services.mutinynet_api.services.broadcast_transaction_service import (
         BroadcastTransactionService,
     )
-    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
+    from blockchain_query_services.mutinynet_api.services.transaction_info_service import (
         TransactionInfoService,
     )
 elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
     from blockchain_query_services.testnet_api.services import (
-        BroadcastTransactionService,
         TransactionInfoService,
     )
 elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
-    from blockchain_query_services.mainnet_api.services import BroadcastTransactionService
     from blockchain_query_services.mainnet_api.services.transaction_info_service import (
         TransactionInfoService,
     )
@@ -24,6 +22,8 @@ from scripts.services.trigger_generic_challenge_script_generator_service import 
 from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,
 )
+
+from blockchain_query_services.blockchain_query_services_dependency_injection import broadcast_transaction_service
 
 
 class TriggerWrongHashChallengeTransactionService:

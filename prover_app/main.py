@@ -45,27 +45,20 @@ from winternitz_keys_handling.services.generate_prover_public_keys_service impor
 )
 
 if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
+    from blockchain_query_services.mutinynet_api.services.broadcast_transaction_service import (
         BroadcastTransactionService,
     )
-    from blockchain_query_services.mutinyet_api.services.faucet_service import FaucetService
-    from blockchain_query_services.mutinyet_api.services.transaction_published_service import (
-        TransactionPublishedService,
-    )
+    from blockchain_query_services.mutinynet_api.services.faucet_service import FaucetService
 elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
     from blockchain_query_services.testnet_api.services.broadcast_transaction_service import (
         BroadcastTransactionService,
-    )
-    from blockchain_query_services.testnet_api.services.transaction_published_service import (
-        TransactionPublishedService,
     )
 elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
     from blockchain_query_services.mainnet_api.services.broadcast_transaction_service import (
         BroadcastTransactionService,
     )
-    from blockchain_query_services.mainnet_api.services.transaction_published_service import (
-        TransactionPublishedService,
-    )
+
+from blockchain_query_services.common.transaction_published_service import TransactionPublishedService
 
 
 app = FastAPI(

@@ -6,7 +6,7 @@ from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.enums import BitcoinNetwork
 
 if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
+    from blockchain_query_services.mutinynet_api.services.transaction_info_service import (
         TransactionInfoService,
     )
 elif common_protocol_properties.network == BitcoinNetwork.TESTNET:

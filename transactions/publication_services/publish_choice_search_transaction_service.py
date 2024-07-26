@@ -7,19 +7,17 @@ from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.enums import BitcoinNetwork
 
 if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
+    from blockchain_query_services.mutinynet_api.services.broadcast_transaction_service import (
         BroadcastTransactionService,
     )
-    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
+    from blockchain_query_services.mutinynet_api.services.transaction_info_service import (
         TransactionInfoService,
     )
 elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
     from blockchain_query_services.testnet_api.services import (
-        BroadcastTransactionService,
         TransactionInfoService,
     )
 elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
-    from blockchain_query_services.mainnet_api.services import BroadcastTransactionService
     from blockchain_query_services.mainnet_api.services.transaction_info_service import (
         TransactionInfoService,
     )
@@ -30,6 +28,8 @@ from winternitz_keys_handling.services.generate_witness_from_input_single_word_s
     GenerateWitnessFromInputSingleWordService,
 )
 
+from blockchain_query_services.blockchain_query_services_dependency_injection import broadcast_transaction_service
+
 
 class PublishChoiceSearchTransactionService:
 
@@ -37,7 +37,6 @@ class PublishChoiceSearchTransactionService:
         self.commit_search_choice_script_generator_service = (
             CommitSearchChoiceScriptGeneratorService()
         )
-        self.broadcast_transaction_service = BroadcastTransactionService()
         self.generate_verifier_witness_from_input_single_word_service = (
             GenerateWitnessFromInputSingleWordService(verifier_private_key)
         )
@@ -92,7 +91,7 @@ class PublishChoiceSearchTransactionService:
             )
         )
 
-        self.broadcast_transaction_service(transaction=search_choice_tx_list[i].serialize())
+        broadcast_transaction_service(transaction=search_choice_tx_list[i].serialize())
         print(
             "Search choice iteration transaction "
             + str(i)

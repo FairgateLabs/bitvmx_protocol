@@ -6,19 +6,14 @@ from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.enums import BitcoinNetwork
 
 if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
-        BroadcastTransactionService,
-    )
-    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
+    from blockchain_query_services.mutinynet_api.services.transaction_info_service import (
         TransactionInfoService,
     )
 elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
     from blockchain_query_services.testnet_api.services import (
-        BroadcastTransactionService,
         TransactionInfoService,
     )
 elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
-    from blockchain_query_services.mainnet_api.services import BroadcastTransactionService
     from blockchain_query_services.mainnet_api.services.transaction_info_service import (
         TransactionInfoService,
     )
@@ -30,11 +25,12 @@ from winternitz_keys_handling.services.generate_witness_from_input_nibbles_servi
     GenerateWitnessFromInputNibblesService,
 )
 
+from blockchain_query_services.blockchain_query_services_dependency_injection import broadcast_transaction_service
+
 
 class TriggerExecutionChallengeTransactionService:
     def __init__(self, verifier_private_key):
         self.transaction_info_service = TransactionInfoService()
-        self.broadcast_transaction_service = BroadcastTransactionService()
         self.verifier_challenge_execution_script_generator_service = (
             TriggerGenericChallengeScriptGeneratorService()
         )
@@ -143,7 +139,7 @@ class TriggerExecutionChallengeTransactionService:
             )
         )
 
-        self.broadcast_transaction_service(transaction=trigger_execution_challenge_tx.serialize())
+        broadcast_transaction_service(transaction=trigger_execution_challenge_tx.serialize())
         print(
             "Trigger execution challenge transaction: " + trigger_execution_challenge_tx.get_txid()
         )

@@ -12,20 +12,10 @@ from bitcoinutils.setup import setup
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
-from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.enums import BitcoinNetwork
 from prover_app.config import protocol_properties
 
-if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
-    from blockchain_query_services.testnet_api.services import TransactionInfoService
-elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
-    from blockchain_query_services.mainnet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
+from blockchain_query_services.blockchain_query_services_dependency_injection import transaction_info_service
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionVerifierStepType
 from transactions.generate_signatures_service import GenerateSignaturesService
@@ -321,7 +311,6 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         setup(protocol_dict["network"].value)
     last_confirmed_step = protocol_dict["last_confirmed_step"]
     last_confirmed_step_tx_id = protocol_dict["last_confirmed_step_tx_id"]
-    transaction_info_service = TransactionInfoService()
 
     if last_confirmed_step is None and (
         hash_result_transaction := transaction_info_service(

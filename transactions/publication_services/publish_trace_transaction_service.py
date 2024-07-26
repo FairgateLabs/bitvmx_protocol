@@ -7,19 +7,14 @@ from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.enums import BitcoinNetwork
 
 if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
-        BroadcastTransactionService,
-    )
-    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
+    from blockchain_query_services.mutinynet_api.services.transaction_info_service import (
         TransactionInfoService,
     )
 elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
     from blockchain_query_services.testnet_api.services import (
-        BroadcastTransactionService,
         TransactionInfoService,
     )
 elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
-    from blockchain_query_services.mainnet_api.services import BroadcastTransactionService
     from blockchain_query_services.mainnet_api.services.transaction_info_service import (
         TransactionInfoService,
     )
@@ -33,6 +28,8 @@ from winternitz_keys_handling.services.generate_witness_from_input_single_word_s
     GenerateWitnessFromInputSingleWordService,
 )
 
+from blockchain_query_services.blockchain_query_services_dependency_injection import broadcast_transaction_service
+
 
 class PublishTraceTransactionService:
 
@@ -44,7 +41,6 @@ class PublishTraceTransactionService:
         self.generate_witness_from_input_nibbles_service = GenerateWitnessFromInputNibblesService(
             prover_private_key
         )
-        self.broadcast_transaction_service = BroadcastTransactionService()
         self.transaction_info_service = TransactionInfoService()
         self.execution_trace_query_service = ExecutionTraceQueryService("prover_files/")
 
@@ -148,6 +144,6 @@ class PublishTraceTransactionService:
             )
         )
 
-        self.broadcast_transaction_service(transaction=trace_tx.serialize())
+        broadcast_transaction_service(transaction=trace_tx.serialize())
         print("Trace transaction: " + trace_tx.get_txid())
         return trace_tx

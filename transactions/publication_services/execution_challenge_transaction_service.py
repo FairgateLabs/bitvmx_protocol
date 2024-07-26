@@ -5,35 +5,17 @@ from bitcoinutils.transactions import TxWitnessInput
 from bitvmx_execution.services.execution_trace_commitment_generation_service import (
     ExecutionTraceCommitmentGenerationService,
 )
-from bitvmx_protocol_library.config import common_protocol_properties
-from bitvmx_protocol_library.enums import BitcoinNetwork
+from blockchain_query_services.blockchain_query_services_dependency_injection import transaction_info_service
 
-if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
-        BroadcastTransactionService,
-    )
-    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
-    from blockchain_query_services.testnet_api.services import (
-        BroadcastTransactionService,
-        TransactionInfoService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
-    from blockchain_query_services.mainnet_api.services import BroadcastTransactionService
-    from blockchain_query_services.mainnet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
 from scripts.services.execution_challenge_script_list_generator_service import (
     ExecutionChallengeScriptListGeneratorService,
 )
 
+from blockchain_query_services.blockchain_query_services_dependency_injection import broadcast_transaction_service
+
 
 class ExecutionChallengeTransactionService:
     def __init__(self):
-        self.transaction_info_service = TransactionInfoService()
-        self.broadcast_transaction_service = BroadcastTransactionService()
         self.execution_challenge_script_generator_service = (
             ExecutionChallengeScriptListGeneratorService()
         )
@@ -55,7 +37,7 @@ class ExecutionChallengeTransactionService:
         amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
         step_fees_satoshis = protocol_dict["step_fees_satoshis"]
 
-        trigger_execution_challenge_published_transaction = self.transaction_info_service(
+        trigger_execution_challenge_published_transaction = transaction_info_service(
             trigger_execution_challenge_transaction.get_txid()
         )
         trigger_execution_challenge_witness = (
@@ -153,6 +135,6 @@ class ExecutionChallengeTransactionService:
             )
         )
 
-        self.broadcast_transaction_service(transaction=execution_challenge_tx.serialize())
+        broadcast_transaction_service(transaction=execution_challenge_tx.serialize())
         print("Execution challenge transaction: " + execution_challenge_tx.get_txid())
         return execution_challenge_tx
