@@ -1,20 +1,20 @@
-from scripts.services.commit_search_choice_script_generator_service import (
+from bitvmx_protocol_library.script_generation.services.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
 )
-from scripts.services.commit_search_hashes_script_generator_service import (
+from bitvmx_protocol_library.script_generation.services.commit_search_hashes_script_generator_service import (
     CommitSearchHashesScriptGeneratorService,
 )
-from scripts.services.execution_challenge_script_list_generator_service import (
+from bitvmx_protocol_library.script_generation.services.execution_challenge_script_list_generator_service import (
     ExecutionChallengeScriptListGeneratorService,
 )
-from scripts.services.execution_trace_script_generator_service import (
+from bitvmx_protocol_library.script_generation.services.execution_trace_script_generator_service import (
     ExecutionTraceScriptGeneratorService,
 )
-from scripts.services.hash_result_script_generator_service import HashResultScriptGeneratorService
-from scripts.services.trigger_generic_challenge_script_generator_service import (
+from bitvmx_protocol_library.script_generation.services.hash_result_script_generator_service import HashResultScriptGeneratorService
+from bitvmx_protocol_library.script_generation.services.trigger_generic_challenge_script_generator_service import (
     TriggerGenericChallengeScriptGeneratorService,
 )
-from scripts.services.trigger_protocol_script_generator_service import (
+from bitvmx_protocol_library.script_generation.services.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
 )
 

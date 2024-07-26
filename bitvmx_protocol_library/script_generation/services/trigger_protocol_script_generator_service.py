@@ -1,6 +1,6 @@
 from bitcoinutils.keys import PublicKey
 
-from scripts.bitcoin_script import BitcoinScript
+from bitvmx_protocol_library.script_generation.entities.bitcoin_script import BitcoinScript
 
 
 class TriggerProtocolScriptGeneratorService:

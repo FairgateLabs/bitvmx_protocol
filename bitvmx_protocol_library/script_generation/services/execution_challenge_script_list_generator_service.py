@@ -6,8 +6,8 @@ from bitcoinutils.keys import PublicKey
 from bitvmx_execution.services.execution_trace_commitment_generation_service import (
     ExecutionTraceCommitmentGenerationService,
 )
-from scripts.bitcoin_script import BitcoinScript
-from scripts.bitvmx_execution_script_list import BitVMXExecutionScriptList
+from bitvmx_protocol_library.script_generation.entities.bitcoin_script import BitcoinScript
+from bitvmx_protocol_library.script_generation.entities.bitvmx_execution_script_list import BitVMXExecutionScriptList
 from winternitz_keys_handling.scripts.verify_digit_signature_nibbles_service import (
     VerifyDigitSignatureNibblesService,
 )

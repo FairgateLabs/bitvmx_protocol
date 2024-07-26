@@ -7,10 +7,10 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
     broadcast_transaction_service,
     transaction_info_service,
 )
-from scripts.services.commit_search_choice_script_generator_service import (
+from bitvmx_protocol_library.script_generation.services.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
 )
-from scripts.services.commit_search_hashes_script_generator_service import (
+from bitvmx_protocol_library.script_generation.services.commit_search_hashes_script_generator_service import (
     CommitSearchHashesScriptGeneratorService,
 )
 from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (

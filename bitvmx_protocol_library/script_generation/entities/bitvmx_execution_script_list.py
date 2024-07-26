@@ -12,7 +12,7 @@ from bitcoinutils.utils import (
     tweak_taproot_pubkey,
 )
 
-from scripts.bitcoin_script import BitcoinScript
+from bitvmx_protocol_library.script_generation.entities.bitcoin_script import BitcoinScript
 from winternitz_keys_handling.scripts.verify_digit_signature_nibbles_service import (
     VerifyDigitSignatureNibblesService,
 )
