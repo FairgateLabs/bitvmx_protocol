@@ -3,7 +3,9 @@ from bitcoinutils.transactions import Transaction, TxInput, TxOutput
 
 from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.enums import BitcoinNetwork
-from bitvmx_protocol_library.script_generation.scripts_dict_generator_service import ScriptsDictGeneratorService
+from bitvmx_protocol_library.script_generation.services.scripts_dict_generator_service import (
+    ScriptsDictGeneratorService,
+)
 
 
 class TransactionGeneratorFromPublicKeysService:

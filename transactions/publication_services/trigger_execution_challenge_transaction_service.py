@@ -2,11 +2,11 @@ from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
+from bitvmx_protocol_library.script_generation.services.script_generation.trigger_generic_challenge_script_generator_service import (
+    TriggerGenericChallengeScriptGeneratorService,
+)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
-)
-from bitvmx_protocol_library.script_generation.services.trigger_generic_challenge_script_generator_service import (
-    TriggerGenericChallengeScriptGeneratorService,
 )
 from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,

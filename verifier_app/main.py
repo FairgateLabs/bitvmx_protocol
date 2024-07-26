@@ -13,11 +13,13 @@ from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
 from bitvmx_protocol_library.enums import BitcoinNetwork
+from bitvmx_protocol_library.script_generation.services.scripts_dict_generator_service import (
+    ScriptsDictGeneratorService,
+)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     transaction_info_service,
 )
 from prover_app.config import protocol_properties
-from bitvmx_protocol_library.script_generation.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionVerifierStepType
 from transactions.generate_signatures_service import GenerateSignaturesService
 from transactions.publication_services.publish_choice_search_transaction_service import (

@@ -4,6 +4,8 @@ from typing import List, Optional, Union
 from bitcoinutils.keys import PublicKey
 
 from bitvmx_protocol_library.script_generation.entities.bitcoin_script import BitcoinScript
+from bitvmx_protocol_library.script_generation.services.split_list_for_merkle_tree_service import \
+    SplitListForMerkleTreeService
 
 
 class BitcoinScriptList:
@@ -35,18 +37,8 @@ class BitcoinScriptList:
         if len(self.script_list) == 1:
             return [self.script_list]
         else:
-
-            def split_list(input_list):
-                if len(input_list) == 1:
-                    return input_list[0]
-                else:
-                    middle_point = int(2 ** math.ceil(math.log2(len(input_list))) / 2)
-                    return [
-                        split_list(input_list[:middle_point]),
-                        split_list(input_list[middle_point:]),
-                    ]
-
-            return split_list(self.script_list)
+            split_list_for_merkle_tree_service = SplitListForMerkleTreeService()
+            return split_list_for_merkle_tree_service(self.script_list)
 
     def get_taproot_address(self, public_key: PublicKey):
         return public_key.get_taproot_address(self.to_scripts_tree())

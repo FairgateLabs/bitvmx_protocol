@@ -6,11 +6,11 @@ from bitvmx_execution.services.execution_trace_generation_service import (
     ExecutionTraceGenerationService,
 )
 from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
+from bitvmx_protocol_library.script_generation.services.script_generation.trigger_protocol_script_generator_service import (
+    TriggerProtocolScriptGeneratorService,
+)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
-)
-from bitvmx_protocol_library.script_generation.services.trigger_protocol_script_generator_service import (
-    TriggerProtocolScriptGeneratorService,
 )
 
 

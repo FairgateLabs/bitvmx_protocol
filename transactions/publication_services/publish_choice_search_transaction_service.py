@@ -3,12 +3,12 @@ from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
 from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
+from bitvmx_protocol_library.script_generation.services.script_generation.commit_search_choice_script_generator_service import (
+    CommitSearchChoiceScriptGeneratorService,
+)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
     transaction_info_service,
-)
-from bitvmx_protocol_library.script_generation.services.commit_search_choice_script_generator_service import (
-    CommitSearchChoiceScriptGeneratorService,
 )
 from winternitz_keys_handling.services.generate_witness_from_input_single_word_service import (
     GenerateWitnessFromInputSingleWordService,

@@ -18,6 +18,9 @@ from pydantic import BaseModel
 
 from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.enums import BitcoinNetwork
+from bitvmx_protocol_library.script_generation.services.scripts_dict_generator_service import (
+    ScriptsDictGeneratorService,
+)
 from blockchain_query_services.common.transaction_published_service import (
     TransactionPublishedService,
 )
@@ -26,7 +29,6 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 )
 from blockchain_query_services.services.mutinynet_api.faucet_service import FaucetService
 from prover_app.config import protocol_properties
-from bitvmx_protocol_library.script_generation.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionProverStepType
 from transactions.generate_signatures_service import GenerateSignaturesService
 from transactions.publication_services.execution_challenge_transaction_service import (

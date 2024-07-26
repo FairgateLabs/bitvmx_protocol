@@ -12,85 +12,14 @@ from bitcoinutils.utils import (
     tweak_taproot_pubkey,
 )
 
-from bitvmx_protocol_library.script_generation.entities.bitcoin_script import BitcoinScript
-from winternitz_keys_handling.scripts.verify_digit_signature_nibbles_service import (
-    VerifyDigitSignatureNibblesService,
+from bitvmx_protocol_library.script_generation.services.script_generation.execution_challenge_script_from_key_generator_service import (
+    ExecutionChallengeScriptFromKeyGeneratorService,
 )
+from bitvmx_protocol_library.script_generation.services.split_list_for_merkle_tree_service import \
+    SplitListForMerkleTreeService
 
 
-def _generate_script_from_key(
-    key,
-    signature_public_keys,
-    public_keys,
-    trace_words_lengths,
-    bits_per_digit_checksum,
-    instruction_dict,
-    trace_to_script_mapping,
-):
-    script = BitcoinScript()
-    trace_to_script_mapping = reversed(trace_to_script_mapping)
-    max_value = 12
-    complementary_trace_to_script_mapping = list(
-        map(lambda index: max_value - index, trace_to_script_mapping)
-    )
-
-    verify_input_nibble_message_from_public_keys = VerifyDigitSignatureNibblesService()
-
-    for i in complementary_trace_to_script_mapping:
-        verify_input_nibble_message_from_public_keys(
-            script,
-            public_keys[i],
-            trace_words_lengths[i],
-            bits_per_digit_checksum,
-            to_alt_stack=True,
-        )
-
-    total_length = 0
-    current_micro = key[-2:]
-    current_pc_address = key[:-2]
-    for i in reversed(complementary_trace_to_script_mapping):
-        current_length = trace_words_lengths[i]
-        for j in range(current_length):
-            script.append("OP_FROMALTSTACK")
-
-            # MICRO CHECK
-            if i == 5:
-                script.extend(["OP_DUP", int(current_micro, 16), "OP_NUMEQUALVERIFY"])
-
-            # PC ADDRESS CHECK
-            if i == 6:
-                script.extend(["OP_DUP", int(current_pc_address[j], 16), "OP_NUMEQUALVERIFY"])
-
-        if current_length == 2:
-            script.extend([1, "OP_ROLL", "OP_DROP"])
-            total_length += 1
-        else:
-            total_length += current_length
-
-    execution_script = BitcoinScript.from_raw(scriptrawhex=instruction_dict[key], has_segwit=True)
-
-    script = script + execution_script
-
-    script.extend(
-        [PublicKey(hex_str=signature_public_keys[-1]).to_x_only_hex(), "OP_CHECKSIGVERIFY"]
-    )
-
-    script.append(1)
-    return script
-
-
-def split_list(input_list):
-    if len(input_list) == 1:
-        return input_list[0]
-    else:
-        middle_point = int(2 ** math.ceil(math.log2(len(input_list))) / 2)
-        return [
-            split_list(input_list[:middle_point]),
-            split_list(input_list[middle_point:]),
-        ]
-
-
-def get_tag_hashed_merkle_root(
+def _get_tag_hashed_merkle_root(
     splitted_key_list,
     signature_public_keys,
     public_keys,
@@ -104,9 +33,11 @@ def get_tag_hashed_merkle_root(
 
     if not splitted_key_list:
         return b""
-
+    execution_challenge_script_from_key_generator_service = (
+        ExecutionChallengeScriptFromKeyGeneratorService()
+    )
     if not isinstance(splitted_key_list, list):
-        current_script = _generate_script_from_key(
+        current_script = execution_challenge_script_from_key_generator_service(
             splitted_key_list,
             signature_public_keys,
             public_keys,
@@ -125,7 +56,7 @@ def get_tag_hashed_merkle_root(
                 manager = Manager()
                 new_shared_list = manager.list([None])
                 process = Process(
-                    target=get_tag_hashed_merkle_root,
+                    target=_get_tag_hashed_merkle_root,
                     args=(
                         splitted_key_list[0],
                         signature_public_keys,
@@ -142,7 +73,7 @@ def get_tag_hashed_merkle_root(
                 process.join()
                 result = new_shared_list[0]
             else:
-                result = get_tag_hashed_merkle_root(
+                result = _get_tag_hashed_merkle_root(
                     splitted_key_list[0],
                     signature_public_keys,
                     public_keys,
@@ -162,7 +93,7 @@ def get_tag_hashed_merkle_root(
                 new_left_shared_list = manager.list([None])
                 new_right_shared_list = manager.list([None])
                 left_process = Process(
-                    target=get_tag_hashed_merkle_root,
+                    target=_get_tag_hashed_merkle_root,
                     args=(
                         splitted_key_list[0],
                         signature_public_keys,
@@ -176,7 +107,7 @@ def get_tag_hashed_merkle_root(
                     ),
                 )
                 right_process = Process(
-                    target=get_tag_hashed_merkle_root,
+                    target=_get_tag_hashed_merkle_root,
                     args=(
                         splitted_key_list[1],
                         signature_public_keys,
@@ -197,7 +128,7 @@ def get_tag_hashed_merkle_root(
                 right_result = new_right_shared_list[0]
                 result = tapbranch_tagged_hash(left_result, right_result)
             else:
-                left = get_tag_hashed_merkle_root(
+                left = _get_tag_hashed_merkle_root(
                     splitted_key_list[0],
                     signature_public_keys,
                     public_keys,
@@ -207,7 +138,7 @@ def get_tag_hashed_merkle_root(
                     trace_to_script_mapping,
                     depth + 1,
                 )
-                right = get_tag_hashed_merkle_root(
+                right = _get_tag_hashed_merkle_root(
                     splitted_key_list[1],
                     signature_public_keys,
                     public_keys,
@@ -227,13 +158,162 @@ def get_tag_hashed_merkle_root(
             raise ValueError("Invalid Merkle branch: List cannot have more than 2 branches.")
 
 
-def get_tree_depth(splitted_key_list):
-    depth = 1
-    current_list = splitted_key_list
-    while isinstance(current_list[0], list):
-        depth += 1
-        current_list = current_list[0]
-    return depth
+def _traverse_level(
+    index,
+    level,
+    already_traversed,
+    depth,
+    signature_public_keys,
+    public_keys,
+    trace_words_lengths,
+    bits_per_digit_checksum,
+    instruction_dict,
+    trace_to_script_mapping,
+    shared_list=None,
+):
+    if isinstance(level, list):
+        if len(level) == 1:
+            result = _traverse_level(
+                index,
+                level[0],
+                already_traversed,
+                depth,
+                signature_public_keys,
+                public_keys,
+                trace_words_lengths,
+                bits_per_digit_checksum,
+                instruction_dict,
+                trace_to_script_mapping,
+            )
+            if shared_list is None:
+                return result
+            else:
+                shared_list[0] = result
+                return
+        if len(level) == 2:
+            current_low_values_per_branch = int(
+                (2 ** BitVMXExecutionScriptList.get_tree_depth([level[0]])) / 2
+            )
+            if depth < 4:
+                manager = Manager()
+                new_left_shared_list = manager.list([None])
+                new_right_shared_list = manager.list([None])
+                a_process = Process(
+                    target=_traverse_level,
+                    args=(
+                        index,
+                        level[0],
+                        already_traversed,
+                        depth + 1,
+                        signature_public_keys,
+                        public_keys,
+                        trace_words_lengths,
+                        bits_per_digit_checksum,
+                        instruction_dict,
+                        trace_to_script_mapping,
+                        new_left_shared_list,
+                    ),
+                )
+                b_process = Process(
+                    target=_traverse_level,
+                    args=(
+                        index,
+                        level[1],
+                        already_traversed + current_low_values_per_branch,
+                        depth + 1,
+                        signature_public_keys,
+                        public_keys,
+                        trace_words_lengths,
+                        bits_per_digit_checksum,
+                        instruction_dict,
+                        trace_to_script_mapping,
+                        new_right_shared_list,
+                    ),
+                )
+                a_process.start()
+                b_process.start()
+                a_process.join()
+                b_process.join()
+                a = new_left_shared_list[0]
+                b = new_right_shared_list[0]
+            else:
+                a = _traverse_level(
+                    index,
+                    level[0],
+                    already_traversed,
+                    depth + 1,
+                    signature_public_keys,
+                    public_keys,
+                    trace_words_lengths,
+                    bits_per_digit_checksum,
+                    instruction_dict,
+                    trace_to_script_mapping,
+                )
+                b = _traverse_level(
+                    index,
+                    level[1],
+                    already_traversed + current_low_values_per_branch,
+                    depth + 1,
+                    signature_public_keys,
+                    public_keys,
+                    trace_words_lengths,
+                    bits_per_digit_checksum,
+                    instruction_dict,
+                    trace_to_script_mapping,
+                )
+
+            if (already_traversed <= index) and (
+                index < already_traversed + current_low_values_per_branch
+            ):
+                result = a + b
+                if shared_list is None:
+                    return result
+                else:
+                    shared_list[0] = result
+                    return
+            if (already_traversed + current_low_values_per_branch <= index) and (
+                index < (already_traversed + 2 * current_low_values_per_branch)
+            ):
+                result = b + a
+                if shared_list is None:
+                    return result
+                else:
+                    shared_list[0] = result
+                    return
+            result = tapbranch_tagged_hash(a, b)
+            if shared_list is None:
+                return result
+            else:
+                shared_list[0] = result
+                return
+        raise ValueError("Invalid Merkle branch: List cannot have more than 2 branches.")
+    else:
+        if already_traversed == index:
+            result = b""
+            if shared_list is None:
+                return result
+            else:
+                shared_list[0] = result
+                return
+        execution_challenge_script_from_key_generator_service = (
+            ExecutionChallengeScriptFromKeyGeneratorService()
+        )
+        result = tapleaf_tagged_hash(
+            execution_challenge_script_from_key_generator_service(
+                level,
+                signature_public_keys,
+                public_keys,
+                trace_words_lengths,
+                bits_per_digit_checksum,
+                instruction_dict,
+                trace_to_script_mapping,
+            )
+        )
+        if shared_list is None:
+            return result
+        else:
+            shared_list[0] = result
+            return
 
 
 class BitVMXExecutionScriptList:
@@ -255,6 +335,15 @@ class BitVMXExecutionScriptList:
         self.taproot_address = None
 
     @staticmethod
+    def get_tree_depth(splitted_key_list):
+        depth = 1
+        current_list = splitted_key_list
+        while isinstance(current_list[0], list):
+            depth += 1
+            current_list = current_list[0]
+        return depth
+
+    @staticmethod
     def trace_to_script_mapping():
         return [9, 10, 11, 12, 0, 1, 3, 4, 6, 7, 8]
         # return [9, 10, 11, 12, 3, 4, 0, 1, 6, 7, 8]
@@ -266,10 +355,11 @@ class BitVMXExecutionScriptList:
         if len(self.key_list) == 0:
             tweak = tagged_hash(key_x, "TapTweak")
         else:
-            split_key_list = split_list(self.key_list)
+            split_list_for_merkle_tree_service = SplitListForMerkleTreeService()
+            split_key_list = split_list_for_merkle_tree_service(self.key_list)
             print("Call parallel hashed merkle root")
             init_time = time()
-            merkle_root = get_tag_hashed_merkle_root(
+            merkle_root = _get_tag_hashed_merkle_root(
                 split_key_list,
                 self.signature_public_keys,
                 self.public_keys,
@@ -306,156 +396,12 @@ class BitVMXExecutionScriptList:
         leaf_version = bytes([(1 if is_odd else 0) + LEAF_VERSION_TAPSCRIPT])
         pub_key = bytes.fromhex(public_key.to_x_only_hex())
 
-        def traverse_level(
-            level,
-            already_traversed,
-            depth,
-            signature_public_keys,
-            public_keys,
-            trace_words_lengths,
-            bits_per_digit_checksum,
-            instruction_dict,
-            trace_to_script_mapping,
-            shared_list=None,
-        ):
-            if isinstance(level, list):
-                if len(level) == 1:
-                    result = traverse_level(
-                        level[0],
-                        already_traversed,
-                        depth,
-                        signature_public_keys,
-                        public_keys,
-                        trace_words_lengths,
-                        bits_per_digit_checksum,
-                        instruction_dict,
-                        trace_to_script_mapping,
-                    )
-                    if shared_list is None:
-                        return result
-                    else:
-                        shared_list[0] = result
-                        return
-                if len(level) == 2:
-                    current_low_values_per_branch = int((2 ** get_tree_depth([level[0]])) / 2)
-                    if depth < 4:
-                        manager = Manager()
-                        new_left_shared_list = manager.list([None])
-                        new_right_shared_list = manager.list([None])
-                        a_process = Process(
-                            target=traverse_level,
-                            args=(
-                                level[0],
-                                already_traversed,
-                                depth + 1,
-                                signature_public_keys,
-                                public_keys,
-                                trace_words_lengths,
-                                bits_per_digit_checksum,
-                                instruction_dict,
-                                trace_to_script_mapping,
-                                new_left_shared_list,
-                            ),
-                        )
-                        b_process = Process(
-                            target=traverse_level,
-                            args=(
-                                level[1],
-                                already_traversed + current_low_values_per_branch,
-                                depth + 1,
-                                signature_public_keys,
-                                public_keys,
-                                trace_words_lengths,
-                                bits_per_digit_checksum,
-                                instruction_dict,
-                                trace_to_script_mapping,
-                                new_right_shared_list,
-                            ),
-                        )
-                        a_process.start()
-                        b_process.start()
-                        a_process.join()
-                        b_process.join()
-                        a = new_left_shared_list[0]
-                        b = new_right_shared_list[0]
-                    else:
-                        a = traverse_level(
-                            level[0],
-                            already_traversed,
-                            depth + 1,
-                            signature_public_keys,
-                            public_keys,
-                            trace_words_lengths,
-                            bits_per_digit_checksum,
-                            instruction_dict,
-                            trace_to_script_mapping,
-                        )
-                        b = traverse_level(
-                            level[1],
-                            already_traversed + current_low_values_per_branch,
-                            depth + 1,
-                            signature_public_keys,
-                            public_keys,
-                            trace_words_lengths,
-                            bits_per_digit_checksum,
-                            instruction_dict,
-                            trace_to_script_mapping,
-                        )
-
-                    if (already_traversed <= index) and (
-                        index < already_traversed + current_low_values_per_branch
-                    ):
-                        result = a + b
-                        if shared_list is None:
-                            return result
-                        else:
-                            shared_list[0] = result
-                            return
-                    if (already_traversed + current_low_values_per_branch <= index) and (
-                        index < (already_traversed + 2 * current_low_values_per_branch)
-                    ):
-                        result = b + a
-                        if shared_list is None:
-                            return result
-                        else:
-                            shared_list[0] = result
-                            return
-                    result = tapbranch_tagged_hash(a, b)
-                    if shared_list is None:
-                        return result
-                    else:
-                        shared_list[0] = result
-                        return
-                raise ValueError("Invalid Merkle branch: List cannot have more than 2 branches.")
-            else:
-                if already_traversed == index:
-                    result = b""
-                    if shared_list is None:
-                        return result
-                    else:
-                        shared_list[0] = result
-                        return
-                result = tapleaf_tagged_hash(
-                    _generate_script_from_key(
-                        level,
-                        signature_public_keys,
-                        public_keys,
-                        trace_words_lengths,
-                        bits_per_digit_checksum,
-                        instruction_dict,
-                        trace_to_script_mapping,
-                    )
-                )
-                if shared_list is None:
-                    return result
-                else:
-                    shared_list[0] = result
-                    return
-
         init_time = time()
+        split_list_for_merkle_tree_service = SplitListForMerkleTreeService()
         print("Start control block computation")
-        merkle_path = traverse_level(
-            split_list(self.key_list),
+        merkle_path = _traverse_level(
+            index,
+            split_list_for_merkle_tree_service(self.key_list),
             0,
             0,
             self.signature_public_keys,
@@ -471,7 +417,10 @@ class BitVMXExecutionScriptList:
         return control_block_bytes.hex()
 
     def __getitem__(self, index):
-        return _generate_script_from_key(
+        execution_challenge_script_from_key_generator_service = (
+            ExecutionChallengeScriptFromKeyGeneratorService()
+        )
+        return execution_challenge_script_from_key_generator_service(
             self.key_list[index],
             self.signature_public_keys,
             self.public_keys,
