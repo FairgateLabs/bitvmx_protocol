@@ -1,13 +1,29 @@
 from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
 from bitcoinutils.keys import PrivateKey, PublicKey
 from bitcoinutils.transactions import TxWitnessInput
-from bitcoinutils.utils import ControlBlock
 
 from bitvmx_execution.services.execution_trace_commitment_generation_service import (
     ExecutionTraceCommitmentGenerationService,
 )
-from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
-from mutinyet_api.services.transaction_info_service import TransactionInfoService
+from prover_app.config import BitcoinNetwork, common_protocol_properties
+
+if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+    from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
+        BroadcastTransactionService,
+    )
+    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
+        TransactionInfoService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
+    from blockchain_query_services.testnet_api.services import (
+        BroadcastTransactionService,
+        TransactionInfoService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
+    from blockchain_query_services.mainnet_api.services import BroadcastTransactionService
+    from blockchain_query_services.mainnet_api.services.transaction_info_service import (
+        TransactionInfoService,
+    )
 from scripts.services.execution_challenge_script_list_generator_service import (
     ExecutionChallengeScriptListGeneratorService,
 )
@@ -22,7 +38,6 @@ class ExecutionChallengeTransactionService:
         )
         self.execution_trace_commitment_generation_service = (
             ExecutionTraceCommitmentGenerationService(
-                "./execution_files/instruction_commitment.txt",
                 "./execution_files/instruction_mapping.txt",
             )
         )
@@ -82,11 +97,15 @@ class ExecutionChallengeTransactionService:
             trace_words_lengths,
             amount_of_bits_per_digit_checksum,
         )
-        execution_challenge_script_tree = execution_challenge_script_list.to_scripts_tree()
 
-        execution_challenge_script_address = destroyed_public_key.get_taproot_address(
-            execution_challenge_script_tree
-        )
+        if "execution_challenge_address" in protocol_dict:
+            execution_challenge_script_address = protocol_dict["execution_challenge_address"]
+        else:
+            execution_challenge_script_address = (
+                execution_challenge_script_list.get_taproot_address(destroyed_public_key)
+            )
+
+            protocol_dict["execution_challenge_address"] = execution_challenge_script_address
 
         key_list, instruction_dict = self.execution_trace_commitment_generation_service()
         pc_read_addr = real_values[6]
@@ -95,11 +114,19 @@ class ExecutionChallengeTransactionService:
         print("Instruction index: " + str(instruction_index))
         current_script_index = key_list.index(instruction_index)
 
-        execution_challenge_control_block = ControlBlock(
-            destroyed_public_key,
-            scripts=execution_challenge_script_tree,
-            index=current_script_index,
-            is_odd=execution_challenge_script_address.is_odd(),
+        # execution_challenge_control_block = ControlBlock(
+        #     destroyed_public_key,
+        #     scripts=execution_challenge_script_tree,
+        #     index=current_script_index,
+        #     is_odd=execution_challenge_script_address.is_odd(),
+        # )
+        # execution_challenge_control_block_hex = execution_challenge_control_block.to_hex()
+        execution_challenge_control_block_hex = (
+            execution_challenge_script_list.get_control_block_hex(
+                destroyed_public_key,
+                current_script_index,
+                execution_challenge_script_address.is_odd(),
+            )
         )
 
         private_key = PrivateKey(b=bytes.fromhex(protocol_dict["prover_secret_key"]))
@@ -120,7 +147,7 @@ class ExecutionChallengeTransactionService:
                 + verifier_keys_witness
                 + [
                     execution_challenge_script_list[current_script_index].to_hex(),
-                    execution_challenge_control_block.to_hex(),
+                    execution_challenge_control_block_hex,
                 ]
             )
         )

@@ -1,5 +1,16 @@
 from bitvmx_execution.bo.execution_trace_bo import ExecutionTraceBO
-from mutinyet_api.services.transaction_info_service import TransactionInfoService
+from prover_app.config import BitcoinNetwork, common_protocol_properties
+
+if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
+        TransactionInfoService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
+    from blockchain_query_services.testnet_api.services import TransactionInfoService
+elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
+    from blockchain_query_services.mainnet_api.services.transaction_info_service import (
+        TransactionInfoService,
+    )
 from transactions.verifier_challenge_detection.verifier_execution_challenge_detection_service import (
     VerifierExecutionChallengeDetectionService,
 )

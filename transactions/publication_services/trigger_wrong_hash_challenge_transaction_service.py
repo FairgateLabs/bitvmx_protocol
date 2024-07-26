@@ -1,5 +1,22 @@
-from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
-from mutinyet_api.services.transaction_info_service import TransactionInfoService
+from prover_app.config import BitcoinNetwork, common_protocol_properties
+
+if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+    from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
+        BroadcastTransactionService,
+    )
+    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
+        TransactionInfoService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
+    from blockchain_query_services.testnet_api.services import (
+        BroadcastTransactionService,
+        TransactionInfoService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
+    from blockchain_query_services.mainnet_api.services import BroadcastTransactionService
+    from blockchain_query_services.mainnet_api.services.transaction_info_service import (
+        TransactionInfoService,
+    )
 from scripts.services.trigger_generic_challenge_script_generator_service import (
     TriggerGenericChallengeScriptGeneratorService,
 )

@@ -1,6 +1,8 @@
 import math
 from typing import List, Optional, Union
 
+from bitcoinutils.keys import PublicKey
+
 from scripts.bitcoin_script import BitcoinScript
 
 
@@ -45,3 +47,6 @@ class BitcoinScriptList:
                     ]
 
             return split_list(self.script_list)
+
+    def get_taproot_address(self, public_key: PublicKey):
+        return public_key.get_taproot_address(self.to_scripts_tree())

@@ -19,7 +19,6 @@ class VerifySignatureService:
             script=script,
             sighash=TAPROOT_SIGHASH_ALL,
         )
-
         assert schnorr_verify(
             tx_digest,
             bytes.fromhex(PublicKey(public_key_hex).to_x_only_hex()),

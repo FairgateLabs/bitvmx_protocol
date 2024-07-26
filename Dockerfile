@@ -1,5 +1,15 @@
 FROM tiangolo/uvicorn-gunicorn:python3.10 AS bitvmx-base
 
+RUN apt-get update
+
+RUN apt-get install -y \
+    build-essential \
+    curl
+
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+
 RUN pip install --upgrade pip
 
 COPY requirements/base.txt /tmp/requirements/
@@ -16,6 +26,12 @@ RUN mkdir /bitvmx-backend
 WORKDIR /bitvmx-backend
 
 COPY . ./
+
+WORKDIR /bitvmx-backend/BitVMX-CPU-Internal
+
+RUN cargo build
+
+WORKDIR /bitvmx-backend
 
 FROM bitvmx-base as prover-backend
 

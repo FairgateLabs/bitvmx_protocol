@@ -1,4 +1,6 @@
-from mutinyet_api.services.transaction_info_service import TransactionInfoService
+from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
+    TransactionInfoService,
+)
 
 
 class TransactionPublishedService:

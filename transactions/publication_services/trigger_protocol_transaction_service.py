@@ -5,7 +5,17 @@ from bitcoinutils.utils import ControlBlock
 from bitvmx_execution.services.execution_trace_generation_service import (
     ExecutionTraceGenerationService,
 )
-from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
+from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
+from prover_app.config import BitcoinNetwork, common_protocol_properties
+
+if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+    from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
+        BroadcastTransactionService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
+    from blockchain_query_services.testnet_api.services import BroadcastTransactionService
+elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
+    from blockchain_query_services.mainnet_api.services import BroadcastTransactionService
 from scripts.services.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
 )
@@ -16,6 +26,7 @@ class TriggerProtocolTransactionService:
     def __init__(self):
         self.broadcast_transaction_service = BroadcastTransactionService()
         self.execution_trace_generation_service = ExecutionTraceGenerationService("verifier_files/")
+        self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
 
     def __call__(self, protocol_dict, hash_result_transaction):
         hash_result_witness = hash_result_transaction.inputs[0].witness
@@ -31,10 +42,13 @@ class TriggerProtocolTransactionService:
             ]
         )
 
-        execution_result = self.execution_trace_generation_service(protocol_dict)
+        self.execution_trace_generation_service(protocol_dict)
+        last_step_index = protocol_dict["amount_of_trace_steps"] - 1
+        last_step_trace = self.execution_trace_query_service(protocol_dict, last_step_index)
 
-        if not execution_result[-1]["step_hash"] == published_result_hash:
-            protocol_dict["search_hashes"][len(execution_result) - 1] = published_result_hash
+        if not last_step_trace["step_hash"] == published_result_hash:
+            # protocol_dict["search_hashes"][len(execution_result) - 1] = published_result_hash
+            protocol_dict["search_hashes"][last_step_index] = published_result_hash
             destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
             trigger_protocol_tx = protocol_dict["trigger_protocol_tx"]
             trigger_protocol_signatures = protocol_dict["trigger_protocol_signatures"]

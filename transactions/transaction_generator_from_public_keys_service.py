@@ -1,6 +1,7 @@
 from bitcoinutils.keys import P2wpkhAddress, PublicKey
 from bitcoinutils.transactions import Transaction, TxInput, TxOutput
 
+from prover_app.config import BitcoinNetwork, common_protocol_properties
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 
 
@@ -140,9 +141,14 @@ class TransactionGeneratorFromPublicKeysService:
         #  Here we should put all the challenges
 
         ## Execution challenge
-        execution_challenge_address = destroyed_public_key.get_taproot_address(
-            scripts_dict["execution_challenge_script_list"].to_scripts_tree()
-        )
+        if "execution_challenge_address" in protocol_dict:
+            execution_challenge_address = protocol_dict["execution_challenge_address"]
+        else:
+            execution_challenge_address = scripts_dict[
+                "execution_challenge_script_list"
+            ].get_taproot_address(destroyed_public_key)
+
+            protocol_dict["execution_challenge_address"] = execution_challenge_address
 
         trigger_execution_challenge_txin = TxInput(trace_tx.get_txid(), 0)
         trigger_execution_challenge_txout = TxOutput(
@@ -156,8 +162,14 @@ class TransactionGeneratorFromPublicKeysService:
 
         execution_challenge_txin = TxInput(trigger_execution_challenge_tx.get_txid(), 0)
 
-        faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
-        execution_challenge_output_address = P2wpkhAddress.from_address(address=faucet_address)
+        if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+            faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
+            execution_challenge_output_address = P2wpkhAddress.from_address(address=faucet_address)
+        else:
+            execution_challenge_output_address = P2wpkhAddress.from_address(
+                address=protocol_dict["controlled_prover_address"]
+            )
+
         execution_challenge_txout = TxOutput(
             challenge_output_amount,
             execution_challenge_output_address.to_script_pub_key(),

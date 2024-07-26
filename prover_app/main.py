@@ -16,10 +16,7 @@ from bitcoinutils.transactions import TxWitnessInput
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
-from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
-from mutinyet_api.services.faucet_service import FaucetService
-from mutinyet_api.services.transaction_published_service import TransactionPublishedService
-from prover_app.config import protocol_properties
+from prover_app.config import BitcoinNetwork, common_protocol_properties, protocol_properties
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionProverStepType
 from transactions.generate_signatures_service import GenerateSignaturesService
@@ -44,6 +41,30 @@ from transactions.transaction_generator_from_public_keys_service import (
 from winternitz_keys_handling.services.generate_prover_public_keys_service import (
     GenerateProverPublicKeysService,
 )
+
+if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+    from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
+        BroadcastTransactionService,
+    )
+    from blockchain_query_services.mutinyet_api.services.faucet_service import FaucetService
+    from blockchain_query_services.mutinyet_api.services.transaction_published_service import (
+        TransactionPublishedService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
+    from blockchain_query_services.testnet_api.services.broadcast_transaction_service import (
+        BroadcastTransactionService,
+    )
+    from blockchain_query_services.testnet_api.services.transaction_published_service import (
+        TransactionPublishedService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
+    from blockchain_query_services.mainnet_api.services.broadcast_transaction_service import (
+        BroadcastTransactionService,
+    )
+    from blockchain_query_services.mainnet_api.services.transaction_published_service import (
+        TransactionPublishedService,
+    )
+
 
 app = FastAPI(
     title="Prover service",
@@ -91,7 +112,10 @@ class CreateSetupBody(BaseModel):
 
 @app.post("/create_setup")
 async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str, str]:
-    setup("testnet")
+    if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+        setup("testnet")
+    else:
+        setup(common_protocol_properties.network.value)
 
     setup_uuid = str(uuid.uuid4())
     # Variable parameters
@@ -127,20 +151,33 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     for verifier in verifier_list:
         url = f"{verifier}/init_setup"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
-        data = {"setup_uuid": setup_uuid}
+        data = {"setup_uuid": setup_uuid, "network": common_protocol_properties.network.value}
 
         response = requests.post(url, headers=headers, json=data)
         response_json = response.json()
         public_keys.append(response_json["public_key"])
 
     # Generate prover private key
-    prover_private_key = PrivateKey(b=secrets.token_bytes(32))
+    if protocol_properties.prover_private_key is None:
+        controlled_prover_private_key = PrivateKey(b=secrets.token_bytes(32))
+    else:
+        controlled_prover_private_key = PrivateKey(
+            b=bytes.fromhex(protocol_properties.prover_private_key)
+        )
 
-    prover_public_key = prover_private_key.get_public_key()
-    public_keys.append(prover_public_key.to_hex())
+    controlled_prover_public_key = controlled_prover_private_key.get_public_key()
+    controlled_prover_address = controlled_prover_public_key.get_segwit_address().to_string()
+    # public_keys.append(prover_public_key.to_hex())
+
+    protocol_dict["controlled_prover_secret_key"] = controlled_prover_private_key.to_bytes().hex()
+    protocol_dict["controlled_prover_public_key"] = controlled_prover_public_key.to_hex()
+    protocol_dict["controlled_prover_address"] = controlled_prover_address
 
     destroyed_public_key = None
     seed_destroyed_public_key_hex = ""
+    prover_private_key = PrivateKey(b=secrets.token_bytes(32))
+    prover_public_key = prover_private_key.get_public_key()
+    public_keys.append(prover_public_key.to_hex())
     while destroyed_public_key is None:
         try:
             seed_destroyed_public_key_hex = "".join(public_keys)
@@ -159,28 +196,30 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     protocol_dict["prover_secret_key"] = prover_private_key.to_bytes().hex()
     protocol_dict["prover_public_key"] = prover_public_key.to_hex()
     protocol_dict["public_keys"] = public_keys
+    protocol_dict["network"] = common_protocol_properties.network
 
-    prover_private_key = PrivateKey(b=bytes.fromhex(prover_private_key.to_bytes().hex()))
+    # prover_private_key = PrivateKey(b=bytes.fromhex(prover_private_key.to_bytes().hex()))
 
     generate_prover_public_keys_service = GenerateProverPublicKeysService(prover_private_key)
     generate_prover_public_keys_service(protocol_dict)
 
-    if amount_of_wrong_step_search_iterations < 4:
-        initial_amount_satoshis = 100000
-    elif amount_of_wrong_step_search_iterations > 3:
-        initial_amount_satoshis = 1000000
-    step_fees_satoshis = 10000
+    initial_amount_satoshis = common_protocol_properties.initial_amount_satoshis
+    step_fees_satoshis = common_protocol_properties.step_fees_satoshis
 
-    faucet_service = FaucetService()
-    faucet_tx_id, faucet_index = faucet_service(
-        amount=initial_amount_satoshis + step_fees_satoshis,
-        destination_address=prover_public_key.get_segwit_address().to_string(),
-    )
+    if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+        faucet_service = FaucetService()
+        funding_tx_id, funding_index = faucet_service(
+            amount=initial_amount_satoshis + step_fees_satoshis,
+            destination_address=controlled_prover_public_key.get_segwit_address().to_string(),
+        )
+    else:
+        funding_tx_id = protocol_properties.funding_tx_id
+        funding_index = protocol_properties.funding_index
 
-    protocol_dict["funds_tx_id"] = faucet_tx_id
-    protocol_dict["funds_index"] = faucet_index
+    protocol_dict["funds_tx_id"] = funding_tx_id
+    protocol_dict["funds_index"] = funding_index
 
-    print("Faucet tx: " + faucet_tx_id)
+    print("Faucet tx: " + funding_tx_id)
 
     # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
     url = f"{verifier_list[0]}/public_keys"
@@ -201,9 +240,10 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         "amount_of_bits_per_digit_checksum": amount_of_bits_per_digit_checksum,
         "funding_amount_satoshis": initial_amount_satoshis,
         "step_fees_satoshis": step_fees_satoshis,
-        "funds_tx_id": faucet_tx_id,
-        "funds_index": faucet_index,
+        "funds_tx_id": funding_tx_id,
+        "funds_index": funding_index,
         "amount_of_nibbles_hash": amount_of_nibbles_hash,
+        "controlled_prover_address": controlled_prover_address,
     }
 
     public_keys_response = requests.post(url, headers=headers, json=data)
@@ -319,14 +359,16 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     #################################################################
     funding_tx = protocol_dict["funding_tx"]
 
-    funding_sig = prover_private_key.sign_segwit_input(
+    funding_sig = controlled_prover_private_key.sign_segwit_input(
         funding_tx,
         0,
-        prover_public_key.get_address().to_script_pub_key(),
+        controlled_prover_public_key.get_address().to_script_pub_key(),
         initial_amount_satoshis + step_fees_satoshis,
     )
 
-    funding_tx.witnesses.append(TxWitnessInput([funding_sig, prover_public_key.to_hex()]))
+    funding_tx.witnesses.append(
+        TxWitnessInput([funding_sig, controlled_prover_public_key.to_hex()])
+    )
 
     broadcast_transaction_service = BroadcastTransactionService()
     broadcast_transaction_service(transaction=funding_tx.serialize())
@@ -349,7 +391,7 @@ async def _trigger_next_step_prover(publish_hash_body: PublishNextStepBody):
     headers = {"accept": "application/json", "Content-Type": "application/json"}
 
     # Make the POST request
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=1200.0) as client:
         await client.post(url, headers=headers, json=json.loads(publish_hash_body.json()))
 
 
@@ -359,7 +401,7 @@ async def _trigger_next_step_verifier(publish_hash_body: PublishNextStepBody):
     headers = {"accept": "application/json", "Content-Type": "application/json"}
 
     # Make the POST request
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=1200.0) as client:
         await client.post(url, headers=headers, json=json.loads(publish_hash_body.json()))
 
 

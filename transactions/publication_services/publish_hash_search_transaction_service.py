@@ -1,10 +1,27 @@
-import pandas as pd
 from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
-from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
-from mutinyet_api.services.transaction_info_service import TransactionInfoService
+from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
+from prover_app.config import BitcoinNetwork, common_protocol_properties
+
+if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+    from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
+        BroadcastTransactionService,
+    )
+    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
+        TransactionInfoService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
+    from blockchain_query_services.testnet_api.services import (
+        BroadcastTransactionService,
+        TransactionInfoService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
+    from blockchain_query_services.mainnet_api.services import BroadcastTransactionService
+    from blockchain_query_services.mainnet_api.services.transaction_info_service import (
+        TransactionInfoService,
+    )
 from scripts.services.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
 )
@@ -36,6 +53,7 @@ class PublishHashSearchTransactionService:
             prover_private_key
         )
         self.transaction_info_service = TransactionInfoService()
+        self.execution_trace_query_service = ExecutionTraceQueryService("prover_files/")
 
     def __call__(self, protocol_dict, i):
         search_hash_tx_list = protocol_dict["search_hash_tx_list"]
@@ -110,7 +128,7 @@ class PublishHashSearchTransactionService:
 
             hash_search_witness += self.generate_witness_from_input_nibbles_service(
                 step=(3 + i * 2),
-                case=2 - word_count,
+                case=amount_of_wrong_step_search_hashes_per_iteration - word_count - 1,
                 input_numbers=input_number,
                 bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
             )
@@ -160,12 +178,9 @@ class PublishHashSearchTransactionService:
             index_list.append(
                 int(prefix + bin(j)[2:].zfill(amount_of_bits_wrong_step_search) + suffix, 2)
             )
-        trace_df = pd.read_csv(
-            "prover_files/" + protocol_dict["setup_uuid"] + "/execution_trace.csv", sep=";"
-        )
         hash_list = []
         for index in index_list:
-            hash_list.append(trace_df.iloc[index]["step_hash"])
+            hash_list.append(self.execution_trace_query_service(protocol_dict, index)["step_hash"])
         for j in range(len(index_list)):
             protocol_dict["published_hashes_dict"][index_list[j]] = hash_list[j]
         return hash_list
