@@ -18,6 +18,13 @@ from pydantic import BaseModel
 
 from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.enums import BitcoinNetwork
+from blockchain_query_services.common.transaction_published_service import (
+    TransactionPublishedService,
+)
+from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
+    broadcast_transaction_service,
+)
+from blockchain_query_services.services.mutinynet_api.faucet_service import FaucetService
 from prover_app.config import protocol_properties
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionProverStepType
@@ -42,24 +49,6 @@ from transactions.transaction_generator_from_public_keys_service import (
 )
 from winternitz_keys_handling.services.generate_prover_public_keys_service import (
     GenerateProverPublicKeysService,
-)
-
-if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinynet_api.services.broadcast_transaction_service import (
-        BroadcastTransactionService,
-    )
-    from blockchain_query_services.mutinynet_api.services.faucet_service import FaucetService
-elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
-    from blockchain_query_services.testnet_api.services.broadcast_transaction_service import (
-        BroadcastTransactionService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
-    from blockchain_query_services.mainnet_api.services.broadcast_transaction_service import (
-        BroadcastTransactionService,
-    )
-
-from blockchain_query_services.common.transaction_published_service import (
-    TransactionPublishedService,
 )
 
 app = FastAPI(
@@ -93,6 +82,7 @@ class FundAddressOutput(BaseModel):
 
 @app.post("/fund_address")
 async def fund_address(fund_input: FundAddressInput) -> FundAddressOutput:
+    assert common_protocol_properties.network == BitcoinNetwork.MUTINYNET
     faucet_service = FaucetService()
     income_tx, index = faucet_service(
         amount=fund_input.amount, destination_address=fund_input.destination_address
@@ -366,7 +356,6 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
         TxWitnessInput([funding_sig, controlled_prover_public_key.to_hex()])
     )
 
-    broadcast_transaction_service = BroadcastTransactionService()
     broadcast_transaction_service(transaction=funding_tx.serialize())
     print("Funding transaction: " + funding_tx.get_txid())
 

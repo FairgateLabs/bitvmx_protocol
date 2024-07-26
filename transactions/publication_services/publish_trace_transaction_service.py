@@ -3,23 +3,9 @@ from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
 from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
-from bitvmx_protocol_library.config import common_protocol_properties
-from bitvmx_protocol_library.enums import BitcoinNetwork
-
-if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinynet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
-    from blockchain_query_services.testnet_api.services import (
-        TransactionInfoService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
-    from blockchain_query_services.mainnet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
-from blockchain_query_services.blockchain_query_services_dependency_injection import (
+from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
+    transaction_info_service,
 )
 from scripts.services.execution_trace_script_generator_service import (
     ExecutionTraceScriptGeneratorService,
@@ -42,7 +28,6 @@ class PublishTraceTransactionService:
         self.generate_witness_from_input_nibbles_service = GenerateWitnessFromInputNibblesService(
             prover_private_key
         )
-        self.transaction_info_service = TransactionInfoService()
         self.execution_trace_query_service = ExecutionTraceQueryService("prover_files/")
 
     def __call__(self, protocol_dict):
@@ -64,7 +49,7 @@ class PublishTraceTransactionService:
         trace_witness = []
 
         previous_choice_tx = protocol_dict["search_choice_tx_list"][-1].get_txid()
-        previous_choice_transaction_info = self.transaction_info_service(previous_choice_tx)
+        previous_choice_transaction_info = transaction_info_service(previous_choice_tx)
         previous_witness = previous_choice_transaction_info.inputs[0].witness
         trace_witness += previous_witness[len(trace_signatures) + 0 : len(trace_signatures) + 4]
         current_choice = (

@@ -2,7 +2,7 @@ from typing import Optional
 
 import requests
 
-from blockchain_query_services.mutinynet_api.services.transaction_info_service import (
+from blockchain_query_services.services.mutinynet_api.transaction_info_service import (
     TransactionInfoService,
 )
 

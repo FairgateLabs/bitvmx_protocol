@@ -1,5 +1,5 @@
 from bitvmx_execution.bo.execution_trace_bo import ExecutionTraceBO
-from blockchain_query_services.blockchain_query_services_dependency_injection import (
+from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     transaction_info_service,
 )
 from transactions.verifier_challenge_detection.verifier_execution_challenge_detection_service import (

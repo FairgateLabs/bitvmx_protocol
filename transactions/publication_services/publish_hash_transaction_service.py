@@ -8,7 +8,7 @@ from bitvmx_execution.services.execution_trace_generation_service import (
     ExecutionTraceGenerationService,
 )
 from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
-from blockchain_query_services.blockchain_query_services_dependency_injection import (
+from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
 )
 from scripts.services.hash_result_script_generator_service import HashResultScriptGeneratorService

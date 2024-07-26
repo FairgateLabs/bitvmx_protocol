@@ -3,23 +3,9 @@ from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
 from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
-from bitvmx_protocol_library.config import common_protocol_properties
-from bitvmx_protocol_library.enums import BitcoinNetwork
-
-if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinynet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
-    from blockchain_query_services.testnet_api.services import (
-        TransactionInfoService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
-    from blockchain_query_services.mainnet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
-from blockchain_query_services.blockchain_query_services_dependency_injection import (
+from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
+    transaction_info_service,
 )
 from scripts.services.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
@@ -38,7 +24,6 @@ class PublishChoiceSearchTransactionService:
         self.generate_verifier_witness_from_input_single_word_service = (
             GenerateWitnessFromInputSingleWordService(verifier_private_key)
         )
-        self.transaction_info_service = TransactionInfoService()
         self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
 
     def __call__(self, protocol_dict, i):
@@ -101,7 +86,7 @@ class PublishChoiceSearchTransactionService:
     def _get_choice(self, i, protocol_dict):
         amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
         previous_hash_search_txid = protocol_dict["search_hash_tx_list"][i].get_txid()
-        previous_hash_search_tx = self.transaction_info_service(previous_hash_search_txid)
+        previous_hash_search_tx = transaction_info_service(previous_hash_search_txid)
         previous_hash_search_witness = previous_hash_search_tx.inputs[0].witness
         public_keys = protocol_dict["public_keys"]
         amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]

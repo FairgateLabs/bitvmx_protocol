@@ -2,23 +2,7 @@ from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
-from bitvmx_protocol_library.config import common_protocol_properties
-from bitvmx_protocol_library.enums import BitcoinNetwork
-
-if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinynet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
-    from blockchain_query_services.testnet_api.services import (
-        TransactionInfoService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
-    from blockchain_query_services.mainnet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
-
-from blockchain_query_services.blockchain_query_services_dependency_injection import (
+from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
 )
 from scripts.services.trigger_generic_challenge_script_generator_service import (
@@ -31,7 +15,6 @@ from winternitz_keys_handling.services.generate_witness_from_input_nibbles_servi
 
 class TriggerExecutionChallengeTransactionService:
     def __init__(self, verifier_private_key):
-        self.transaction_info_service = TransactionInfoService()
         self.verifier_challenge_execution_script_generator_service = (
             TriggerGenericChallengeScriptGeneratorService()
         )
@@ -41,9 +24,6 @@ class TriggerExecutionChallengeTransactionService:
 
     def __call__(self, protocol_dict):
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
-        # trace_tx_id = protocol_dict["trace_tx"].get_txid()
-        # trace_transaction_info = self.transaction_info_service(trace_tx_id)
-        # previous_trace_witness = trace_transaction_info.inputs[0].witness
 
         # Ugly hardcoding here that should be computed somehow but it depends a lot on the structure of the
         # previous script

@@ -13,7 +13,7 @@ from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
 from bitvmx_protocol_library.enums import BitcoinNetwork
-from blockchain_query_services.blockchain_query_services_dependency_injection import (
+from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     transaction_info_service,
 )
 from prover_app.config import protocol_properties
