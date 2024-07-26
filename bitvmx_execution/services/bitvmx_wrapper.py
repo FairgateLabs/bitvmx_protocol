@@ -12,7 +12,8 @@ class BitVMXWrapper:
         self.fail_actor = "verifier"
         # self.fail_actor = "prover"
         # self.fail_step = "1234567890"
-        self.fail_step = "50"
+        # self.fail_step = "50"
+        self.fail_step = None
         self.fail_type = "--fail-execute"
         # self.fail_type = "--fail-hash"
 
@@ -47,7 +48,12 @@ class BitVMXWrapper:
             "--limit",
             str(index),
         ]
-        if self.fail_actor is not None and self.fail_actor in self.base_path:
+        if (
+            self.fail_actor is not None
+            and self.fail_actor in self.base_path
+            and self.fail_step is not None
+            and self.fail_type is not None
+        ):
             command.extend([self.fail_type, self.fail_step])
 
         execution_directory = self.base_path + protocol_dict["setup_uuid"]

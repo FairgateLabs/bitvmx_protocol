@@ -1,6 +1,7 @@
 from bitcoinutils.keys import P2wpkhAddress, PublicKey
 from bitcoinutils.transactions import Transaction, TxInput, TxOutput
 
+from prover_app.config import BitcoinNetwork, common_protocol_properties
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 
 
@@ -161,9 +162,14 @@ class TransactionGeneratorFromPublicKeysService:
 
         execution_challenge_txin = TxInput(trigger_execution_challenge_tx.get_txid(), 0)
 
-        faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
-        # controlled_prover_address = protocol_dict["controlled_prover_address"]
-        execution_challenge_output_address = P2wpkhAddress.from_address(address=faucet_address)
+        if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+            faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
+            execution_challenge_output_address = P2wpkhAddress.from_address(address=faucet_address)
+        else:
+            execution_challenge_output_address = P2wpkhAddress.from_address(
+                address=protocol_dict["controlled_prover_address"]
+            )
+
         execution_challenge_txout = TxOutput(
             challenge_output_amount,
             execution_challenge_output_address.to_script_pub_key(),

@@ -8,12 +8,16 @@ from bitvmx_execution.services.execution_trace_generation_service import (
     ExecutionTraceGenerationService,
 )
 from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
-from prover_app.config import Networks, protocol_properties
+from prover_app.config import BitcoinNetwork, common_protocol_properties
 
-if protocol_properties.network == Networks.MUTINYNET:
-    from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
-elif protocol_properties.network == Networks.TESTNET:
-    from testnet_api.services.broadcast_transaction_service import BroadcastTransactionService
+if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+    from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
+        BroadcastTransactionService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
+    from blockchain_query_services.testnet_api.services import BroadcastTransactionService
+elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
+    from blockchain_query_services.mainnet_api.services import BroadcastTransactionService
 from scripts.services.hash_result_script_generator_service import HashResultScriptGeneratorService
 from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,

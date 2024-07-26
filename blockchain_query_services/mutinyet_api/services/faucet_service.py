@@ -2,12 +2,20 @@ from typing import Optional
 
 import requests
 
-from prover_app.config import Networks, protocol_properties
+from prover_app.config import BitcoinNetwork, common_protocol_properties
 
-if protocol_properties.network == Networks.MUTINYNET:
-    from mutinyet_api.services.transaction_info_service import TransactionInfoService
-elif protocol_properties.network == Networks.TESTNET:
-    from testnet_api.services.transaction_info_service import TransactionInfoService
+if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
+        TransactionInfoService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
+    from blockchain_query_services.testnet_api.services.transaction_info_service import (
+        TransactionInfoService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
+    from blockchain_query_services.mainnet_api.services.transaction_info_service import (
+        TransactionInfoService,
+    )
 
 
 class FaucetService:

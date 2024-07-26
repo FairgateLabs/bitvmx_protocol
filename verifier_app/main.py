@@ -8,15 +8,22 @@ from typing import List
 
 import httpx
 from bitcoinutils.keys import PrivateKey, PublicKey
+from bitcoinutils.setup import setup
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
-from prover_app.config import Networks, protocol_properties
+from prover_app.config import BitcoinNetwork, common_protocol_properties, protocol_properties
 
-if protocol_properties.network == Networks.MUTINYNET:
-    from mutinyet_api.services.transaction_info_service import TransactionInfoService
-elif protocol_properties.network == Networks.TESTNET:
-    from testnet_api.services.transaction_info_service import TransactionInfoService
+if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
+        TransactionInfoService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
+    from blockchain_query_services.testnet_api.services import TransactionInfoService
+elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
+    from blockchain_query_services.mainnet_api.services.transaction_info_service import (
+        TransactionInfoService,
+    )
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionVerifierStepType
 from transactions.generate_signatures_service import GenerateSignaturesService
@@ -31,7 +38,6 @@ from transactions.transaction_generator_from_public_keys_service import (
     TransactionGeneratorFromPublicKeysService,
 )
 from transactions.verifier_challenge_detection_service import VerifierChallengeDetectionService
-from verifier_app.config import protocol_properties
 from winternitz_keys_handling.services.generate_verifier_public_keys_service import (
     GenerateVerifierPublicKeysService,
 )
@@ -49,6 +55,7 @@ async def healthcheck() -> dict[str, str]:
 
 class InitSetupBody(BaseModel):
     setup_uuid: str
+    network: BitcoinNetwork
 
 
 class InitSetupResponse(BaseModel):
@@ -59,8 +66,7 @@ class InitSetupResponse(BaseModel):
 async def init_setup(body: InitSetupBody) -> InitSetupResponse:
     private_key = PrivateKey(b=secrets.token_bytes(32))
     setup_uuid = body.setup_uuid
-    # print("Init setup for id " + str(setup_uuid))
-    print("Init setup for id " + str("5659b335-7004-455b-95a0-5b51f2183d16"))
+    print("Init setup for id " + str(setup_uuid))
     protocol_dict = {
         "verifier_private_key": private_key.to_bytes().hex(),
         "last_confirmed_step": None,
@@ -68,7 +74,12 @@ async def init_setup(body: InitSetupBody) -> InitSetupResponse:
         "setup_uuid": setup_uuid,
         "search_choices": [],
         "search_hashes": {},
+        "network": body.network,
     }
+    if protocol_dict["network"] == BitcoinNetwork.MUTINYNET:
+        setup("testnet")
+    else:
+        setup(protocol_dict["network"].value)
     os.makedirs(f"verifier_files/{setup_uuid}")
     with open(f"verifier_files/{setup_uuid}/file_database.pkl", "xb") as f:
         pickle.dump(protocol_dict, f)
@@ -94,6 +105,7 @@ class PublicKeysBody(BaseModel):
     funds_tx_id: str
     funds_index: int
     amount_of_nibbles_hash: int
+    controlled_prover_address: str
 
 
 class PublicKeysResponse(BaseModel):
@@ -107,7 +119,10 @@ async def public_keys(public_keys_body: PublicKeysBody) -> PublicKeysResponse:
     setup_uuid = public_keys_body.setup_uuid
     with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
         protocol_dict = pickle.load(f)
-
+    if protocol_dict["network"] == BitcoinNetwork.MUTINYNET:
+        setup("testnet")
+    else:
+        setup(protocol_dict["network"].value)
     verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
 
     if (
@@ -147,6 +162,7 @@ async def public_keys(public_keys_body: PublicKeysBody) -> PublicKeysResponse:
     protocol_dict["amount_of_nibbles_hash_with_checksum"] = len(
         public_keys_body.hash_result_public_keys
     )
+    protocol_dict["controlled_prover_address"] = public_keys_body.controlled_prover_address
 
     protocol_dict["amount_of_trace_steps"] = (
         2 ** protocol_dict["amount_of_bits_wrong_step_search"]
@@ -193,7 +209,10 @@ async def signatures(signatures_body: SignaturesBody) -> SignaturesResponse:
     setup_uuid = signatures_body.setup_uuid
     with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
         protocol_dict = pickle.load(f)
-
+    if protocol_dict["network"] == BitcoinNetwork.MUTINYNET:
+        setup("testnet")
+    else:
+        setup(protocol_dict["network"].value)
     verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
 
     # funding_amount_satoshis = protocol_dict["funding_amount_satoshis"]
@@ -294,6 +313,10 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
     with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
         protocol_dict = pickle.load(f)
 
+    if protocol_dict["network"] == BitcoinNetwork.MUTINYNET:
+        setup("testnet")
+    else:
+        setup(protocol_dict["network"].value)
     last_confirmed_step = protocol_dict["last_confirmed_step"]
     last_confirmed_step_tx_id = protocol_dict["last_confirmed_step_tx_id"]
     transaction_info_service = TransactionInfoService()

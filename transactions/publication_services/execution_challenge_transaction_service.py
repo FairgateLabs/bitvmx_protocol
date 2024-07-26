@@ -5,14 +5,25 @@ from bitcoinutils.transactions import TxWitnessInput
 from bitvmx_execution.services.execution_trace_commitment_generation_service import (
     ExecutionTraceCommitmentGenerationService,
 )
-from prover_app.config import Networks, protocol_properties
+from prover_app.config import BitcoinNetwork, common_protocol_properties
 
-if protocol_properties.network == Networks.MUTINYNET:
-    from mutinyet_api.services.broadcast_transaction_service import BroadcastTransactionService
-    from mutinyet_api.services.transaction_info_service import TransactionInfoService
-elif protocol_properties.network == Networks.TESTNET:
-    from testnet_api.services.broadcast_transaction_service import BroadcastTransactionService
-    from testnet_api.services.transaction_info_service import TransactionInfoService
+if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+    from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
+        BroadcastTransactionService,
+    )
+    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
+        TransactionInfoService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
+    from blockchain_query_services.testnet_api.services import (
+        BroadcastTransactionService,
+        TransactionInfoService,
+    )
+elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
+    from blockchain_query_services.mainnet_api.services import BroadcastTransactionService
+    from blockchain_query_services.mainnet_api.services.transaction_info_service import (
+        TransactionInfoService,
+    )
 from scripts.services.execution_challenge_script_list_generator_service import (
     ExecutionChallengeScriptListGeneratorService,
 )

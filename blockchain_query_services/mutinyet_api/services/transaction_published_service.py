@@ -1,9 +1,6 @@
-from prover_app.config import Networks, protocol_properties
-
-if protocol_properties.network == Networks.MUTINYNET:
-    from mutinyet_api.services.transaction_info_service import TransactionInfoService
-elif protocol_properties.network == Networks.TESTNET:
-    from testnet_api.services.transaction_info_service import TransactionInfoService
+from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
+    TransactionInfoService,
+)
 
 
 class TransactionPublishedService:
