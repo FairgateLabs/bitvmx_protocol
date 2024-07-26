@@ -16,6 +16,12 @@ class BitVMXWrapper:
         self.fail_step = None
         self.fail_type = "--fail-execute"
         # self.fail_type = "--fail-hash"
+        self.contains_fail = (
+            self.fail_actor is not None
+            and self.fail_actor in self.base_path
+            and self.fail_step is not None
+            and self.fail_type is not None
+        )
 
     def get_execution_trace(self, protocol_dict, index):
         base_point = (
@@ -48,12 +54,7 @@ class BitVMXWrapper:
             "--limit",
             str(index),
         ]
-        if (
-            self.fail_actor is not None
-            and self.fail_actor in self.base_path
-            and self.fail_step is not None
-            and self.fail_type is not None
-        ):
+        if self.contains_fail:
             command.extend([self.fail_type, self.fail_step])
 
         execution_directory = self.base_path + protocol_dict["setup_uuid"]
@@ -100,7 +101,7 @@ class BitVMXWrapper:
                 "--debug",
                 "--checkpoints",
             ]
-            if self.fail_actor is not None and self.fail_actor in self.base_path:
+            if self.contains_fail:
                 command.extend([self.fail_type, self.fail_step])
             execution_directory = self.base_path + protocol_dict["setup_uuid"]
 

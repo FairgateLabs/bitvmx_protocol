@@ -5,7 +5,8 @@ from bitcoinutils.transactions import TxWitnessInput
 from bitvmx_execution.services.execution_trace_commitment_generation_service import (
     ExecutionTraceCommitmentGenerationService,
 )
-from prover_app.config import BitcoinNetwork, common_protocol_properties
+from bitvmx_protocol_library.config import common_protocol_properties
+from bitvmx_protocol_library.enums import BitcoinNetwork
 
 if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
     from blockchain_query_services.mutinyet_api.services.broadcast_transaction_service import (
