@@ -1,7 +1,8 @@
 from bitcoinutils.keys import P2wpkhAddress, PublicKey
 from bitcoinutils.transactions import Transaction, TxInput, TxOutput
 
-from prover_app.config import BitcoinNetwork, common_protocol_properties
+from bitvmx_protocol_library.config import common_protocol_properties
+from bitvmx_protocol_library.enums import BitcoinNetwork
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 
 

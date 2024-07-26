@@ -5,13 +5,6 @@ from pydantic_settings import BaseSettings
 from bitvmx_protocol_library.enums import BitcoinNetwork
 
 
-class ProtocolProperties(BaseSettings):
-    prover_host: str
-
-    class Config:
-        env_file = ".env_verifier"
-
-
 class CommonProtocolProperties(BaseSettings):
     network: Optional[BitcoinNetwork] = BitcoinNetwork.MUTINYNET
     initial_amount_satoshis: int
@@ -24,5 +17,4 @@ class CommonProtocolProperties(BaseSettings):
         env_file = ".env_common"
 
 
-protocol_properties = ProtocolProperties()
 common_protocol_properties = CommonProtocolProperties()

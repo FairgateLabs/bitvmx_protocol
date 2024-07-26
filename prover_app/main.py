@@ -16,7 +16,9 @@ from bitcoinutils.transactions import TxWitnessInput
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
-from prover_app.config import BitcoinNetwork, common_protocol_properties, protocol_properties
+from bitvmx_protocol_library.config import common_protocol_properties
+from bitvmx_protocol_library.enums import BitcoinNetwork
+from prover_app.config import protocol_properties
 from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
 from transactions.enums import TransactionProverStepType
 from transactions.generate_signatures_service import GenerateSignaturesService
