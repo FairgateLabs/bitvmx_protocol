@@ -7,9 +7,6 @@ from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.enums import BitcoinNetwork
 
 if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinynet_api.services.broadcast_transaction_service import (
-        BroadcastTransactionService,
-    )
     from blockchain_query_services.mutinynet_api.services.transaction_info_service import (
         TransactionInfoService,
     )
@@ -21,14 +18,15 @@ elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
     from blockchain_query_services.mainnet_api.services.transaction_info_service import (
         TransactionInfoService,
     )
+from blockchain_query_services.blockchain_query_services_dependency_injection import (
+    broadcast_transaction_service,
+)
 from scripts.services.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
 )
 from winternitz_keys_handling.services.generate_witness_from_input_single_word_service import (
     GenerateWitnessFromInputSingleWordService,
 )
-
-from blockchain_query_services.blockchain_query_services_dependency_injection import broadcast_transaction_service
 
 
 class PublishChoiceSearchTransactionService:

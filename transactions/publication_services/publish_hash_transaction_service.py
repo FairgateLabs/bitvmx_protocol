@@ -8,15 +8,13 @@ from bitvmx_execution.services.execution_trace_generation_service import (
     ExecutionTraceGenerationService,
 )
 from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
-from bitvmx_protocol_library.config import common_protocol_properties
-from bitvmx_protocol_library.enums import BitcoinNetwork
-
+from blockchain_query_services.blockchain_query_services_dependency_injection import (
+    broadcast_transaction_service,
+)
 from scripts.services.hash_result_script_generator_service import HashResultScriptGeneratorService
 from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,
 )
-
-from blockchain_query_services.blockchain_query_services_dependency_injection import broadcast_transaction_service
 
 
 def _get_result_hash_value(last_step_trace) -> List[int]:

@@ -58,8 +58,9 @@ elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
         BroadcastTransactionService,
     )
 
-from blockchain_query_services.common.transaction_published_service import TransactionPublishedService
-
+from blockchain_query_services.common.transaction_published_service import (
+    TransactionPublishedService,
+)
 
 app = FastAPI(
     title="Prover service",

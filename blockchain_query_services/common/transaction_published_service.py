@@ -1,4 +1,6 @@
-from blockchain_query_services.blockchain_query_services_dependency_injection import transaction_info_service
+from blockchain_query_services.blockchain_query_services_dependency_injection import (
+    transaction_info_service,
+)
 
 
 class TransactionPublishedService:

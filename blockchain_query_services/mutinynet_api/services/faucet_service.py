@@ -2,21 +2,9 @@ from typing import Optional
 
 import requests
 
-from bitvmx_protocol_library.config import common_protocol_properties
-from bitvmx_protocol_library.enums import BitcoinNetwork
-
-if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinynet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
-    from blockchain_query_services.testnet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
-    from blockchain_query_services.mainnet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
+from blockchain_query_services.mutinynet_api.services.transaction_info_service import (
+    TransactionInfoService,
+)
 
 
 class FaucetService:
@@ -47,7 +35,7 @@ class FaucetService:
         response = requests.post(url, headers=headers, json=data)
 
         if response.status_code == 200:
-            # Intentar devolver el índice
+            # Try to return the index
             transaction_info = TransactionInfoService()(tx_id=response.json()["txid"])
             faucet_output = transaction_info.get_output(address=destination_address)
             return transaction_info.tx_id, faucet_output.index

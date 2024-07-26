@@ -5,13 +5,13 @@ from bitcoinutils.transactions import TxWitnessInput
 from bitvmx_execution.services.execution_trace_commitment_generation_service import (
     ExecutionTraceCommitmentGenerationService,
 )
-from blockchain_query_services.blockchain_query_services_dependency_injection import transaction_info_service
-
+from blockchain_query_services.blockchain_query_services_dependency_injection import (
+    broadcast_transaction_service,
+    transaction_info_service,
+)
 from scripts.services.execution_challenge_script_list_generator_service import (
     ExecutionChallengeScriptListGeneratorService,
 )
-
-from blockchain_query_services.blockchain_query_services_dependency_injection import broadcast_transaction_service
 
 
 class ExecutionChallengeTransactionService:

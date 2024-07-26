@@ -23,8 +23,6 @@ from winternitz_keys_handling.services.generate_witness_from_input_nibbles_servi
     GenerateWitnessFromInputNibblesService,
 )
 
-from blockchain_query_services.blockchain_query_services_dependency_injection import broadcast_transaction_service
-
 
 class TriggerWrongHashChallengeTransactionService:
     def __init__(self, verifier_private_key):

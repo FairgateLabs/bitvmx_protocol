@@ -1,19 +1,25 @@
 from dependency_injector import containers, providers
 
+from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.enums import BitcoinNetwork
 from blockchain_query_services.mainnet_api.services.broadcast_transaction_service import (
     BroadcastTransactionService as BroadcastTransactionServiceMainnet,
 )
-from blockchain_query_services.testnet_api.services.transaction_info_service import TransactionInfoService as TransactionInfoServiceTestnet
-from blockchain_query_services.mutinynet_api.services.transaction_info_service import TransactionInfoService as TransactionInfoServiceMutinynet
-from blockchain_query_services.mainnet_api.services.transaction_info_service import TransactionInfoService as TransactionInfoServiceMainnet
+from blockchain_query_services.mainnet_api.services.transaction_info_service import (
+    TransactionInfoService as TransactionInfoServiceMainnet,
+)
 from blockchain_query_services.mutinynet_api.services.broadcast_transaction_service import (
     BroadcastTransactionService as BroadcastTransactionServiceMutinynet,
+)
+from blockchain_query_services.mutinynet_api.services.transaction_info_service import (
+    TransactionInfoService as TransactionInfoServiceMutinynet,
 )
 from blockchain_query_services.testnet_api.services.broadcast_transaction_service import (
     BroadcastTransactionService as BroadcastTransactionServiceTestnet,
 )
-from bitvmx_protocol_library.config import common_protocol_properties
+from blockchain_query_services.testnet_api.services.transaction_info_service import (
+    TransactionInfoService as TransactionInfoServiceTestnet,
+)
 
 
 class BroadcastTransactionServices(containers.DeclarativeContainer):

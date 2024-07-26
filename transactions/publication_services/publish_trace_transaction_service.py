@@ -18,6 +18,9 @@ elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
     from blockchain_query_services.mainnet_api.services.transaction_info_service import (
         TransactionInfoService,
     )
+from blockchain_query_services.blockchain_query_services_dependency_injection import (
+    broadcast_transaction_service,
+)
 from scripts.services.execution_trace_script_generator_service import (
     ExecutionTraceScriptGeneratorService,
 )
@@ -27,8 +30,6 @@ from winternitz_keys_handling.services.generate_witness_from_input_nibbles_servi
 from winternitz_keys_handling.services.generate_witness_from_input_single_word_service import (
     GenerateWitnessFromInputSingleWordService,
 )
-
-from blockchain_query_services.blockchain_query_services_dependency_injection import broadcast_transaction_service
 
 
 class PublishTraceTransactionService:
