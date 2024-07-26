@@ -1,4 +1,3 @@
-import math
 from multiprocessing import Manager, Process
 from time import time
 
@@ -15,8 +14,9 @@ from bitcoinutils.utils import (
 from bitvmx_protocol_library.script_generation.services.script_generation.execution_challenge_script_from_key_generator_service import (
     ExecutionChallengeScriptFromKeyGeneratorService,
 )
-from bitvmx_protocol_library.script_generation.services.split_list_for_merkle_tree_service import \
-    SplitListForMerkleTreeService
+from bitvmx_protocol_library.script_generation.services.split_list_for_merkle_tree_service import (
+    SplitListForMerkleTreeService,
+)
 
 
 def _get_tag_hashed_merkle_root(

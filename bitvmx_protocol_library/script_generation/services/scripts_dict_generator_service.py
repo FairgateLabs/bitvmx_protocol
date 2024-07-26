@@ -1,17 +1,17 @@
 from bitvmx_protocol_library.script_generation.services.execution_challenge_script_list_generator_service import (
     ExecutionChallengeScriptListGeneratorService,
 )
-from bitvmx_protocol_library.script_generation.services.script_generation.execution_trace_script_generator_service import (
-    ExecutionTraceScriptGeneratorService,
-)
-from bitvmx_protocol_library.script_generation.services.script_generation.hash_result_script_generator_service import (
-    HashResultScriptGeneratorService,
-)
 from bitvmx_protocol_library.script_generation.services.script_generation.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
 )
 from bitvmx_protocol_library.script_generation.services.script_generation.commit_search_hashes_script_generator_service import (
     CommitSearchHashesScriptGeneratorService,
+)
+from bitvmx_protocol_library.script_generation.services.script_generation.execution_trace_script_generator_service import (
+    ExecutionTraceScriptGeneratorService,
+)
+from bitvmx_protocol_library.script_generation.services.script_generation.hash_result_script_generator_service import (
+    HashResultScriptGeneratorService,
 )
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_generic_challenge_script_generator_service import (
     TriggerGenericChallengeScriptGeneratorService,
