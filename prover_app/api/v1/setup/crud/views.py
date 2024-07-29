@@ -28,14 +28,14 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
     broadcast_transaction_service,
 )
 from blockchain_query_services.services.mutinynet_api.faucet_service import FaucetService
-from prover_app.api.v1.setup.crud.view_models import CreateSetupBody
+from prover_app.api.v1.setup.crud.view_models import SetupPostV1Input
 from prover_app.config import protocol_properties
 from winternitz_keys_handling.services.generate_prover_public_keys_service import (
     GenerateProverPublicKeysService,
 )
 
 
-async def setup_post_view(create_setup_body: CreateSetupBody):
+async def setup_post_view(setup_post_view_input: SetupPostV1Input):
     if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
         setup("testnet")
     else:
@@ -43,7 +43,7 @@ async def setup_post_view(create_setup_body: CreateSetupBody):
 
     setup_uuid = str(uuid.uuid4())
     # Variable parameters
-    amount_of_steps = create_setup_body.amount_of_steps
+    amount_of_steps = setup_post_view_input.amount_of_steps
     # Constant parameters
     amount_of_bits_wrong_step_search = protocol_properties.amount_bits_choice
     amount_of_bits_per_digit_checksum = protocol_properties.amount_of_bits_per_digit_checksum

@@ -299,7 +299,7 @@ class PublishNextStepBody(BaseModel):
 
 async def _trigger_next_step_prover(publish_hash_body: PublishNextStepBody):
     prover_host = protocol_properties.prover_host
-    url = f"{prover_host}/publish_next_step"
+    url = f"{prover_host}/api/next_step"
     headers = {"accept": "application/json", "Content-Type": "application/json"}
 
     # Make the POST request
@@ -399,4 +399,4 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
     with open(f"verifier_files/{setup_uuid}/file_database.pkl", "wb") as f:
         pickle.dump(protocol_dict, f)
 
-    return {"id": setup_uuid, "executed_step": last_confirmed_step}
+    return {"setup_uuid": setup_uuid, "executed_step": last_confirmed_step}
