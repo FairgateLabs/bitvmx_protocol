@@ -2,10 +2,12 @@ from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
-from bitvmx_execution.services.execution_trace_generation_service import (
+from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_generation_service import (
     ExecutionTraceGenerationService,
 )
-from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
+from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
+    ExecutionTraceQueryService,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
 )

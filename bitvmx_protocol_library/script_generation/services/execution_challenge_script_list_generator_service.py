@@ -1,7 +1,7 @@
 import multiprocessing
 from time import time
 
-from bitvmx_execution.services.execution_trace_commitment_generation_service import (
+from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_commitment_generation_service import (
     ExecutionTraceCommitmentGenerationService,
 )
 from bitvmx_protocol_library.script_generation.entities.bitvmx_execution_script_list import (

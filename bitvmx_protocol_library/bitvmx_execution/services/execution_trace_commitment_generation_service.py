@@ -1,6 +1,6 @@
 import re
 
-from bitvmx_execution.services.execution_trace_generation_service import (
+from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_generation_service import (
     ExecutionTraceGenerationService,
 )
 

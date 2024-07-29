@@ -28,14 +28,14 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
     broadcast_transaction_service,
 )
 from blockchain_query_services.services.mutinynet_api.faucet_service import FaucetService
-from prover_app.api.v1.setup.crud.view_models import CreateSetupBody
+from prover_app.api.v1.setup.crud.view_models import SetupPostV1Input
 from prover_app.config import protocol_properties
 from winternitz_keys_handling.services.generate_prover_public_keys_service import (
     GenerateProverPublicKeysService,
 )
 
 
-async def setup_post_view(create_setup_body: CreateSetupBody):
+async def setup_post_view(setup_post_view_input: SetupPostV1Input):
     if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
         setup("testnet")
     else:
@@ -43,7 +43,7 @@ async def setup_post_view(create_setup_body: CreateSetupBody):
 
     setup_uuid = str(uuid.uuid4())
     # Variable parameters
-    amount_of_steps = create_setup_body.amount_of_steps
+    amount_of_steps = setup_post_view_input.amount_of_steps
     # Constant parameters
     amount_of_bits_wrong_step_search = protocol_properties.amount_bits_choice
     amount_of_bits_per_digit_checksum = protocol_properties.amount_of_bits_per_digit_checksum
@@ -73,7 +73,7 @@ async def setup_post_view(create_setup_body: CreateSetupBody):
 
     public_keys = []
     for verifier in verifier_list:
-        url = f"{verifier}/init_setup"
+        url = f"{verifier}/api/v1/setup"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
         data = {"setup_uuid": setup_uuid, "network": common_protocol_properties.network.value}
 
@@ -146,7 +146,7 @@ async def setup_post_view(create_setup_body: CreateSetupBody):
     print("Funding tx: " + funding_tx_id)
 
     # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
-    url = f"{verifier_list[0]}/public_keys"
+    url = f"{verifier_list[0]}/api/v1/public_keys"
     headers = {"accept": "application/json", "Content-Type": "application/json"}
     data = {
         "setup_uuid": setup_uuid,
@@ -219,7 +219,7 @@ async def setup_post_view(create_setup_body: CreateSetupBody):
     trace_signatures = [signatures_dict["trace_signature"]]
     # execution_challenge_signatures = [signatures_dict["execution_challenge_signature"]]
     for verifier in verifier_list:
-        url = f"{verifier}/signatures"
+        url = f"{verifier}/api/v1/signatures"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
         data = {
             "setup_uuid": setup_uuid,

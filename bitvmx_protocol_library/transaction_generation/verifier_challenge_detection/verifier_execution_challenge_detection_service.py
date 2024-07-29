@@ -1,4 +1,6 @@
-from bitvmx_execution.services.execution_trace_query_service import ExecutionTraceQueryService
+from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
+    ExecutionTraceQueryService,
+)
 from bitvmx_protocol_library.transaction_generation.enums import TransactionVerifierStepType
 from bitvmx_protocol_library.transaction_generation.publication_services.verifier.trigger_execution_challenge_transaction_service import (
     TriggerExecutionChallengeTransactionService,

@@ -1,4 +1,4 @@
-from bitvmx_execution.bo.execution_trace_bo import ExecutionTraceBO
+from bitvmx_protocol_library.bitvmx_execution.entities.execution_trace_bo import ExecutionTraceBO
 from bitvmx_protocol_library.transaction_generation.verifier_challenge_detection.verifier_execution_challenge_detection_service import (
     VerifierExecutionChallengeDetectionService,
 )

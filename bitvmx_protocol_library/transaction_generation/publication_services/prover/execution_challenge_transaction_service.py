@@ -2,7 +2,7 @@ from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
 from bitcoinutils.keys import PrivateKey, PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 
-from bitvmx_execution.services.execution_trace_commitment_generation_service import (
+from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_commitment_generation_service import (
     ExecutionTraceCommitmentGenerationService,
 )
 from bitvmx_protocol_library.script_generation.services.execution_challenge_script_list_generator_service import (
