@@ -10,7 +10,7 @@ from bitvmx_protocol_library.script_generation.entities.bitvmx_execution_script_
 from bitvmx_protocol_library.script_generation.services.script_generation.execution_challenge_script_from_key_generator_service import (
     ExecutionChallengeScriptFromKeyGeneratorService,
 )
-from winternitz_keys_handling.scripts.verify_digit_signature_nibbles_service import (
+from bitvmx_protocol_library.winternitz_keys_handling.scripts.verify_digit_signature_nibbles_service import (
     VerifyDigitSignatureNibblesService,
 )
 

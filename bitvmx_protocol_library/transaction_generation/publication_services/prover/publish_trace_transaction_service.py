@@ -8,15 +8,15 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_ser
 from bitvmx_protocol_library.script_generation.services.script_generation.execution_trace_script_generator_service import (
     ExecutionTraceScriptGeneratorService,
 )
+from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
+    GenerateWitnessFromInputNibblesService,
+)
+from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_single_word_service import (
+    GenerateWitnessFromInputSingleWordService,
+)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
     transaction_info_service,
-)
-from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
-    GenerateWitnessFromInputNibblesService,
-)
-from winternitz_keys_handling.services.generate_witness_from_input_single_word_service import (
-    GenerateWitnessFromInputSingleWordService,
 )
 
 
@@ -72,7 +72,9 @@ class PublishTraceTransactionService:
         )
         print("First wrong step: " + str(first_wrong_step))
 
-        current_trace = self.execution_trace_query_service(protocol_dict, first_wrong_step)
+        current_trace = self.execution_trace_query_service(
+            protocol_dict["setup_uuid"], first_wrong_step
+        )
         current_trace_values = current_trace[:13].to_list()
         current_trace_values.reverse()
         trace_array = []

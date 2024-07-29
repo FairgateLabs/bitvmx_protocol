@@ -1,7 +1,7 @@
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_generic_challenge_script_generator_service import (
     TriggerGenericChallengeScriptGeneratorService,
 )
-from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
+from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,
 )
 

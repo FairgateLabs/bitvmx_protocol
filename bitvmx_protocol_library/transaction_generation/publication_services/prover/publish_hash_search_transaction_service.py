@@ -11,15 +11,15 @@ from bitvmx_protocol_library.script_generation.services.script_generation.commit
 from bitvmx_protocol_library.script_generation.services.script_generation.commit_search_hashes_script_generator_service import (
     CommitSearchHashesScriptGeneratorService,
 )
+from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
+    GenerateWitnessFromInputNibblesService,
+)
+from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_single_word_service import (
+    GenerateWitnessFromInputSingleWordService,
+)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
     transaction_info_service,
-)
-from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
-    GenerateWitnessFromInputNibblesService,
-)
-from winternitz_keys_handling.services.generate_witness_from_input_single_word_service import (
-    GenerateWitnessFromInputSingleWordService,
 )
 
 
@@ -165,7 +165,9 @@ class PublishHashSearchTransactionService:
             )
         hash_list = []
         for index in index_list:
-            hash_list.append(self.execution_trace_query_service(protocol_dict, index)["step_hash"])
+            hash_list.append(
+                self.execution_trace_query_service(protocol_dict["setup_uuid"], index)["step_hash"]
+            )
         for j in range(len(index_list)):
             protocol_dict["published_hashes_dict"][index_list[j]] = hash_list[j]
         return hash_list

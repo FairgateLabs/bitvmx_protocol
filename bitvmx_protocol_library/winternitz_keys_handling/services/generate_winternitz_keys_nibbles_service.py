@@ -3,8 +3,13 @@ from typing import Optional
 
 from bitcoinutils.keys import PrivateKey
 
-from winternitz_keys_handling.functions.signature_functions import hex_hash160, hex_ripemd160
-from winternitz_keys_handling.services.compute_max_checksum_service import ComputeMaxChecksumService
+from bitvmx_protocol_library.winternitz_keys_handling.functions.signature_functions import (
+    hex_hash160,
+    hex_ripemd160,
+)
+from bitvmx_protocol_library.winternitz_keys_handling.services.compute_max_checksum_service import (
+    ComputeMaxChecksumService,
+)
 
 
 class GenerateWinternitzKeysNibblesService:

@@ -1,5 +1,7 @@
 from multiprocessing import Manager, Process
+from multiprocessing.managers import ListProxy
 from time import time
+from typing import Dict, List, Optional, Union
 
 from bitcoinutils.constants import LEAF_VERSION_TAPSCRIPT
 from bitcoinutils.keys import P2trAddress, PublicKey
@@ -20,15 +22,15 @@ from bitvmx_protocol_library.script_generation.services.split_list_for_merkle_tr
 
 
 def _get_tag_hashed_merkle_root(
-    splitted_key_list,
-    signature_public_keys,
-    public_keys,
-    trace_words_lengths,
-    bits_per_digit_checksum,
-    instruction_dict,
-    trace_to_script_mapping,
-    depth,
-    shared_list=None,
+    splitted_key_list: Union[List, str],
+    signature_public_keys: List[str],
+    public_keys: List[List[str]],
+    trace_words_lengths: List[int],
+    bits_per_digit_checksum: int,
+    instruction_dict: Dict[str, str],
+    trace_to_script_mapping: List[int],
+    depth: int,
+    shared_list: Optional[ListProxy] = None,
 ):
 
     if not splitted_key_list:
@@ -159,17 +161,17 @@ def _get_tag_hashed_merkle_root(
 
 
 def _traverse_level(
-    index,
-    level,
-    already_traversed,
-    depth,
-    signature_public_keys,
-    public_keys,
-    trace_words_lengths,
-    bits_per_digit_checksum,
-    instruction_dict,
-    trace_to_script_mapping,
-    shared_list=None,
+    index: int,
+    level: Union[List, str],
+    already_traversed: int,
+    depth: int,
+    signature_public_keys: List[str],
+    public_keys: List[List[str]],
+    trace_words_lengths: List[int],
+    bits_per_digit_checksum: int,
+    instruction_dict: Dict[str, int],
+    trace_to_script_mapping: List[int],
+    shared_list: Optional[ListProxy] = None,
 ):
     if isinstance(level, list):
         if len(level) == 1:
@@ -319,12 +321,12 @@ def _traverse_level(
 class BitVMXExecutionScriptList:
     def __init__(
         self,
-        key_list,
-        instruction_dict,
-        signature_public_keys,
-        public_keys,
-        trace_words_lengths,
-        bits_per_digit_checksum,
+        key_list: List[str],
+        instruction_dict: Dict[str, str],
+        signature_public_keys: List[str],
+        public_keys: List[List[str]],
+        trace_words_lengths: List[int],
+        bits_per_digit_checksum: int,
     ):
         self.key_list = key_list
         self.instruction_dict = instruction_dict
@@ -335,7 +337,7 @@ class BitVMXExecutionScriptList:
         self.taproot_address = None
 
     @staticmethod
-    def get_tree_depth(splitted_key_list):
+    def get_tree_depth(splitted_key_list: Union[List, str]):
         depth = 1
         current_list = splitted_key_list
         while isinstance(current_list[0], list):
@@ -416,7 +418,7 @@ class BitVMXExecutionScriptList:
         control_block_bytes = leaf_version + pub_key + merkle_path
         return control_block_bytes.hex()
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int):
         execution_challenge_script_from_key_generator_service = (
             ExecutionChallengeScriptFromKeyGeneratorService()
         )

@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic import BaseModel
 
 
@@ -21,7 +23,7 @@ class ExecutionTraceBO(BaseModel):
     write_micro: str
 
     @staticmethod
-    def from_trace_values_list(trace_values_list):
+    def from_trace_values_list(trace_values_list: List[str]):
         reversed_trace_values_list = list(map(lambda x: x[::-1], trace_values_list))
         return ExecutionTraceBO(
             read_1_address=reversed_trace_values_list[12],

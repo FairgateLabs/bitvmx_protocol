@@ -16,7 +16,9 @@ class VerifierExecutionChallengeDetectionService:
     def __call__(self, protocol_dict):
         execution_trace = protocol_dict["published_execution_trace"]
         first_wrong_step = protocol_dict["first_wrong_step"]
-        first_wrong_step_trace = self.execution_trace_query_service(protocol_dict, first_wrong_step)
+        first_wrong_step_trace = self.execution_trace_query_service(
+            protocol_dict["setup_uuid"], first_wrong_step
+        )
         if (
             hex(int(first_wrong_step_trace["write_pc"]))[2:].zfill(8)
             != execution_trace.write_PC_address

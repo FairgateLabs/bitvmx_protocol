@@ -13,11 +13,11 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_ser
 from bitvmx_protocol_library.script_generation.services.script_generation.hash_result_script_generator_service import (
     HashResultScriptGeneratorService,
 )
+from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
+    GenerateWitnessFromInputNibblesService,
+)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
-)
-from winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
-    GenerateWitnessFromInputNibblesService,
 )
 
 
@@ -48,9 +48,9 @@ class PublishHashTransactionService:
         hash_result_tx = protocol_dict["hash_result_tx"]
         hash_result_signatures = protocol_dict["hash_result_signatures"]
 
-        self.execution_trace_generation_service(protocol_dict)
+        self.execution_trace_generation_service(protocol_dict["setup_uuid"])
         last_step_trace = self.execution_trace_query_service(
-            protocol_dict, protocol_dict["amount_of_trace_steps"] - 1
+            protocol_dict["setup_uuid"], protocol_dict["amount_of_trace_steps"] - 1
         )
         hash_result_split_number = _get_result_hash_value(last_step_trace)
 

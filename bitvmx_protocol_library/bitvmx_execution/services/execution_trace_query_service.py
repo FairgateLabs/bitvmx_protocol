@@ -8,13 +8,13 @@ from bitvmx_protocol_library.bitvmx_execution.services.bitvmx_wrapper import Bit
 
 class ExecutionTraceQueryService:
 
-    def __init__(self, base_path):
+    def __init__(self, base_path: str):
         self.base_path = base_path
         self.hashes_checkpoint_interval = 1000000
         self.bitvmx_wrapper = BitVMXWrapper(base_path)
 
-    def get_last_step(self, protocol_dict):
-        directory = self.base_path + protocol_dict["setup_uuid"]
+    def get_last_step(self, setup_uuid: str):
+        directory = self.base_path + setup_uuid
         pattern = re.compile(r"^checkpoint\.\d+\.json$")
 
         # List all files in the specified directory
@@ -45,14 +45,14 @@ class ExecutionTraceQueryService:
             "step_hash",
         ]
 
-    def get_overflow_trace(self, protocol_dict, last_step, index):
+    def get_overflow_trace(self, setup_uuid: str, last_step: int, index: int):
         assert index > last_step
         write_address_hex = "f" * 8
         write_value_hex = "f" * 8
         write_pc_hex = "f" * 8
         write_micro_hex = "f" * 2
         write_trace = write_address_hex + write_value_hex + write_pc_hex + write_micro_hex
-        result = self.bitvmx_wrapper.get_execution_trace(protocol_dict, last_step)
+        result = self.bitvmx_wrapper.get_execution_trace(setup_uuid, last_step)
         step_hash = result.replace("\n", "").split(";")[-1]
         step_dict = {
             "read1_address": "f" * 8,
@@ -73,16 +73,16 @@ class ExecutionTraceQueryService:
         }
         return pd.DataFrame([step_dict]).iloc[0]
 
-    def get_step_trace(self, protocol_dict, index):
-        last_step = self.get_last_step(protocol_dict)
+    def get_step_trace(self, setup_uuid: str, index: int):
+        last_step = self.get_last_step(setup_uuid=setup_uuid)
         headers = self.trace_header()
         if index > last_step:
-            trace = self.get_overflow_trace(protocol_dict, last_step, index)
+            trace = self.get_overflow_trace(setup_uuid=setup_uuid, last_step=last_step, index=index)
             return trace
         else:
-            result = self.bitvmx_wrapper.get_execution_trace(protocol_dict, index)
+            result = self.bitvmx_wrapper.get_execution_trace(setup_uuid=setup_uuid, index=index)
             return pd.DataFrame([result.replace("\n", "").split(";")], columns=headers).iloc[0]
 
-    def __call__(self, protocol_dict, index):
-        trace = self.get_step_trace(protocol_dict, index + 1)
+    def __call__(self, setup_uuid: str, index: int):
+        trace = self.get_step_trace(setup_uuid=setup_uuid, index=index + 1)
         return trace

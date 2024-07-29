@@ -36,9 +36,11 @@ class TriggerProtocolTransactionService:
             ]
         )
 
-        self.execution_trace_generation_service(protocol_dict)
+        self.execution_trace_generation_service(protocol_dict["setup_uuid"])
         last_step_index = protocol_dict["amount_of_trace_steps"] - 1
-        last_step_trace = self.execution_trace_query_service(protocol_dict, last_step_index)
+        last_step_trace = self.execution_trace_query_service(
+            protocol_dict["setup_uuid"], last_step_index
+        )
 
         if not last_step_trace["step_hash"] == published_result_hash:
             # protocol_dict["search_hashes"][len(execution_result) - 1] = published_result_hash

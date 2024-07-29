@@ -1,5 +1,8 @@
 from dependency_injector import containers, providers
 
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.generate_prover_public_keys_service import (
+    GenerateProverPublicKeysService,
+)
 from bitvmx_protocol_library.script_generation.services.scripts_dict_generator_service import (
     ScriptsDictGeneratorService,
 )
@@ -17,9 +20,6 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 )
 from blockchain_query_services.services.mutinynet_api.faucet_service import FaucetService
 from prover_app.api.v1.setup.crud.v1.view_controllers.post import SetupPostViewControllerV1
-from winternitz_keys_handling.services.generate_prover_public_keys_service import (
-    GenerateProverPublicKeysService,
-)
 
 
 class SetupPostViewControllers(containers.DeclarativeContainer):

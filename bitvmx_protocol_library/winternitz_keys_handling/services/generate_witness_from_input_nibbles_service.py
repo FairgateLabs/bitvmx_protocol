@@ -1,16 +1,20 @@
 from typing import List
 
-from winternitz_keys_handling.services.compute_max_checksum_service import ComputeMaxChecksumService
-from winternitz_keys_handling.services.generate_winternitz_keys_nibbles_service import (
+from bitcoinutils.keys import PrivateKey
+
+from bitvmx_protocol_library.winternitz_keys_handling.services.compute_max_checksum_service import (
+    ComputeMaxChecksumService,
+)
+from bitvmx_protocol_library.winternitz_keys_handling.services.generate_winternitz_keys_nibbles_service import (
     GenerateWinternitzKeysNibblesService,
 )
 
 
-def compute_checksum(
-    message,
-    bits_per_digit_checksum,
-    max_checksum_value,
-    n1,
+def _compute_checksum(
+    message: List[int],
+    bits_per_digit_checksum: int,
+    max_checksum_value: int,
+    n1: int,
 ):
     checksum_value = max_checksum_value - sum(message)
 
@@ -34,7 +38,7 @@ def compute_checksum(
 
 class GenerateWitnessFromInputNibblesService:
 
-    def __init__(self, secret_key):
+    def __init__(self, secret_key: PrivateKey):
         self.compute_max_checksum_service = ComputeMaxChecksumService()
         self.generate_winternitz_keys_nibbles_service = GenerateWinternitzKeysNibblesService(
             secret_key
@@ -44,8 +48,8 @@ class GenerateWitnessFromInputNibblesService:
         self,
         step: int,
         case: int,
-        input_numbers: List,
-        bits_per_digit_checksum,
+        input_numbers: List[int],
+        bits_per_digit_checksum: int,
     ):
 
         d0 = 2**4
@@ -53,7 +57,7 @@ class GenerateWitnessFromInputNibblesService:
         d1, n1, max_checksum_value = self.compute_max_checksum_service(
             d0, n0, bits_per_digit_checksum
         )
-        checksum_digits = compute_checksum(
+        checksum_digits = _compute_checksum(
             input_numbers,
             bits_per_digit_checksum,
             max_checksum_value,

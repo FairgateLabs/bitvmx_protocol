@@ -1,14 +1,16 @@
-from winternitz_keys_handling.services.generate_winternitz_keys_nibbles_service import (
+from bitcoinutils.keys import PrivateKey
+
+from bitvmx_protocol_library.winternitz_keys_handling.services.generate_winternitz_keys_nibbles_service import (
     GenerateWinternitzKeysNibblesService,
 )
-from winternitz_keys_handling.services.generate_winternitz_keys_single_word_service import (
+from bitvmx_protocol_library.winternitz_keys_handling.services.generate_winternitz_keys_single_word_service import (
     GenerateWinternitzKeysSingleWordService,
 )
 
 
 class GenerateProverPublicKeysService:
 
-    def __init__(self, private_key):
+    def __init__(self, private_key: PrivateKey):
         self.prover_winternitz_keys_nibbles_service = GenerateWinternitzKeysNibblesService(
             private_key=private_key
         )

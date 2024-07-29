@@ -42,7 +42,9 @@ class NextStepPostViewControllerV1:
             publish_choice_search_transaction_service_class
         )
 
-    async def __call__(self, next_step_post_view_input: NextStepPostV1Input) -> NextStepPostV1Output:
+    async def __call__(
+        self, next_step_post_view_input: NextStepPostV1Input
+    ) -> NextStepPostV1Output:
 
         print("Processing new step")
         setup_uuid = next_step_post_view_input.setup_uuid

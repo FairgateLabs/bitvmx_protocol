@@ -25,7 +25,9 @@ class SignaturesPostViewControllerV1:
         self.generate_signatures_service_class = generate_signatures_service_class
         self.verify_prover_signatures_service_class = verify_prover_signatures_service_class
 
-    async def __call__(self, setup_post_view_input: SignaturesPostV1Input) -> SignaturesPostV1Output:
+    async def __call__(
+        self, setup_post_view_input: SignaturesPostV1Input
+    ) -> SignaturesPostV1Output:
         setup_uuid = setup_post_view_input.setup_uuid
         with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
             protocol_dict = pickle.load(f)

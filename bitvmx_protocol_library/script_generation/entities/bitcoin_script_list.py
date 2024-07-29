@@ -30,7 +30,7 @@ class BitcoinScriptList:
             assert isinstance(elem, BitcoinScript)
         self.script_list.extend(scripts)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int):
         return self.script_list[index]
 
     def to_scripts_tree(self):
