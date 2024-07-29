@@ -25,16 +25,16 @@ from bitvmx_protocol_library.transaction_generation.enums import TransactionProv
 from bitvmx_protocol_library.transaction_generation.generate_signatures_service import (
     GenerateSignaturesService,
 )
-from bitvmx_protocol_library.transaction_generation.publication_services.execution_challenge_transaction_service import (
+from bitvmx_protocol_library.transaction_generation.publication_services.prover.execution_challenge_transaction_service import (
     ExecutionChallengeTransactionService,
 )
-from bitvmx_protocol_library.transaction_generation.publication_services.publish_hash_search_transaction_service import (
+from bitvmx_protocol_library.transaction_generation.publication_services.prover.publish_hash_search_transaction_service import (
     PublishHashSearchTransactionService,
 )
-from bitvmx_protocol_library.transaction_generation.publication_services.publish_hash_transaction_service import (
+from bitvmx_protocol_library.transaction_generation.publication_services.prover.publish_hash_transaction_service import (
     PublishHashTransactionService,
 )
-from bitvmx_protocol_library.transaction_generation.publication_services.publish_trace_transaction_service import (
+from bitvmx_protocol_library.transaction_generation.publication_services.prover.publish_trace_transaction_service import (
     PublishTraceTransactionService,
 )
 from bitvmx_protocol_library.transaction_generation.signatures.verify_verifier_signatures_service import (
@@ -209,7 +209,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     protocol_dict["funds_tx_id"] = funding_tx_id
     protocol_dict["funds_index"] = funding_index
 
-    print("Faucet tx: " + funding_tx_id)
+    print("Funding tx: " + funding_tx_id)
 
     # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
     url = f"{verifier_list[0]}/public_keys"
@@ -363,7 +363,7 @@ async def create_setup(create_setup_body: CreateSetupBody = Body()) -> dict[str,
     broadcast_transaction_service(transaction=funding_tx.serialize())
     print("Funding transaction: " + funding_tx.get_txid())
 
-    return {"id": setup_uuid}
+    return {"setup_uuid": setup_uuid}
 
 
 class PublishNextStepBody(BaseModel):

@@ -1,5 +1,5 @@
 from bitvmx_protocol_library.transaction_generation.enums import TransactionVerifierStepType
-from bitvmx_protocol_library.transaction_generation.publication_services.trigger_wrong_hash_challenge_transaction_service import (
+from bitvmx_protocol_library.transaction_generation.publication_services.verifier.trigger_wrong_hash_challenge_transaction_service import (
     TriggerWrongHashChallengeTransactionService,
 )
 from winternitz_keys_handling.functions.signature_functions import byte_sha256

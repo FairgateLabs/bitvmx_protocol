@@ -20,10 +20,10 @@ from bitvmx_protocol_library.transaction_generation.enums import TransactionVeri
 from bitvmx_protocol_library.transaction_generation.generate_signatures_service import (
     GenerateSignaturesService,
 )
-from bitvmx_protocol_library.transaction_generation.publication_services.publish_choice_search_transaction_service import (
+from bitvmx_protocol_library.transaction_generation.publication_services.verifier.publish_choice_search_transaction_service import (
     PublishChoiceSearchTransactionService,
 )
-from bitvmx_protocol_library.transaction_generation.publication_services.trigger_protocol_transaction_service import (
+from bitvmx_protocol_library.transaction_generation.publication_services.verifier.trigger_protocol_transaction_service import (
     TriggerProtocolTransactionService,
 )
 from bitvmx_protocol_library.transaction_generation.signatures.verify_prover_signatures_service import (
