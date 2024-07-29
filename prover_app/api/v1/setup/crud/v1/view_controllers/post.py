@@ -37,7 +37,7 @@ class SetupPostViewControllerV1:
         self.verify_verifier_signatures_service_class = verify_verifier_signatures_service_class
         self.generate_signatures_service_class = generate_signatures_service_class
 
-    def __call__(self, setup_post_view_input: SetupPostV1Input) -> SetupPostV1Output:
+    async def __call__(self, setup_post_view_input: SetupPostV1Input) -> SetupPostV1Output:
 
         if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
             setup("testnet")
