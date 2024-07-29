@@ -2,12 +2,13 @@ from typing import Optional
 
 import requests
 
+from blockchain_query_services.services.interfaces.faucet_service import FaucetServiceInterface
 from blockchain_query_services.services.mutinynet_api.transaction_info_service import (
     TransactionInfoService,
 )
 
 
-class FaucetService:
+class FaucetService(FaucetServiceInterface):
 
     def __call__(
         self,
