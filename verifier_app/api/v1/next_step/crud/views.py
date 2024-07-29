@@ -26,7 +26,7 @@ from verifier_app.config import protocol_properties
 
 async def _trigger_next_step_prover(next_step_post_view_input: NextStepPostV1Input):
     prover_host = protocol_properties.prover_host
-    url = f"{prover_host}/api/v1/next_step"
+    url = f"{prover_host}/next_step"
     headers = {"accept": "application/json", "Content-Type": "application/json"}
 
     # Be careful, this body is the prover one -> app library
