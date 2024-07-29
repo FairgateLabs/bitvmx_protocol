@@ -4,7 +4,7 @@ import pickle
 
 import httpx
 from bitcoinutils.keys import PrivateKey
-from bitcoinutils.setup import setup
+from bitcoinutils.setup import NETWORK
 
 from bitvmx_protocol_library.enums import BitcoinNetwork
 from bitvmx_protocol_library.transaction_generation.enums import TransactionVerifierStepType
@@ -50,11 +50,10 @@ class NextStepPostViewControllerV1:
         setup_uuid = next_step_post_view_input.setup_uuid
         with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
             protocol_dict = pickle.load(f)
-
         if protocol_dict["network"] == BitcoinNetwork.MUTINYNET:
-            setup("testnet")
+            assert NETWORK == "testnet"
         else:
-            setup(protocol_dict["network"].value)
+            assert NETWORK == protocol_dict["network"].value
         last_confirmed_step = protocol_dict["last_confirmed_step"]
         last_confirmed_step_tx_id = protocol_dict["last_confirmed_step_tx_id"]
 

@@ -3,7 +3,7 @@ import pickle
 import secrets
 
 from bitcoinutils.keys import PrivateKey
-from bitcoinutils.setup import setup
+from bitcoinutils.setup import NETWORK
 
 from bitvmx_protocol_library.enums import BitcoinNetwork
 from verifier_app.api.v1.setup.crud.v1.view_models.post import SetupPostV1Input, SetupPostV1Output
@@ -25,9 +25,9 @@ class SetupPostViewControllerV1:
             "network": setup_post_view_input.network,
         }
         if protocol_dict["network"] == BitcoinNetwork.MUTINYNET:
-            setup("testnet")
+            assert NETWORK == "testnet"
         else:
-            setup(protocol_dict["network"].value)
+            assert NETWORK == protocol_dict["network"].value
         os.makedirs(f"verifier_files/{setup_uuid}")
         with open(f"verifier_files/{setup_uuid}/file_database.pkl", "xb") as f:
             pickle.dump(protocol_dict, f)

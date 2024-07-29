@@ -7,7 +7,6 @@ import uuid
 
 import requests
 from bitcoinutils.keys import PrivateKey, PublicKey
-from bitcoinutils.setup import setup
 from bitcoinutils.transactions import TxWitnessInput
 
 from bitvmx_protocol_library.config import common_protocol_properties
@@ -38,11 +37,6 @@ class SetupPostViewControllerV1:
         self.generate_signatures_service_class = generate_signatures_service_class
 
     async def __call__(self, setup_post_view_input: SetupPostV1Input) -> SetupPostV1Output:
-
-        if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-            setup("testnet")
-        else:
-            setup(common_protocol_properties.network.value)
 
         setup_uuid = str(uuid.uuid4())
         # Variable parameters
