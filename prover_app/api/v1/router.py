@@ -23,5 +23,5 @@ async def next_step_post(next_step_post_input: NextStepPostV1Input = Body()):
 
 
 @router.post("/fund")
-async def fund_post(fund_post_input: FundPostV1Input) -> FundPostV1Output:
+async def fund_post(fund_post_input: FundPostV1Input = Body()) -> FundPostV1Output:
     return await fund_post_view(fund_post_view_input=fund_post_input)

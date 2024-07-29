@@ -73,7 +73,7 @@ async def setup_post_view(setup_post_view_input: SetupPostV1Input):
 
     public_keys = []
     for verifier in verifier_list:
-        url = f"{verifier}/init_setup"
+        url = f"{verifier}/api/v1/setup"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
         data = {"setup_uuid": setup_uuid, "network": common_protocol_properties.network.value}
 
@@ -146,7 +146,7 @@ async def setup_post_view(setup_post_view_input: SetupPostV1Input):
     print("Funding tx: " + funding_tx_id)
 
     # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
-    url = f"{verifier_list[0]}/public_keys"
+    url = f"{verifier_list[0]}/api/v1/public_keys"
     headers = {"accept": "application/json", "Content-Type": "application/json"}
     data = {
         "setup_uuid": setup_uuid,
@@ -219,7 +219,7 @@ async def setup_post_view(setup_post_view_input: SetupPostV1Input):
     trace_signatures = [signatures_dict["trace_signature"]]
     # execution_challenge_signatures = [signatures_dict["execution_challenge_signature"]]
     for verifier in verifier_list:
-        url = f"{verifier}/signatures"
+        url = f"{verifier}/api/v1/signatures"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
         data = {
             "setup_uuid": setup_uuid,

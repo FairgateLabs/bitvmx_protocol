@@ -26,14 +26,15 @@ from prover_app.api.v1.next_step.crud.view_models import NextStepPostV1Input
 from prover_app.config import protocol_properties
 
 
-async def _trigger_next_step_verifier(publish_hash_body: NextStepPostV1Input):
+async def _trigger_next_step_verifier(next_step_post_view_input: NextStepPostV1Input):
     verifier_host = protocol_properties.verifier_list[0]
-    url = f"{verifier_host}/publish_next_step"
+    url = f"{verifier_host}/api/v1/next_step"
     headers = {"accept": "application/json", "Content-Type": "application/json"}
 
+    # Be careful, this body is the verifier one -> app library
     # Make the POST request
     async with httpx.AsyncClient(timeout=1200.0) as client:
-        await client.post(url, headers=headers, json=json.loads(publish_hash_body.json()))
+        await client.post(url, headers=headers, json=json.loads(next_step_post_view_input.json()))
 
 
 async def next_step_post_view(

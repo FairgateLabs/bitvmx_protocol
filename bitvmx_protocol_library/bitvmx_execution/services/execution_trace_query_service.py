@@ -3,7 +3,7 @@ import re
 
 import pandas as pd
 
-from bitvmx_execution.services.bitvmx_wrapper import BitVMXWrapper
+from bitvmx_protocol_library.bitvmx_execution.services.bitvmx_wrapper import BitVMXWrapper
 
 
 class ExecutionTraceQueryService:
