@@ -12,34 +12,33 @@ from bitcoinutils.setup import setup
 from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
-from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.enums import BitcoinNetwork
-from prover_app.config import protocol_properties
-
-if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-    from blockchain_query_services.mutinyet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
-elif common_protocol_properties.network == BitcoinNetwork.TESTNET:
-    from blockchain_query_services.testnet_api.services import TransactionInfoService
-elif common_protocol_properties.network == BitcoinNetwork.MAINNET:
-    from blockchain_query_services.mainnet_api.services.transaction_info_service import (
-        TransactionInfoService,
-    )
-from scripts.scripts_dict_generator_service import ScriptsDictGeneratorService
-from transactions.enums import TransactionVerifierStepType
-from transactions.generate_signatures_service import GenerateSignaturesService
-from transactions.publication_services.publish_choice_search_transaction_service import (
+from bitvmx_protocol_library.script_generation.services.scripts_dict_generator_service import (
+    ScriptsDictGeneratorService,
+)
+from bitvmx_protocol_library.transaction_generation.enums import TransactionVerifierStepType
+from bitvmx_protocol_library.transaction_generation.generate_signatures_service import (
+    GenerateSignaturesService,
+)
+from bitvmx_protocol_library.transaction_generation.publication_services.verifier.publish_choice_search_transaction_service import (
     PublishChoiceSearchTransactionService,
 )
-from transactions.publication_services.trigger_protocol_transaction_service import (
+from bitvmx_protocol_library.transaction_generation.publication_services.verifier.trigger_protocol_transaction_service import (
     TriggerProtocolTransactionService,
 )
-from transactions.signatures.verify_prover_signatures_service import VerifyProverSignaturesService
-from transactions.transaction_generator_from_public_keys_service import (
+from bitvmx_protocol_library.transaction_generation.signatures.verify_prover_signatures_service import (
+    VerifyProverSignaturesService,
+)
+from bitvmx_protocol_library.transaction_generation.transaction_generator_from_public_keys_service import (
     TransactionGeneratorFromPublicKeysService,
 )
-from transactions.verifier_challenge_detection_service import VerifierChallengeDetectionService
+from bitvmx_protocol_library.transaction_generation.verifier_challenge_detection_service import (
+    VerifierChallengeDetectionService,
+)
+from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
+    transaction_info_service,
+)
+from prover_app.config import protocol_properties
 from winternitz_keys_handling.services.generate_verifier_public_keys_service import (
     GenerateVerifierPublicKeysService,
 )
@@ -321,7 +320,6 @@ async def publish_next_step(publish_next_step_body: PublishNextStepBody = Body()
         setup(protocol_dict["network"].value)
     last_confirmed_step = protocol_dict["last_confirmed_step"]
     last_confirmed_step_tx_id = protocol_dict["last_confirmed_step_tx_id"]
-    transaction_info_service = TransactionInfoService()
 
     if last_confirmed_step is None and (
         hash_result_transaction := transaction_info_service(
