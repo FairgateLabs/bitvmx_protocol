@@ -31,9 +31,9 @@ class TriggerExecutionChallengeTransactionService:
         # prover_trigger_challenge_witness = previous_trace_witness[10:246]
 
         prover_trace_witness = protocol_dict["prover_trace_witness"]
-
+        bitvmx_prover_winternitz_public_keys_dto = protocol_dict["bitvmx_prover_winternitz_public_keys_dto"]
         trigger_execution_challenge_tx = protocol_dict["trigger_execution_challenge_tx"]
-        trace_prover_public_keys = protocol_dict["trace_prover_public_keys"]
+
         trace_verifier_public_keys = protocol_dict["trace_verifier_public_keys"]
         signature_public_keys = protocol_dict["public_keys"]
         trace_words_lengths = protocol_dict["trace_words_lengths"]
@@ -77,7 +77,7 @@ class TriggerExecutionChallengeTransactionService:
             )
 
         trigger_execution_script = self.verifier_challenge_execution_script_generator_service(
-            trace_prover_public_keys,
+            bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
             trace_verifier_public_keys,
             signature_public_keys,
             trace_words_lengths,
@@ -102,12 +102,12 @@ class TriggerExecutionChallengeTransactionService:
         processed_values = 0
         for i in reversed(range(len(trace_words_lengths))):
             trigger_challenge_witness += prover_trace_witness[
-                processed_values : processed_values + len(trace_prover_public_keys[i]) * 2
+                processed_values : processed_values + len(bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[i]) * 2
             ]
             trigger_challenge_witness += verifier_trigger_challenge_witness[
                 processed_values : processed_values + len(trace_verifier_public_keys[i]) * 2
             ]
-            processed_values += len(trace_prover_public_keys[i]) * 2
+            processed_values += len(bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[i]) * 2
 
         trigger_execution_challenge_tx.witnesses.append(
             TxWitnessInput(

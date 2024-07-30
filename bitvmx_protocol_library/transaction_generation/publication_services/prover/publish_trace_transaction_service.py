@@ -33,20 +33,15 @@ class PublishTraceTransactionService:
         self.execution_trace_query_service = ExecutionTraceQueryService("prover_files/")
 
     def __call__(self, protocol_dict):
-        trace_words_lengths = protocol_dict["trace_words_lengths"]
-        amount_of_wrong_step_search_iterations = protocol_dict[
-            "amount_of_wrong_step_search_iterations"
-        ]
-        amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
-        amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
+        bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
-        choice_search_prover_public_keys_list = protocol_dict[
-            "choice_search_prover_public_keys_list"
-        ]
         choice_search_verifier_public_keys_list = protocol_dict[
             "choice_search_verifier_public_keys_list"
         ]
         trace_signatures = protocol_dict["trace_signatures"]
+        trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
+
+        bitvmx_prover_winternitz_public_keys_dto = protocol_dict["bitvmx_prover_winternitz_public_keys_dto"]
 
         trace_witness = []
 
@@ -64,7 +59,7 @@ class PublishTraceTransactionService:
         first_wrong_step = int(
             "".join(
                 map(
-                    lambda digit: bin(digit)[2:].zfill(amount_of_bits_wrong_step_search),
+                    lambda digit: bin(digit)[2:].zfill(bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search),
                     protocol_dict["search_choices"],
                 )
             ),
@@ -83,10 +78,10 @@ class PublishTraceTransactionService:
             trace_array.append(hex(int(current_trace_values[j]))[2:].zfill(word_length))
 
         trace_witness += self.generate_prover_witness_from_input_single_word_service(
-            step=(3 + (amount_of_wrong_step_search_iterations - 1) * 2 + 1),
+            step=(3 + (bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations - 1) * 2 + 1),
             case=0,
             input_number=current_choice,
-            amount_of_bits=amount_of_bits_wrong_step_search,
+            amount_of_bits=bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
         )
 
         for word_count in range(len(trace_words_lengths)):
@@ -96,22 +91,21 @@ class PublishTraceTransactionService:
                 input_number.append(int(letter, 16))
 
             trace_witness += self.generate_witness_from_input_nibbles_service(
-                step=3 + amount_of_wrong_step_search_iterations * 2,
+                step=3 + bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations * 2,
                 case=len(trace_words_lengths) - word_count - 1,
                 input_numbers=input_number,
-                bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+                bits_per_digit_checksum=bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             )
 
         trace_tx = protocol_dict["trace_tx"]
-        trace_prover_public_keys = protocol_dict["trace_prover_public_keys"]
 
         trace_script = self.execution_trace_script_generator_service(
             protocol_dict["public_keys"],
-            trace_prover_public_keys,
+            bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
             trace_words_lengths,
-            amount_of_bits_per_digit_checksum,
-            amount_of_bits_wrong_step_search,
-            choice_search_prover_public_keys_list[-1][0],
+            bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list[-1][0],
             choice_search_verifier_public_keys_list[-1][0],
         )
         trace_script_address = destroyed_public_key.get_taproot_address([[trace_script]])

@@ -24,6 +24,7 @@ class TriggerProtocolTransactionService:
 
     def __call__(self, protocol_dict, hash_result_transaction):
         hash_result_witness = hash_result_transaction.inputs[0].witness
+        bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
         public_keys = protocol_dict["public_keys"]
         amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
         hash_witness_portion = hash_result_witness[
@@ -37,7 +38,7 @@ class TriggerProtocolTransactionService:
         )
 
         self.execution_trace_generation_service(protocol_dict["setup_uuid"])
-        last_step_index = protocol_dict["amount_of_trace_steps"] - 1
+        last_step_index = bitvmx_protocol_properties_dto.amount_of_trace_steps - 1
         last_step_trace = self.execution_trace_query_service(
             protocol_dict["setup_uuid"], last_step_index
         )

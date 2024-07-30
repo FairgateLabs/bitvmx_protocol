@@ -86,28 +86,26 @@ class PublishChoiceSearchTransactionService:
         return search_choice_tx_list[i]
 
     def _get_choice(self, i, protocol_dict):
-        amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
+        bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
+
         previous_hash_search_txid = protocol_dict["search_hash_tx_list"][i].get_txid()
         previous_hash_search_tx = transaction_info_service(previous_hash_search_txid)
         previous_hash_search_witness = previous_hash_search_tx.inputs[0].witness
         public_keys = protocol_dict["public_keys"]
         amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
-        amount_of_nibbles_hash_with_checksum = protocol_dict["amount_of_nibbles_hash_with_checksum"]
-        amount_of_wrong_step_search_iterations = protocol_dict[
-            "amount_of_wrong_step_search_iterations"
-        ]
+
         published_hashes = []
         if i == 0:
             choice_offset = 0
         else:
             choice_offset = 8
-        for j in range(2**amount_of_bits_wrong_step_search - 1):
+        for j in range(2**bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search - 1):
             hash_witness_portion = previous_hash_search_witness[
                 len(public_keys)
-                + (amount_of_nibbles_hash_with_checksum * j * 2)
+                + (bitvmx_protocol_properties_dto.amount_of_nibbles_hash_with_checksum * j * 2)
                 + choice_offset : len(public_keys)
                 + 2 * amount_of_nibbles_hash
-                + amount_of_nibbles_hash_with_checksum * j * 2
+                + bitvmx_protocol_properties_dto.amount_of_nibbles_hash_with_checksum * j * 2
                 + choice_offset
             ]
             published_hashes.append(
@@ -121,16 +119,16 @@ class PublishChoiceSearchTransactionService:
         published_hashes.reverse()
         prefix = ""
         for search_choice in protocol_dict["search_choices"]:
-            prefix += bin(search_choice)[2:].zfill(amount_of_bits_wrong_step_search)
+            prefix += bin(search_choice)[2:].zfill(bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search)
         suffix = (
             "1"
-            * amount_of_bits_wrong_step_search
-            * (amount_of_wrong_step_search_iterations - i - 1)
+            * bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+            * (bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations - i - 1)
         )
         index_list = []
-        for j in range(2**amount_of_bits_wrong_step_search - 1):
+        for j in range(2**bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search - 1):
             index_list.append(
-                int(prefix + bin(j)[2:].zfill(amount_of_bits_wrong_step_search) + suffix, 2)
+                int(prefix + bin(j)[2:].zfill(bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search) + suffix, 2)
             )
 
         for j in range(len(index_list)):
@@ -139,8 +137,8 @@ class PublishChoiceSearchTransactionService:
         index_list.append(
             int(
                 prefix
-                + bin(2**amount_of_bits_wrong_step_search - 1)[2:].zfill(
-                    amount_of_bits_wrong_step_search
+                + bin(2**bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search - 1)[2:].zfill(
+                    bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
                 )
                 + suffix,
                 2,

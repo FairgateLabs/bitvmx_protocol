@@ -1,4 +1,4 @@
-from bitvmx_protocol_library.bitvmx_execution.entities.execution_trace_bo import ExecutionTraceBO
+from bitvmx_protocol_library.bitvmx_execution.entities.execution_trace_dto import ExecutionTraceDTO
 from bitvmx_protocol_library.transaction_generation.verifier_challenge_detection.verifier_execution_challenge_detection_service import (
     VerifierExecutionChallengeDetectionService,
 )
@@ -49,7 +49,7 @@ class VerifierChallengeDetectionService:
             current_value = "".join(reversed(current_digits))
             trace_values.append(current_value)
 
-        execution_trace = ExecutionTraceBO.from_trace_values_list(trace_values)
+        execution_trace = ExecutionTraceDTO.from_trace_values_list(trace_values)
         protocol_dict["published_execution_trace"] = execution_trace
 
         amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]

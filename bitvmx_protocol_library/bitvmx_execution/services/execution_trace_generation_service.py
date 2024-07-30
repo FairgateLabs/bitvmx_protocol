@@ -21,7 +21,9 @@ class ExecutionTraceGenerationService:
         self.bitvmx_wrapper = BitVMXWrapper(base_path)
 
     def __call__(self, setup_uuid: str):
-        self.bitvmx_wrapper.generate_execution_checkpoints(setup_uuid, self.elf_file_name)
+        self.bitvmx_wrapper.generate_execution_checkpoints(
+            setup_uuid=setup_uuid, elf_file=self.elf_file_name
+        )
         # return self.execution_trace_parsing_service(
         #     self.base_path + protocol_dict["setup_uuid"] + "/execution_trace.csv", protocol_dict
         # )

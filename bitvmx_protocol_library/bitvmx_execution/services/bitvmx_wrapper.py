@@ -76,8 +76,8 @@ class BitVMXWrapper:
             print("Errors:\n", e.stderr)
             raise Exception("Some problem with the computation")
 
-    def generate_execution_checkpoints(self, protocol_setup_uuid: str, elf_file: str):
-        directory = self.base_path + protocol_setup_uuid
+    def generate_execution_checkpoints(self, setup_uuid: str, elf_file: str):
+        directory = self.base_path + setup_uuid
         pattern = re.compile(r"^checkpoint\.\d+\.json$")
 
         # List all files in the specified directory
@@ -103,7 +103,7 @@ class BitVMXWrapper:
             ]
             if self.contains_fail:
                 command.extend([self.fail_type, self.fail_step])
-            execution_directory = self.base_path + protocol_setup_uuid
+            execution_directory = self.base_path + setup_uuid
 
             try:
                 # Run the command in the specified directory

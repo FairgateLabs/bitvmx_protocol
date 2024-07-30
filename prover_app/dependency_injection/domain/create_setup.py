@@ -17,15 +17,17 @@ from bitvmx_protocol_library.transaction_generation.transaction_generator_from_p
 )
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
+    transaction_info_service,
 )
 from blockchain_query_services.services.mutinynet_api.faucet_service import FaucetService
-from prover_app.domain.controllers.v1.setup.create_setup_controller import CreateSetupController
+from prover_app.domain.v1.setup.controllers.create_setup_controller import CreateSetupController
 
 
 class CreateSetupControllers(containers.DeclarativeContainer):
     bitvmx_protocol = providers.Singleton(
         CreateSetupController,
         broadcast_transaction_service=broadcast_transaction_service,
+        transaction_info_service=transaction_info_service,
         transaction_generator_from_public_keys_service=TransactionGeneratorFromPublicKeysService(),
         faucet_service=FaucetService(),
         scripts_dict_generator_service=ScriptsDictGeneratorService(),

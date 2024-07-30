@@ -26,16 +26,18 @@ class ExecutionChallengeTransactionService:
         )
 
     def __call__(self, protocol_dict):
-        trace_words_lengths = protocol_dict["trace_words_lengths"]
-        trace_prover_public_keys = protocol_dict["trace_prover_public_keys"]
+        bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
+        trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
+
         trigger_execution_challenge_transaction = protocol_dict["trigger_execution_challenge_tx"]
         # execution_challenge_signatures = protocol_dict["execution_challenge_signatures"]
         execution_challenge_tx = protocol_dict["execution_challenge_tx"]
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
         signature_public_keys = protocol_dict["public_keys"]
-        trace_verifier_public_keys = protocol_dict["trace_verifier_public_keys"]
-        amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
         step_fees_satoshis = protocol_dict["step_fees_satoshis"]
+        trace_verifier_public_keys = protocol_dict["trace_verifier_public_keys"]
+
+        bitvmx_prover_winternitz_public_keys_dto = protocol_dict["bitvmx_prover_winternitz_public_keys_dto"]
 
         trigger_execution_challenge_published_transaction = transaction_info_service(
             trigger_execution_challenge_transaction.get_txid()
@@ -48,7 +50,7 @@ class ExecutionChallengeTransactionService:
         processed_values = 0
         real_values = []
         for i in reversed(range(len(trace_words_lengths))):
-            current_keys_length = len(trace_prover_public_keys[i])
+            current_keys_length = len(bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[i])
             current_verifier_witness = trigger_execution_challenge_witness[
                 processed_values
                 + 2 * current_keys_length : processed_values
@@ -78,7 +80,7 @@ class ExecutionChallengeTransactionService:
             signature_public_keys,
             trace_verifier_public_keys,
             trace_words_lengths,
-            amount_of_bits_per_digit_checksum,
+            bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
         if "execution_challenge_address" in protocol_dict:

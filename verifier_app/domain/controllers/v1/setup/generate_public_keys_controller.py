@@ -36,18 +36,9 @@ class GeneratePublicKeysController:
         protocol_dict["seed_destroyed_public_key_hex"] = unspendable_public_key_hex
         protocol_dict["destroyed_public_key"] = destroyed_public_key.to_hex()
         protocol_dict["prover_public_key"] = public_keys_post_view_input.prover_public_key
-        protocol_dict["hash_result_public_keys"] = (
-            public_keys_post_view_input.hash_result_public_keys
-        )
-        protocol_dict["hash_search_public_keys_list"] = (
-            public_keys_post_view_input.hash_search_public_keys_list
-        )
-        protocol_dict["choice_search_prover_public_keys_list"] = (
-            public_keys_post_view_input.choice_search_prover_public_keys_list
-        )
-        protocol_dict["trace_prover_public_keys"] = (
-            public_keys_post_view_input.trace_prover_public_keys
-        )
+        protocol_dict["bitvmx_prover_winternitz_public_keys_dto"] = public_keys_post_view_input.bitvmx_prover_winternitz_public_keys_dto
+        protocol_dict["bitvmx_protocol_setup_properties_dto"] = public_keys_post_view_input.bitvmx_protocol_setup_properties_dto
+        protocol_dict["bitvmx_protocol_properties_dto"] = public_keys_post_view_input.bitvmx_protocol_properties_dto
 
         protocol_dict["trace_words_lengths"] = public_keys_post_view_input.trace_words_lengths
         protocol_dict["amount_of_wrong_step_search_iterations"] = (
@@ -66,15 +57,9 @@ class GeneratePublicKeysController:
         protocol_dict["funds_tx_id"] = public_keys_post_view_input.funds_tx_id
         protocol_dict["funds_index"] = public_keys_post_view_input.funds_index
         protocol_dict["amount_of_nibbles_hash"] = public_keys_post_view_input.amount_of_nibbles_hash
-        protocol_dict["amount_of_nibbles_hash_with_checksum"] = len(
-            public_keys_post_view_input.hash_result_public_keys
-        )
         protocol_dict["controlled_prover_address"] = (
             public_keys_post_view_input.controlled_prover_address
         )
-        protocol_dict["amount_of_trace_steps"] = (
-            2 ** protocol_dict["amount_of_bits_wrong_step_search"]
-        ) ** protocol_dict["amount_of_wrong_step_search_iterations"]
 
         generate_verifier_public_keys_service = self.generate_verifier_public_keys_service_class(
             verifier_private_key

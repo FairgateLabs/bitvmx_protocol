@@ -1,22 +1,33 @@
 import secrets
 
 from bitcoinutils.keys import PrivateKey
+from fastapi import HTTPException
 
-from prover_app.api.v1.setup.crud.v1.view_models.post import SetupPostV1Input, SetupPostV1Output
+from bitvmx_protocol_library.enums import BitcoinNetwork
+from prover_app.api.v1.setup.fund.v1.view_models.post import (
+    SetupFundPostV1Input,
+    SetupFundPostV1Output,
+)
 
 
-class SetupPostViewControllerV1:
+class SetupFundPostViewControllerV1:
     def __init__(
         self,
-        create_setup_controller,
+        create_setup_with_funding_controller,
         protocol_properties,
         common_protocol_properties,
     ):
-        self.create_setup_controller = create_setup_controller
+        self.create_setup_with_funding_controller = create_setup_with_funding_controller
         self.protocol_properties = protocol_properties
         self.common_protocol_properties = common_protocol_properties
 
-    async def __call__(self, setup_post_view_input: SetupPostV1Input) -> SetupPostV1Output:
+    async def __call__(self, setup_post_view_input: SetupFundPostV1Input) -> SetupFundPostV1Output:
+        if not self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+            raise HTTPException(
+                status_code=404,
+                detail="Endpoint not available for network "
+                + str(self.common_protocol_properties.network.value),
+            )
         if setup_post_view_input.verifier_list is None:
             verifier_list = self.protocol_properties.verifier_list
         else:
@@ -27,14 +38,14 @@ class SetupPostViewControllerV1:
             controlled_prover_private_key = PrivateKey(
                 b=bytes.fromhex(self.protocol_properties.prover_private_key)
             )
-        setup_uuid = await self.create_setup_controller(
+
+        setup_uuid = await self.create_setup_with_funding_controller(
             max_amount_of_steps=setup_post_view_input.max_amount_of_steps,
             amount_of_bits_wrong_step_search=setup_post_view_input.amount_of_bits_wrong_step_search,
             amount_of_bits_per_digit_checksum=setup_post_view_input.amount_of_bits_per_digit_checksum,
             verifier_list=verifier_list,
             controlled_prover_private_key=controlled_prover_private_key,
-            funding_tx_id=setup_post_view_input.funding_tx_id,
-            funding_index=setup_post_view_input.funding_index,
+            initial_amount_of_satoshis=self.common_protocol_properties.initial_amount_satoshis,
             step_fees_satoshis=self.common_protocol_properties.step_fees_satoshis,
         )
-        return SetupPostV1Output(setup_uuid=setup_uuid)
+        return SetupFundPostV1Output(setup_uuid=setup_uuid)

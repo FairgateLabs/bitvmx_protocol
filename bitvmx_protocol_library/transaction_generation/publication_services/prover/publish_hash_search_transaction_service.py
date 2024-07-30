@@ -50,25 +50,23 @@ class PublishHashSearchTransactionService:
         ]
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
 
-        hash_search_public_keys_list = protocol_dict["hash_search_public_keys_list"]
-        choice_search_prover_public_keys_list = protocol_dict[
-            "choice_search_prover_public_keys_list"
-        ]
         choice_search_verifier_public_keys_list = protocol_dict[
             "choice_search_verifier_public_keys_list"
         ]
         signature_public_keys = protocol_dict["public_keys"]
         search_hash_signatures = protocol_dict["search_hash_signatures"]
 
+        bitvmx_prover_winternitz_public_keys_dto = protocol_dict["bitvmx_prover_winternitz_public_keys_dto"]
+
         hash_search_witness = []
-        current_hash_public_keys = hash_search_public_keys_list[i]
+        current_hash_public_keys = bitvmx_prover_winternitz_public_keys_dto.hash_search_public_keys_list[i]
 
         if i > 0:
             previous_choice_tx = protocol_dict["search_choice_tx_list"][i - 1].get_txid()
             previous_choice_transaction_info = transaction_info_service(previous_choice_tx)
             previous_witness = previous_choice_transaction_info.inputs[0].witness
             previous_choice_verifier_public_keys = choice_search_verifier_public_keys_list[i - 1]
-            current_choice_prover_public_keys = choice_search_prover_public_keys_list[i - 1]
+            current_choice_prover_public_keys = bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list[i - 1]
             current_hash_search_script = self.commit_search_hashes_script_generator_service(
                 signature_public_keys,
                 current_hash_public_keys,

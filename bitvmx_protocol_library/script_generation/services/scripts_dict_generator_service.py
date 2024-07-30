@@ -41,23 +41,26 @@ class ScriptsDictGeneratorService:
         )
 
     def __call__(self, protocol_dict):
+        bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
+        bitvmx_protocol_setup_properties_dto = protocol_dict["bitvmx_protocol_setup_properties_dto"]
+        bitvmx_prover_winternitz_public_keys_dto = protocol_dict["bitvmx_prover_winternitz_public_keys_dto"]
 
-        amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
-        amount_of_wrong_step_search_iterations = protocol_dict[
-            "amount_of_wrong_step_search_iterations"
-        ]
-        amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
-        amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
-        hash_result_public_keys = protocol_dict["hash_result_public_keys"]
-        hash_search_public_keys_list = protocol_dict["hash_search_public_keys_list"]
-        choice_search_prover_public_keys_list = protocol_dict[
-            "choice_search_prover_public_keys_list"
-        ]
+        # amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
+        # amount_of_wrong_step_search_iterations = protocol_dict[
+        #     "amount_of_wrong_step_search_iterations"
+        # ]
+        # amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
+        # amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
+        # hash_result_public_keys = protocol_dict["hash_result_public_keys"]
+        # hash_search_public_keys_list = protocol_dict["hash_search_public_keys_list"]
+        # choice_search_prover_public_keys_list = protocol_dict[
+        #     "choice_search_prover_public_keys_list"
+        # ]
         choice_search_verifier_public_keys_list = protocol_dict[
             "choice_search_verifier_public_keys_list"
         ]
-        trace_words_lengths = protocol_dict["trace_words_lengths"]
-        trace_prover_public_keys = protocol_dict["trace_prover_public_keys"]
+        trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
+        # trace_prover_public_keys = protocol_dict["trace_prover_public_keys"]
         trace_verifier_public_keys = protocol_dict["trace_verifier_public_keys"]
         signature_public_keys = protocol_dict["public_keys"]
 
@@ -65,9 +68,9 @@ class ScriptsDictGeneratorService:
 
         scripts_dict["hash_result_script"] = self.hash_result_script_generator(
             signature_public_keys,
-            hash_result_public_keys,
-            amount_of_nibbles_hash,
-            amount_of_bits_per_digit_checksum,
+            bitvmx_prover_winternitz_public_keys_dto.hash_result_public_keys,
+            bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+            bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
         scripts_dict["trigger_protocol_script"] = self.trigger_protocol_script_generator(
@@ -76,22 +79,22 @@ class ScriptsDictGeneratorService:
 
         hash_search_scripts = []
         choice_search_scripts = []
-        for iter_count in range(amount_of_wrong_step_search_iterations):
+        for iter_count in range(bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations):
             # Hash
-            current_hash_public_keys = hash_search_public_keys_list[iter_count]
+            current_hash_public_keys = bitvmx_prover_winternitz_public_keys_dto.hash_search_public_keys_list[iter_count]
             if iter_count > 0:
                 previous_choice_verifier_public_keys = choice_search_verifier_public_keys_list[
                     iter_count - 1
                 ]
-                current_choice_prover_public_keys = choice_search_prover_public_keys_list[
+                current_choice_prover_public_keys = bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list[
                     iter_count - 1
                 ]
                 current_search_script = self.commit_search_hashes_script_generator_service(
                     signature_public_keys,
                     current_hash_public_keys,
-                    amount_of_nibbles_hash,
-                    amount_of_bits_per_digit_checksum,
-                    amount_of_bits_wrong_step_search,
+                    bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+                    bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+                    bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
                     current_choice_prover_public_keys[0],
                     previous_choice_verifier_public_keys[0],
                 )
@@ -99,8 +102,8 @@ class ScriptsDictGeneratorService:
                 current_search_script = self.commit_search_hashes_script_generator_service(
                     signature_public_keys,
                     current_hash_public_keys,
-                    amount_of_nibbles_hash,
-                    amount_of_bits_per_digit_checksum,
+                    bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+                    bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
                 )
 
             hash_search_scripts.append(current_search_script)
@@ -110,7 +113,7 @@ class ScriptsDictGeneratorService:
             current_choice_script = self.commit_search_choice_script_generator_service(
                 signature_public_keys,
                 current_choice_public_keys[0],
-                amount_of_bits_wrong_step_search,
+                bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
             )
             choice_search_scripts.append(current_choice_script)
 
@@ -119,21 +122,21 @@ class ScriptsDictGeneratorService:
 
         scripts_dict["trace_script"] = self.execution_trace_script_generator_service(
             signature_public_keys,
-            trace_prover_public_keys,
+            bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
             trace_words_lengths,
-            amount_of_bits_per_digit_checksum,
-            amount_of_bits_wrong_step_search,
-            choice_search_prover_public_keys_list[-1][0],
+            bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list[-1][0],
             choice_search_verifier_public_keys_list[-1][0],
         )
 
         scripts_dict["trigger_execution_script"] = (
             self.verifier_challenge_execution_script_generator_service(
-                trace_prover_public_keys,
+                bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
                 trace_verifier_public_keys,
                 signature_public_keys,
                 trace_words_lengths,
-                amount_of_bits_per_digit_checksum,
+                bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             )
         )
 
@@ -144,7 +147,7 @@ class ScriptsDictGeneratorService:
                 signature_public_keys,
                 trace_verifier_public_keys,
                 trace_words_lengths,
-                amount_of_bits_per_digit_checksum,
+                bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             )
         )
 

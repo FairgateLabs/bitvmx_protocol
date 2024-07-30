@@ -13,15 +13,17 @@ from bitcoinutils.transactions import TxWitnessInput
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
+    BitVMXProtocolSetupPropertiesDTO,
+)
 from bitvmx_protocol_library.config import common_protocol_properties
-from bitvmx_protocol_library.enums import BitcoinNetwork
-from prover_app.config import protocol_properties
 
 
 class CreateSetupController:
     def __init__(
         self,
         broadcast_transaction_service,
+        transaction_info_service,
         transaction_generator_from_public_keys_service,
         faucet_service,
         scripts_dict_generator_service,
@@ -30,6 +32,7 @@ class CreateSetupController:
         generate_signatures_service_class,
     ):
         self.broadcast_transaction_service = broadcast_transaction_service
+        self.transaction_info_service = transaction_info_service
         self.transaction_generator_from_public_keys_service = (
             transaction_generator_from_public_keys_service
         )
@@ -45,6 +48,10 @@ class CreateSetupController:
         amount_of_bits_wrong_step_search: int,
         amount_of_bits_per_digit_checksum: int,
         verifier_list: List[str],
+        controlled_prover_private_key: PrivateKey,
+        funding_tx_id: str,
+        funding_index: str,
+        step_fees_satoshis: int,
     ):
         setup_uuid = str(uuid.uuid4())
         # This is hardcoded since it depends on the hashing function
@@ -55,14 +62,26 @@ class CreateSetupController:
             math.ceil(math.log2(max_amount_of_steps)) / amount_of_bits_wrong_step_search
         )
 
+        funding_tx = self.transaction_info_service(tx_id=funding_tx_id)
+        initial_amount_of_satoshis = funding_tx.outputs[funding_index].value - step_fees_satoshis
         bitvmx_protocol_properties_dto = BitVMXProtocolPropertiesDTO(
             max_amount_of_steps=max_amount_of_steps,
             amount_of_bits_wrong_step_search=amount_of_bits_wrong_step_search,
             amount_of_bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
         )
 
+        bitvmx_protocol_setup_properties_dto = BitVMXProtocolSetupPropertiesDTO(
+            setup_uuid=setup_uuid,
+            funding_amount_of_satoshis=initial_amount_of_satoshis,
+            step_fees_satoshis=step_fees_satoshis,
+            funding_tx_id=funding_tx_id,
+            funding_index=funding_index,
+            verifier_list=verifier_list,
+        )
+
         protocol_dict = {}
         protocol_dict["bitvmx_protocol_properties_dto"] = bitvmx_protocol_properties_dto
+        protocol_dict["bitvmx_protocol_setup_properties_dto"] = bitvmx_protocol_setup_properties_dto
         protocol_dict["setup_uuid"] = setup_uuid
         protocol_dict["amount_of_trace_steps"] = (
             2**amount_of_bits_wrong_step_search
@@ -92,17 +111,8 @@ class CreateSetupController:
             else:
                 raise Exception("Some error ocurred with the setup call to the verifier")
 
-        # Generate prover private key
-        if protocol_properties.prover_private_key is None:
-            controlled_prover_private_key = PrivateKey(b=secrets.token_bytes(32))
-        else:
-            controlled_prover_private_key = PrivateKey(
-                b=bytes.fromhex(protocol_properties.prover_private_key)
-            )
-
         controlled_prover_public_key = controlled_prover_private_key.get_public_key()
         controlled_prover_address = controlled_prover_public_key.get_segwit_address().to_string()
-        # public_keys.append(prover_public_key.to_hex())
 
         protocol_dict["controlled_prover_secret_key"] = (
             controlled_prover_private_key.to_bytes().hex()
@@ -138,43 +148,35 @@ class CreateSetupController:
         generate_prover_public_keys_service = self.generate_prover_public_keys_service_class(
             prover_private_key
         )
-        generate_prover_public_keys_service(protocol_dict)
 
-        initial_amount_satoshis = common_protocol_properties.initial_amount_satoshis
-        step_fees_satoshis = common_protocol_properties.step_fees_satoshis
+        bitvmx_prover_winternitz_public_keys_dto = generate_prover_public_keys_service(
+            protocol_dict=protocol_dict,
+            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+        )
 
-        if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-            funding_tx_id, funding_index = self.faucet_service(
-                amount=initial_amount_satoshis + step_fees_satoshis,
-                destination_address=controlled_prover_public_key.get_segwit_address().to_string(),
-            )
-        else:
-            funding_tx_id = protocol_properties.funding_tx_id
-            funding_index = protocol_properties.funding_index
+        protocol_dict["bitvmx_prover_winternitz_public_keys_dto"] = bitvmx_prover_winternitz_public_keys_dto
 
         protocol_dict["funds_tx_id"] = funding_tx_id
         protocol_dict["funds_index"] = funding_index
 
         print("Funding tx: " + funding_tx_id)
 
-        # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
+        # Think how to iterate all verifiers here -> Make a call per verifier
+        # All verifiers should sign all transactions so they are sure there is not any of them lying
         url = f"{verifier_list[0]}/public_keys"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
         data = {
             "setup_uuid": setup_uuid,
             "seed_destroyed_public_key_hex": seed_destroyed_public_key_hex,
             "prover_public_key": prover_public_key.to_hex(),
-            "hash_result_public_keys": protocol_dict["hash_result_public_keys"],
-            "hash_search_public_keys_list": protocol_dict["hash_search_public_keys_list"],
-            "choice_search_prover_public_keys_list": protocol_dict[
-                "choice_search_prover_public_keys_list"
-            ],
-            "trace_words_lengths": protocol_dict["trace_words_lengths"],
-            "trace_prover_public_keys": protocol_dict["trace_prover_public_keys"],
+            "trace_words_lengths": bitvmx_protocol_properties_dto.trace_words_lengths[::-1],
+            "bitvmx_prover_winternitz_public_keys_dto": bitvmx_prover_winternitz_public_keys_dto.dict(),
+            "bitvmx_protocol_setup_properties_dto": bitvmx_protocol_setup_properties_dto.dict(),
+            "bitvmx_protocol_properties_dto": bitvmx_protocol_properties_dto.dict(),
             "amount_of_wrong_step_search_iterations": amount_of_wrong_step_search_iterations,
             "amount_of_bits_wrong_step_search": amount_of_bits_wrong_step_search,
             "amount_of_bits_per_digit_checksum": amount_of_bits_per_digit_checksum,
-            "funding_amount_satoshis": initial_amount_satoshis,
+            "funding_amount_satoshis": initial_amount_of_satoshis,
             "step_fees_satoshis": step_fees_satoshis,
             "funds_tx_id": funding_tx_id,
             "funds_index": funding_index,
@@ -202,12 +204,12 @@ class CreateSetupController:
 
         scripts_dict = self.scripts_dict_generator_service(protocol_dict)
 
-        protocol_dict["initial_amount_satoshis"] = initial_amount_satoshis
+        protocol_dict["initial_amount_satoshis"] = initial_amount_of_satoshis
         protocol_dict["step_fees_satoshis"] = step_fees_satoshis
 
         # We need to know the origin of the funds or change the signature to only sign the output (it's possible and gives more flexibility)
 
-        funding_result_output_amount = initial_amount_satoshis
+        funding_result_output_amount = initial_amount_of_satoshis
         protocol_dict["funding_amount_satoshis"] = funding_result_output_amount
 
         # Transaction construction
@@ -301,7 +303,7 @@ class CreateSetupController:
             funding_tx,
             0,
             controlled_prover_public_key.get_address().to_script_pub_key(),
-            initial_amount_satoshis + step_fees_satoshis,
+            initial_amount_of_satoshis + step_fees_satoshis,
         )
 
         funding_tx.witnesses.append(
