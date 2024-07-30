@@ -1,16 +1,7 @@
-import asyncio
 import json
-import pickle
 
 import httpx
-from bitcoinutils.keys import PrivateKey
-from bitcoinutils.setup import NETWORK
 
-from bitvmx_protocol_library.enums import BitcoinNetwork
-from bitvmx_protocol_library.transaction_generation.enums import TransactionVerifierStepType
-from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
-    transaction_info_service,
-)
 from verifier_app.api.v1.next_step.crud.v1.view_models.post import (
     NextStepPostV1Input,
     NextStepPostV1Output,
@@ -32,15 +23,9 @@ async def _trigger_next_step_prover(next_step_post_view_input: NextStepPostV1Inp
 class NextStepPostViewControllerV1:
     def __init__(
         self,
-        trigger_protocol_transaction_service,
-        verifier_challenge_detection_service,
-        publish_choice_search_transaction_service_class,
+        publish_next_step_controller,
     ):
-        self.trigger_protocol_transaction_service = trigger_protocol_transaction_service
-        self.verifier_challenge_detection_service = verifier_challenge_detection_service
-        self.publish_choice_search_transaction_service_class = (
-            publish_choice_search_transaction_service_class
-        )
+        self.publish_next_step_controller = publish_next_step_controller
 
     async def __call__(
         self, next_step_post_view_input: NextStepPostV1Input
@@ -48,93 +33,5 @@ class NextStepPostViewControllerV1:
 
         print("Processing new step")
         setup_uuid = next_step_post_view_input.setup_uuid
-        with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
-            protocol_dict = pickle.load(f)
-        if protocol_dict["network"] == BitcoinNetwork.MUTINYNET:
-            assert NETWORK == "testnet"
-        else:
-            assert NETWORK == protocol_dict["network"].value
-        last_confirmed_step = protocol_dict["last_confirmed_step"]
-        last_confirmed_step_tx_id = protocol_dict["last_confirmed_step_tx_id"]
-
-        if last_confirmed_step is None and (
-            hash_result_transaction := transaction_info_service(
-                protocol_dict["hash_result_tx"].get_txid()
-            )
-        ):
-            last_confirmed_step_tx = self.trigger_protocol_transaction_service(
-                protocol_dict, hash_result_transaction
-            )
-            last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-            last_confirmed_step = TransactionVerifierStepType.TRIGGER_PROTOCOL
-            protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-            protocol_dict["last_confirmed_step"] = last_confirmed_step
-        elif last_confirmed_step is TransactionVerifierStepType.TRIGGER_PROTOCOL:
-            ## VERIFY THE PREVIOUS STEP ##
-            verifier_private_key = PrivateKey(
-                b=bytes.fromhex(protocol_dict["verifier_private_key"])
-            )
-            i = 0
-            publish_choice_search_transaction_service = (
-                self.publish_choice_search_transaction_service_class(verifier_private_key)
-            )
-            last_confirmed_step_tx = publish_choice_search_transaction_service(protocol_dict, i)
-            last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-            last_confirmed_step = TransactionVerifierStepType.SEARCH_STEP_CHOICE
-            protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-            protocol_dict["last_confirmed_step"] = last_confirmed_step
-        elif (
-            last_confirmed_step is TransactionVerifierStepType.SEARCH_STEP_CHOICE
-            and last_confirmed_step_tx_id == protocol_dict["search_choice_tx_list"][-1].get_txid()
-        ):
-            challenge_transaction_service, transaction_step_type = (
-                self.verifier_challenge_detection_service(protocol_dict)
-            )
-            # As of now, this only holds for single step challenges
-            if challenge_transaction_service is not None and transaction_step_type is not None:
-                verifier_private_key = PrivateKey(
-                    b=bytes.fromhex(protocol_dict["verifier_private_key"])
-                )
-                trigger_challenge_transaction_service = challenge_transaction_service(
-                    verifier_private_key
-                )
-                last_confirmed_step_tx = trigger_challenge_transaction_service(protocol_dict)
-                last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-                last_confirmed_step = transaction_step_type
-                protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-                protocol_dict["last_confirmed_step"] = last_confirmed_step
-        elif last_confirmed_step is TransactionVerifierStepType.SEARCH_STEP_CHOICE:
-            ## VERIFY THE PREVIOUS STEP ##
-            verifier_private_key = PrivateKey(
-                b=bytes.fromhex(protocol_dict["verifier_private_key"])
-            )
-            i = 0
-            for i in range(len(protocol_dict["search_choice_tx_list"])):
-                if (
-                    protocol_dict["search_choice_tx_list"][i].get_txid()
-                    == protocol_dict["last_confirmed_step_tx_id"]
-                ):
-                    break
-            i += 1
-            if i < len(protocol_dict["search_choice_tx_list"]):
-                publish_choice_search_transaction_service = (
-                    self.publish_choice_search_transaction_service_class(verifier_private_key)
-                )
-                last_confirmed_step_tx = publish_choice_search_transaction_service(protocol_dict, i)
-                last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-                last_confirmed_step = TransactionVerifierStepType.SEARCH_STEP_CHOICE
-                protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-                protocol_dict["last_confirmed_step"] = last_confirmed_step
-
-        if last_confirmed_step in [
-            TransactionVerifierStepType.TRIGGER_PROTOCOL,
-            TransactionVerifierStepType.SEARCH_STEP_CHOICE,
-            TransactionVerifierStepType.TRIGGER_EXECUTION_CHALLENGE,
-            TransactionVerifierStepType.TRIGGER_WRONG_HASH_CHALLENGE,
-        ]:
-            asyncio.create_task(_trigger_next_step_prover(next_step_post_view_input))
-
-        with open(f"verifier_files/{setup_uuid}/file_database.pkl", "wb") as f:
-            pickle.dump(protocol_dict, f)
-
+        last_confirmed_step = await self.publish_next_step_controller(setup_uuid=setup_uuid)
         return NextStepPostV1Output(setup_uuid=setup_uuid, executed_step=last_confirmed_step)

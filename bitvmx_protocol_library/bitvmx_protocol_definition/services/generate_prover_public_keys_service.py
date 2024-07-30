@@ -3,8 +3,9 @@ from bitcoinutils.keys import PrivateKey
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import \
-    BitVMXProverWinternitzPublicKeysDTO
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
+    BitVMXProverWinternitzPublicKeysDTO,
+)
 from bitvmx_protocol_library.winternitz_keys_handling.services.generate_winternitz_keys_nibbles_service import (
     GenerateWinternitzKeysNibblesService,
 )
@@ -33,13 +34,19 @@ class GenerateProverPublicKeysService:
 
         hash_search_public_keys_list = []
         choice_search_prover_public_keys_list = []
-        for iter_count in range(bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations):
+        for iter_count in range(
+            bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+        ):
             current_iteration_hash_keys = []
 
-            for word_count in range(bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration):
+            for word_count in range(
+                bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
+            ):
                 current_iteration_hash_keys.append(
                     self.prover_winternitz_keys_nibbles_service(
-                        step=(3 + iter_count * 2), case=word_count, n0=bitvmx_protocol_properties_dto.amount_of_nibbles_hash
+                        step=(3 + iter_count * 2),
+                        case=word_count,
+                        n0=bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
                     )
                 )
             current_iteration_hash_public_keys = []

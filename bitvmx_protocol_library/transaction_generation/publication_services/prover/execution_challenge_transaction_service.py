@@ -37,7 +37,9 @@ class ExecutionChallengeTransactionService:
         step_fees_satoshis = protocol_dict["step_fees_satoshis"]
         trace_verifier_public_keys = protocol_dict["trace_verifier_public_keys"]
 
-        bitvmx_prover_winternitz_public_keys_dto = protocol_dict["bitvmx_prover_winternitz_public_keys_dto"]
+        bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
+            "bitvmx_prover_winternitz_public_keys_dto"
+        ]
 
         trigger_execution_challenge_published_transaction = transaction_info_service(
             trigger_execution_challenge_transaction.get_txid()
@@ -50,7 +52,9 @@ class ExecutionChallengeTransactionService:
         processed_values = 0
         real_values = []
         for i in reversed(range(len(trace_words_lengths))):
-            current_keys_length = len(bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[i])
+            current_keys_length = len(
+                bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[i]
+            )
             current_verifier_witness = trigger_execution_challenge_witness[
                 processed_values
                 + 2 * current_keys_length : processed_values

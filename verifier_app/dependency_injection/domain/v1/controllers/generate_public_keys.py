@@ -3,7 +3,7 @@ from dependency_injector import containers, providers
 from bitvmx_protocol_library.bitvmx_protocol_definition.services.generate_verifier_public_keys_service import (
     GenerateVerifierPublicKeysService,
 )
-from verifier_app.domain.controllers.v1.setup.generate_public_keys_controller import (
+from verifier_app.domain.v1.public_keys.controllers.generate_public_keys_controller import (
     GeneratePublicKeysController,
 )
 

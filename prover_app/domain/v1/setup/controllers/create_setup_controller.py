@@ -154,7 +154,9 @@ class CreateSetupController:
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
         )
 
-        protocol_dict["bitvmx_prover_winternitz_public_keys_dto"] = bitvmx_prover_winternitz_public_keys_dto
+        protocol_dict["bitvmx_prover_winternitz_public_keys_dto"] = (
+            bitvmx_prover_winternitz_public_keys_dto
+        )
 
         protocol_dict["funds_tx_id"] = funding_tx_id
         protocol_dict["funds_index"] = funding_index

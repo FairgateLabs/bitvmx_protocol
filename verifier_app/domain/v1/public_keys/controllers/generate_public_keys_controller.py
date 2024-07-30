@@ -36,9 +36,15 @@ class GeneratePublicKeysController:
         protocol_dict["seed_destroyed_public_key_hex"] = unspendable_public_key_hex
         protocol_dict["destroyed_public_key"] = destroyed_public_key.to_hex()
         protocol_dict["prover_public_key"] = public_keys_post_view_input.prover_public_key
-        protocol_dict["bitvmx_prover_winternitz_public_keys_dto"] = public_keys_post_view_input.bitvmx_prover_winternitz_public_keys_dto
-        protocol_dict["bitvmx_protocol_setup_properties_dto"] = public_keys_post_view_input.bitvmx_protocol_setup_properties_dto
-        protocol_dict["bitvmx_protocol_properties_dto"] = public_keys_post_view_input.bitvmx_protocol_properties_dto
+        protocol_dict["bitvmx_prover_winternitz_public_keys_dto"] = (
+            public_keys_post_view_input.bitvmx_prover_winternitz_public_keys_dto
+        )
+        protocol_dict["bitvmx_protocol_setup_properties_dto"] = (
+            public_keys_post_view_input.bitvmx_protocol_setup_properties_dto
+        )
+        protocol_dict["bitvmx_protocol_properties_dto"] = (
+            public_keys_post_view_input.bitvmx_protocol_properties_dto
+        )
 
         protocol_dict["trace_words_lengths"] = public_keys_post_view_input.trace_words_lengths
         protocol_dict["amount_of_wrong_step_search_iterations"] = (

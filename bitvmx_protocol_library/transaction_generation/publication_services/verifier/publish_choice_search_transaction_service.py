@@ -119,7 +119,9 @@ class PublishChoiceSearchTransactionService:
         published_hashes.reverse()
         prefix = ""
         for search_choice in protocol_dict["search_choices"]:
-            prefix += bin(search_choice)[2:].zfill(bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search)
+            prefix += bin(search_choice)[2:].zfill(
+                bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+            )
         suffix = (
             "1"
             * bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
@@ -128,7 +130,14 @@ class PublishChoiceSearchTransactionService:
         index_list = []
         for j in range(2**bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search - 1):
             index_list.append(
-                int(prefix + bin(j)[2:].zfill(bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search) + suffix, 2)
+                int(
+                    prefix
+                    + bin(j)[2:].zfill(
+                        bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                    )
+                    + suffix,
+                    2,
+                )
             )
 
         for j in range(len(index_list)):
@@ -137,9 +146,9 @@ class PublishChoiceSearchTransactionService:
         index_list.append(
             int(
                 prefix
-                + bin(2**bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search - 1)[2:].zfill(
-                    bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
-                )
+                + bin(2**bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search - 1)[
+                    2:
+                ].zfill(bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search)
                 + suffix,
                 2,
             )

@@ -62,7 +62,9 @@ class PublishHashTransactionService:
             bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
         )
 
-        bitvmx_prover_winternitz_public_keys_dto = protocol_dict["bitvmx_prover_winternitz_public_keys_dto"]
+        bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
+            "bitvmx_prover_winternitz_public_keys_dto"
+        ]
 
         hash_result_script = self.hash_result_script_generator(
             protocol_dict["public_keys"],

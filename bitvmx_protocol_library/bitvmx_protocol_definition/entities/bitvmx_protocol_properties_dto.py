@@ -54,4 +54,6 @@ class BitVMXProtocolPropertiesDTO(BaseModel):
 
     @property
     def amount_of_trace_steps(self):
-        return (2**self.amount_of_bits_wrong_step_search)**self.amount_of_wrong_step_search_iterations
+        return (
+            2**self.amount_of_bits_wrong_step_search
+        ) ** self.amount_of_wrong_step_search_iterations

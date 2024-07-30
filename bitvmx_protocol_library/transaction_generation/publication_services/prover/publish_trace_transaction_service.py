@@ -41,7 +41,9 @@ class PublishTraceTransactionService:
         trace_signatures = protocol_dict["trace_signatures"]
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
 
-        bitvmx_prover_winternitz_public_keys_dto = protocol_dict["bitvmx_prover_winternitz_public_keys_dto"]
+        bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
+            "bitvmx_prover_winternitz_public_keys_dto"
+        ]
 
         trace_witness = []
 
@@ -59,7 +61,9 @@ class PublishTraceTransactionService:
         first_wrong_step = int(
             "".join(
                 map(
-                    lambda digit: bin(digit)[2:].zfill(bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search),
+                    lambda digit: bin(digit)[2:].zfill(
+                        bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                    ),
                     protocol_dict["search_choices"],
                 )
             ),
@@ -78,7 +82,11 @@ class PublishTraceTransactionService:
             trace_array.append(hex(int(current_trace_values[j]))[2:].zfill(word_length))
 
         trace_witness += self.generate_prover_witness_from_input_single_word_service(
-            step=(3 + (bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations - 1) * 2 + 1),
+            step=(
+                3
+                + (bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations - 1) * 2
+                + 1
+            ),
             case=0,
             input_number=current_choice,
             amount_of_bits=bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,

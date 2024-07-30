@@ -42,8 +42,10 @@ class ScriptsDictGeneratorService:
 
     def __call__(self, protocol_dict):
         bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
-        bitvmx_protocol_setup_properties_dto = protocol_dict["bitvmx_protocol_setup_properties_dto"]
-        bitvmx_prover_winternitz_public_keys_dto = protocol_dict["bitvmx_prover_winternitz_public_keys_dto"]
+        # bitvmx_protocol_setup_properties_dto = protocol_dict["bitvmx_protocol_setup_properties_dto"]
+        bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
+            "bitvmx_prover_winternitz_public_keys_dto"
+        ]
 
         # amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
         # amount_of_wrong_step_search_iterations = protocol_dict[
@@ -79,16 +81,22 @@ class ScriptsDictGeneratorService:
 
         hash_search_scripts = []
         choice_search_scripts = []
-        for iter_count in range(bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations):
+        for iter_count in range(
+            bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+        ):
             # Hash
-            current_hash_public_keys = bitvmx_prover_winternitz_public_keys_dto.hash_search_public_keys_list[iter_count]
+            current_hash_public_keys = (
+                bitvmx_prover_winternitz_public_keys_dto.hash_search_public_keys_list[iter_count]
+            )
             if iter_count > 0:
                 previous_choice_verifier_public_keys = choice_search_verifier_public_keys_list[
                     iter_count - 1
                 ]
-                current_choice_prover_public_keys = bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list[
-                    iter_count - 1
-                ]
+                current_choice_prover_public_keys = (
+                    bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list[
+                        iter_count - 1
+                    ]
+                )
                 current_search_script = self.commit_search_hashes_script_generator_service(
                     signature_public_keys,
                     current_hash_public_keys,
