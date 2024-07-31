@@ -173,18 +173,9 @@ class CreateSetupController:
             "setup_uuid": setup_uuid,
             "seed_destroyed_public_key_hex": seed_destroyed_public_key_hex,
             "prover_public_key": prover_public_key.to_hex(),
-            "trace_words_lengths": bitvmx_protocol_properties_dto.trace_words_lengths[::-1],
             "bitvmx_prover_winternitz_public_keys_dto": bitvmx_prover_winternitz_public_keys_dto.dict(),
             "bitvmx_protocol_setup_properties_dto": bitvmx_protocol_setup_properties_dto.dict(),
             "bitvmx_protocol_properties_dto": bitvmx_protocol_properties_dto.dict(),
-            "amount_of_wrong_step_search_iterations": amount_of_wrong_step_search_iterations,
-            "amount_of_bits_wrong_step_search": amount_of_bits_wrong_step_search,
-            "amount_of_bits_per_digit_checksum": amount_of_bits_per_digit_checksum,
-            "funding_amount_satoshis": initial_amount_of_satoshis,
-            "step_fees_satoshis": step_fees_satoshis,
-            "funds_tx_id": funding_tx_id,
-            "funds_index": funding_index,
-            "amount_of_nibbles_hash": amount_of_nibbles_hash,
             "controlled_prover_address": controlled_prover_address,
         }
 

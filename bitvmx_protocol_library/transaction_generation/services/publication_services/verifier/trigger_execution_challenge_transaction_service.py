@@ -2,12 +2,15 @@ from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import \
-    BitVMXProtocolPropertiesDTO
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import \
-    BitVMXProverWinternitzPublicKeysDTO
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import \
-    BitVMXVerifierWinternitzPublicKeysDTO
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
+    BitVMXProtocolPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
+    BitVMXProverWinternitzPublicKeysDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
+    BitVMXVerifierWinternitzPublicKeysDTO,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_generic_challenge_script_generator_service import (
     TriggerGenericChallengeScriptGeneratorService,
 )
@@ -29,11 +32,11 @@ class TriggerExecutionChallengeTransactionService:
         )
 
     def __call__(
-            self,
-            protocol_dict,
-            bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
-            bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
-            bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
+        self,
+        protocol_dict,
+        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
+        bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
     ):
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
 
@@ -53,7 +56,9 @@ class TriggerExecutionChallengeTransactionService:
         consumed_items = 0
         trace_values = []
         for i in range(len(bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys)):
-            current_public_keys = bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[i]
+            current_public_keys = (
+                bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[i]
+            )
             current_length = trace_words_lengths[i]
             current_witness = prover_trace_witness[
                 len(prover_trace_witness)
@@ -113,7 +118,8 @@ class TriggerExecutionChallengeTransactionService:
                 + len(bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[i]) * 2
             ]
             trigger_challenge_witness += verifier_trigger_challenge_witness[
-                processed_values : processed_values + len(bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[i]) * 2
+                processed_values : processed_values
+                + len(bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[i]) * 2
             ]
             processed_values += (
                 len(bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[i]) * 2

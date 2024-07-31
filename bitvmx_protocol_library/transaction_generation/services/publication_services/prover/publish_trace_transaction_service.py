@@ -5,12 +5,15 @@ from bitcoinutils.utils import ControlBlock
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
     ExecutionTraceQueryService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import \
-    BitVMXProtocolPropertiesDTO
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import \
-    BitVMXProverWinternitzPublicKeysDTO
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import \
-    BitVMXVerifierWinternitzPublicKeysDTO
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
+    BitVMXProtocolPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
+    BitVMXProverWinternitzPublicKeysDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
+    BitVMXVerifierWinternitzPublicKeysDTO,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.execution_trace_script_generator_service import (
     ExecutionTraceScriptGeneratorService,
 )
@@ -39,11 +42,11 @@ class PublishTraceTransactionService:
         self.execution_trace_query_service = ExecutionTraceQueryService("prover_files/")
 
     def __call__(
-            self,
-            protocol_dict,
-            bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
-            bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
-            bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
+        self,
+        protocol_dict,
+        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
+        bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
     ):
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
         trace_signatures = protocol_dict["trace_signatures"]
@@ -118,7 +121,9 @@ class PublishTraceTransactionService:
             bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
             bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list[-1][0],
-            bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list[-1][0],
+            bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list[-1][
+                0
+            ],
         )
         trace_script_address = destroyed_public_key.get_taproot_address([[trace_script]])
 

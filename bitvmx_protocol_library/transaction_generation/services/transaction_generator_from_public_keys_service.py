@@ -15,9 +15,6 @@ class TransactionGeneratorFromPublicKeysService:
 
     def __call__(self, protocol_dict):
 
-        funds_tx_id = protocol_dict["funds_tx_id"]
-        funds_index = protocol_dict["funds_index"]
-        funding_result_output_amount = protocol_dict["funding_amount_satoshis"]
         step_fees_satoshis = protocol_dict["step_fees_satoshis"]
         amount_of_wrong_step_search_iterations = protocol_dict[
             "amount_of_wrong_step_search_iterations"
@@ -26,6 +23,7 @@ class TransactionGeneratorFromPublicKeysService:
         destroyed_public_key = PublicKey(hex_str="02" + protocol_dict["destroyed_public_key"])
 
         bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
+        bitvmx_protocol_setup_properties_dto = protocol_dict["bitvmx_protocol_setup_properties_dto"]
         bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
             "bitvmx_prover_winternitz_public_keys_dto"
         ]
@@ -40,17 +38,23 @@ class TransactionGeneratorFromPublicKeysService:
             signature_public_keys=protocol_dict["public_keys"],
         )
 
-        funding_txin = TxInput(funds_tx_id, funds_index)
+        funding_txin = TxInput(
+            bitvmx_protocol_setup_properties_dto.funding_tx_id,
+            bitvmx_protocol_setup_properties_dto.funding_index,
+        )
         # hash_result_script_address = destroyed_public_key.get_taproot_address([[hash_result_script]])
 
-        protocol_dict["funding_amount_satoshis"] = funding_result_output_amount
+        protocol_dict["funding_amount_satoshis"] = (
+            bitvmx_protocol_setup_properties_dto.funding_mount_of_satoshis
+        )
 
         hash_result_script_address = destroyed_public_key.get_taproot_address(
             [[scripts_dict["hash_result_script"]]]
         )
 
         funding_txout = TxOutput(
-            funding_result_output_amount, hash_result_script_address.to_script_pub_key()
+            bitvmx_protocol_setup_properties_dto.funding_mount_of_satoshis,
+            hash_result_script_address.to_script_pub_key(),
         )
         funding_tx = Transaction([funding_txin], [funding_txout], has_segwit=True)
 
@@ -61,7 +65,9 @@ class TransactionGeneratorFromPublicKeysService:
         )
 
         hash_result_txin = TxInput(funding_tx.get_txid(), 0)
-        hash_result_output_amount = funding_result_output_amount - step_fees_satoshis
+        hash_result_output_amount = (
+            bitvmx_protocol_setup_properties_dto.funding_mount_of_satoshis - step_fees_satoshis
+        )
         # first_txOut = TxOutput(first_output_amount, P2wpkhAddress.from_address(address=faucet_address).to_script_pub_key())
         hash_result_txOut = TxOutput(
             hash_result_output_amount, trigger_protocol_script_address.to_script_pub_key()

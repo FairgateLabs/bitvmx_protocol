@@ -50,8 +50,12 @@ class PublishNextStepController:
         last_confirmed_step_tx_id = protocol_dict["last_confirmed_step_tx_id"]
 
         bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
-        bitvmx_prover_winternitz_public_keys_dto = protocol_dict["bitvmx_prover_winternitz_public_keys_dto"]
-        bitvmx_verifier_winternitz_public_keys_dto = protocol_dict["bitvmx_verifier_winternitz_public_keys_dto"]
+        bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
+            "bitvmx_prover_winternitz_public_keys_dto"
+        ]
+        bitvmx_verifier_winternitz_public_keys_dto = protocol_dict[
+            "bitvmx_verifier_winternitz_public_keys_dto"
+        ]
 
         if last_confirmed_step is None and (
             hash_result_transaction := transaction_info_service(
@@ -75,7 +79,12 @@ class PublishNextStepController:
                 self.publish_choice_search_transaction_service_class(verifier_private_key)
             )
             last_confirmed_step_tx = publish_choice_search_transaction_service(
-                protocol_dict=protocol_dict, iteration=i, bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto, bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto, bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto)
+                protocol_dict=protocol_dict,
+                iteration=i,
+                bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
+                bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+            )
             last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
             last_confirmed_step = TransactionVerifierStepType.SEARCH_STEP_CHOICE
             protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
@@ -86,7 +95,10 @@ class PublishNextStepController:
         ):
             challenge_transaction_service, transaction_step_type = (
                 self.verifier_challenge_detection_service(
-                    protocol_dict=protocol_dict, bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto, bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto, bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto
+                    protocol_dict=protocol_dict,
+                    bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                    bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
+                    bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
                 )
             )
             # As of now, this only holds for single step challenges
@@ -97,7 +109,12 @@ class PublishNextStepController:
                 trigger_challenge_transaction_service = challenge_transaction_service(
                     verifier_private_key
                 )
-                last_confirmed_step_tx = trigger_challenge_transaction_service(protocol_dict=protocol_dict, bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto, bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto, bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto)
+                last_confirmed_step_tx = trigger_challenge_transaction_service(
+                    protocol_dict=protocol_dict,
+                    bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                    bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
+                    bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+                )
                 last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
                 last_confirmed_step = transaction_step_type
                 protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
@@ -119,7 +136,13 @@ class PublishNextStepController:
                 publish_choice_search_transaction_service = (
                     self.publish_choice_search_transaction_service_class(verifier_private_key)
                 )
-                last_confirmed_step_tx = publish_choice_search_transaction_service(protocol_dict=protocol_dict, iteration=i, bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto, bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto, bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto)
+                last_confirmed_step_tx = publish_choice_search_transaction_service(
+                    protocol_dict=protocol_dict,
+                    iteration=i,
+                    bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                    bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
+                    bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+                )
                 last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
                 last_confirmed_step = TransactionVerifierStepType.SEARCH_STEP_CHOICE
                 protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id

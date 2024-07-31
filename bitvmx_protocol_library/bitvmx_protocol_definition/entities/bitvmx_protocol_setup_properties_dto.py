@@ -12,3 +12,5 @@ class BitVMXProtocolSetupPropertiesDTO(BaseModel):
     verifier_list: List[str]
     # controlled_prover_address: str
     # controlled_verifier_address: str
+    # destroyed_prover_public_key: str
+    # destroyed_verifier_public_key: str

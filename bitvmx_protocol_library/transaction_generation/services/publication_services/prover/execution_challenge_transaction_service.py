@@ -5,12 +5,15 @@ from bitcoinutils.transactions import TxWitnessInput
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_commitment_generation_service import (
     ExecutionTraceCommitmentGenerationService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import \
-    BitVMXProtocolPropertiesDTO
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import \
-    BitVMXProverWinternitzPublicKeysDTO
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import \
-    BitVMXVerifierWinternitzPublicKeysDTO
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
+    BitVMXProtocolPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
+    BitVMXProverWinternitzPublicKeysDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
+    BitVMXVerifierWinternitzPublicKeysDTO,
+)
 from bitvmx_protocol_library.script_generation.services.execution_challenge_script_list_generator_service import (
     ExecutionChallengeScriptListGeneratorService,
 )
@@ -32,11 +35,11 @@ class ExecutionChallengeTransactionService:
         )
 
     def __call__(
-            self,
-            protocol_dict,
-            bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
-            bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
-            bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
+        self,
+        protocol_dict,
+        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
+        bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
     ):
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
 
