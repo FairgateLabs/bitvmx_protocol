@@ -45,6 +45,7 @@ class GenerateSignaturesController:
         protocol_dict["trigger_execution_signature"] = trigger_execution_signature
 
         bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
+        bitvmx_protocol_setup_properties_dto = protocol_dict["bitvmx_protocol_setup_properties_dto"]
         bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
             "bitvmx_prover_winternitz_public_keys_dto"
         ]
@@ -53,7 +54,13 @@ class GenerateSignaturesController:
         ]
 
         # Transaction construction
-        self.transaction_generator_from_public_keys_service(protocol_dict)
+        self.transaction_generator_from_public_keys_service(
+            protocol_dict,
+            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
+            bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+        )
 
         # Scripts construction
         scripts_dict = self.scripts_dict_generator_service(
@@ -75,12 +82,18 @@ class GenerateSignaturesController:
             protocol_dict["trigger_protocol_prover_signature"],
             protocol_dict["search_choice_prover_signatures"],
             protocol_dict["trigger_execution_signature"],
+            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
 
         generate_signatures_service = self.generate_signatures_service_class(
             verifier_private_key, destroyed_public_key
         )
-        signatures_dict = generate_signatures_service(protocol_dict, scripts_dict)
+        signatures_dict = generate_signatures_service(
+            protocol_dict=protocol_dict,
+            scripts_dict=scripts_dict,
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+        )
 
         hash_result_signature_verifier = signatures_dict["hash_result_signature"]
         protocol_dict["trigger_protocol_signatures"] = [

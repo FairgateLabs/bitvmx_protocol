@@ -63,7 +63,9 @@ class PublishNextStepController:
             )
         ):
             last_confirmed_step_tx = self.trigger_protocol_transaction_service(
-                protocol_dict, hash_result_transaction
+                protocol_dict=protocol_dict,
+                hash_result_transaction=hash_result_transaction,
+                bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             )
             last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
             last_confirmed_step = TransactionVerifierStepType.TRIGGER_PROTOCOL

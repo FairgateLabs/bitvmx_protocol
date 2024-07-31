@@ -43,7 +43,7 @@ class VerifierChallengeDetectionService:
         prover_trace_witness = previous_trace_witness[10:246]
         protocol_dict["prover_trace_witness"] = prover_trace_witness
 
-        trace_words_lengths = protocol_dict["trace_words_lengths"]
+        trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
 
         consumed_items = 0
         trace_values = []
@@ -68,11 +68,12 @@ class VerifierChallengeDetectionService:
         execution_trace = ExecutionTraceDTO.from_trace_values_list(trace_values)
         protocol_dict["published_execution_trace"] = execution_trace
 
-        amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
         first_wrong_step = int(
             "".join(
                 map(
-                    lambda digit: bin(digit)[2:].zfill(amount_of_bits_wrong_step_search),
+                    lambda digit: bin(digit)[2:].zfill(
+                        bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                    ),
                     protocol_dict["search_choices"],
                 )
             ),

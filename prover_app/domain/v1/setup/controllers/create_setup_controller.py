@@ -214,14 +214,24 @@ class CreateSetupController:
 
         # Transaction construction
 
-        self.transaction_generator_from_public_keys_service(protocol_dict)
+        self.transaction_generator_from_public_keys_service(
+            protocol_dict=protocol_dict,
+            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
+            bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+        )
 
         # Signature computation
 
         generate_signatures_service = self.generate_signatures_service_class(
             prover_private_key, destroyed_public_key
         )
-        signatures_dict = generate_signatures_service(protocol_dict, scripts_dict)
+        signatures_dict = generate_signatures_service(
+            protocol_dict=protocol_dict,
+            scripts_dict=scripts_dict,
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+        )
 
         # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
         hash_result_signatures = [signatures_dict["hash_result_signature"]]

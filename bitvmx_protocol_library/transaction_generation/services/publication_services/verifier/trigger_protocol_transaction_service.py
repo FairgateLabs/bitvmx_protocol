@@ -8,6 +8,9 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_generatio
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
     ExecutionTraceQueryService,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
+    BitVMXProtocolPropertiesDTO,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
 )
@@ -22,13 +25,17 @@ class TriggerProtocolTransactionService:
         self.execution_trace_generation_service = ExecutionTraceGenerationService("verifier_files/")
         self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
 
-    def __call__(self, protocol_dict, hash_result_transaction):
+    def __call__(
+        self,
+        protocol_dict,
+        hash_result_transaction,
+        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+    ):
         hash_result_witness = hash_result_transaction.inputs[0].witness
-        bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
         public_keys = protocol_dict["public_keys"]
-        amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
         hash_witness_portion = hash_result_witness[
-            len(public_keys) : len(public_keys) + 2 * amount_of_nibbles_hash
+            len(public_keys) : len(public_keys)
+            + 2 * bitvmx_protocol_properties_dto.amount_of_nibbles_hash
         ]
         published_result_hash = "".join(
             [
