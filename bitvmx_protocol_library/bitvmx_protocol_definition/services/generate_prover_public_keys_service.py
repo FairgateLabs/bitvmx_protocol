@@ -24,13 +24,12 @@ class GenerateProverPublicKeysService:
             private_key=private_key
         )
 
-    def __call__(self, protocol_dict, bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO):
+    def __call__(self, bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO):
 
         hash_result_keys = self.prover_winternitz_keys_nibbles_service(
             step=1, case=0, n0=bitvmx_protocol_properties_dto.amount_of_nibbles_hash
         )
         hash_result_public_keys = list(map(lambda key_list: key_list[-1], hash_result_keys))
-        # protocol_dict["hash_result_public_keys"] = hash_result_public_keys
 
         hash_search_public_keys_list = []
         choice_search_prover_public_keys_list = []
@@ -73,15 +72,8 @@ class GenerateProverPublicKeysService:
                 current_iteration_prover_choice_public_keys
             )
 
-        # protocol_dict["hash_search_public_keys_list"] = hash_search_public_keys_list
-        # protocol_dict["choice_search_prover_public_keys_list"] = (
-        #     choice_search_prover_public_keys_list
-        # )
-
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths
         trace_words_lengths.reverse()
-
-        # protocol_dict["trace_words_lengths"] = trace_words_lengths
 
         current_step = 3 + 2 * bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
         trace_prover_keys = []
@@ -97,7 +89,6 @@ class GenerateProverPublicKeysService:
                 list(map(lambda key_list: key_list[-1], keys_list_of_lists))
             )
 
-        # protocol_dict["trace_prover_public_keys"] = trace_prover_public_keys
         return BitVMXProverWinternitzPublicKeysDTO(
             hash_result_public_keys=hash_result_public_keys,
             hash_search_public_keys_list=hash_search_public_keys_list,

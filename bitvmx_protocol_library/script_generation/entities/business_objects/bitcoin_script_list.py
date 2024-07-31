@@ -2,7 +2,9 @@ from typing import List, Optional, Union
 
 from bitcoinutils.keys import PublicKey
 
-from bitvmx_protocol_library.script_generation.entities.bitcoin_script import BitcoinScript
+from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin_script import (
+    BitcoinScript,
+)
 from bitvmx_protocol_library.script_generation.services.split_list_for_merkle_tree_service import (
     SplitListForMerkleTreeService,
 )

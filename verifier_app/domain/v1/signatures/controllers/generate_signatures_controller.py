@@ -44,11 +44,24 @@ class GenerateSignaturesController:
         protocol_dict["search_choice_prover_signatures"] = search_choice_signatures
         protocol_dict["trigger_execution_signature"] = trigger_execution_signature
 
+        bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
+        bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
+            "bitvmx_prover_winternitz_public_keys_dto"
+        ]
+        bitvmx_verifier_winternitz_public_keys_dto = protocol_dict[
+            "bitvmx_verifier_winternitz_public_keys_dto"
+        ]
+
         # Transaction construction
         self.transaction_generator_from_public_keys_service(protocol_dict)
 
         # Scripts construction
-        scripts_dict = self.scripts_dict_generator_service(protocol_dict)
+        scripts_dict = self.scripts_dict_generator_service(
+            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+            bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
+            bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+            signature_public_keys=protocol_dict["public_keys"],
+        )
 
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
 

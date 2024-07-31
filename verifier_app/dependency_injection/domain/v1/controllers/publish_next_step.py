@@ -1,12 +1,10 @@
 from dependency_injector import containers, providers
 
-from bitvmx_protocol_library.transaction_generation.publication_services.verifier.publish_choice_search_transaction_service import (
-    PublishChoiceSearchTransactionService,
-)
-from bitvmx_protocol_library.transaction_generation.publication_services.verifier.trigger_protocol_transaction_service import (
-    TriggerProtocolTransactionService,
-)
-from bitvmx_protocol_library.transaction_generation.verifier_challenge_detection_service import (
+from bitvmx_protocol_library.transaction_generation.services.publication_services.verifier.publish_choice_search_transaction_service import \
+    PublishChoiceSearchTransactionService
+from bitvmx_protocol_library.transaction_generation.services.publication_services.verifier.trigger_protocol_transaction_service import \
+    TriggerProtocolTransactionService
+from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection_service import (
     VerifierChallengeDetectionService,
 )
 from verifier_app.config import protocol_properties

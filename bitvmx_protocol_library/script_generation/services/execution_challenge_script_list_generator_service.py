@@ -4,7 +4,7 @@ from time import time
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_commitment_generation_service import (
     ExecutionTraceCommitmentGenerationService,
 )
-from bitvmx_protocol_library.script_generation.entities.bitvmx_execution_script_list import (
+from bitvmx_protocol_library.script_generation.entities.business_objects.bitvmx_execution_script_list import (
     BitVMXExecutionScriptList,
 )
 from bitvmx_protocol_library.script_generation.services.script_generation.execution_challenge_script_from_key_generator_service import (

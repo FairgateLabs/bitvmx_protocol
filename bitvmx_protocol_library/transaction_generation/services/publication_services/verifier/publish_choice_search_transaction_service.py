@@ -5,6 +5,15 @@ from bitcoinutils.utils import ControlBlock
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
     ExecutionTraceQueryService,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
+    BitVMXProtocolPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
+    BitVMXProverWinternitzPublicKeysDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
+    BitVMXVerifierWinternitzPublicKeysDTO,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
 )
@@ -28,18 +37,26 @@ class PublishChoiceSearchTransactionService:
         )
         self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
 
-    def __call__(self, protocol_dict, i):
+    def __call__(
+        self,
+        protocol_dict,
+        iteration: int,
+        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
+        bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
+    ):
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
         amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
         search_choice_tx_list = protocol_dict["search_choice_tx_list"]
 
-        choice_search_verifier_public_keys_list = protocol_dict[
-            "choice_search_verifier_public_keys_list"
-        ]
         signature_public_keys = protocol_dict["public_keys"]
         search_choice_signatures = protocol_dict["search_choice_signatures"]
 
-        current_choice_public_keys = choice_search_verifier_public_keys_list[i]
+        current_choice_public_keys = (
+            bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list[
+                iteration
+            ]
+        )
         current_choice_search_script = self.commit_search_choice_script_generator_service(
             signature_public_keys,
             current_choice_public_keys[0],
@@ -47,10 +64,10 @@ class PublishChoiceSearchTransactionService:
         )
 
         choice_search_witness = []
-        current_choice = self._get_choice(i, protocol_dict)
+        current_choice = self._get_choice(iteration, protocol_dict)
         protocol_dict["search_choices"].append(current_choice)
         choice_search_witness += self.generate_verifier_witness_from_input_single_word_service(
-            step=(3 + i * 2 + 1),
+            step=(3 + iteration * 2 + 1),
             case=0,
             input_number=current_choice,
             amount_of_bits=amount_of_bits_wrong_step_search,
@@ -65,9 +82,9 @@ class PublishChoiceSearchTransactionService:
             is_odd=current_choice_search_scripts_address.is_odd(),
         )
 
-        search_choice_tx_list[i].witnesses.append(
+        search_choice_tx_list[iteration].witnesses.append(
             TxWitnessInput(
-                search_choice_signatures[i]
+                search_choice_signatures[iteration]
                 + choice_search_witness
                 + [
                     current_choice_search_script.to_hex(),
@@ -76,26 +93,26 @@ class PublishChoiceSearchTransactionService:
             )
         )
 
-        broadcast_transaction_service(transaction=search_choice_tx_list[i].serialize())
+        broadcast_transaction_service(transaction=search_choice_tx_list[iteration].serialize())
         print(
             "Search choice iteration transaction "
-            + str(i)
+            + str(iteration)
             + ": "
-            + search_choice_tx_list[i].get_txid()
+            + search_choice_tx_list[iteration].get_txid()
         )
-        return search_choice_tx_list[i]
+        return search_choice_tx_list[iteration]
 
-    def _get_choice(self, i, protocol_dict):
+    def _get_choice(self, iteration, protocol_dict):
         bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
 
-        previous_hash_search_txid = protocol_dict["search_hash_tx_list"][i].get_txid()
+        previous_hash_search_txid = protocol_dict["search_hash_tx_list"][iteration].get_txid()
         previous_hash_search_tx = transaction_info_service(previous_hash_search_txid)
         previous_hash_search_witness = previous_hash_search_tx.inputs[0].witness
         public_keys = protocol_dict["public_keys"]
         amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
 
         published_hashes = []
-        if i == 0:
+        if iteration == 0:
             choice_offset = 0
         else:
             choice_offset = 8
@@ -125,7 +142,11 @@ class PublishChoiceSearchTransactionService:
         suffix = (
             "1"
             * bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
-            * (bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations - i - 1)
+            * (
+                bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+                - iteration
+                - 1
+            )
         )
         index_list = []
         for j in range(2**bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search - 1):

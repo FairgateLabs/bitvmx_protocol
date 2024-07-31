@@ -16,6 +16,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
+    BitVMXVerifierWinternitzPublicKeysDTO,
+)
 from bitvmx_protocol_library.config import common_protocol_properties
 
 
@@ -150,7 +153,6 @@ class CreateSetupController:
         )
 
         bitvmx_prover_winternitz_public_keys_dto = generate_prover_public_keys_service(
-            protocol_dict=protocol_dict,
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
         )
 
@@ -191,20 +193,25 @@ class CreateSetupController:
             raise Exception("Some error with the public keys verifier call")
         public_keys_response_json = public_keys_response.json()
 
-        choice_search_verifier_public_keys_list = public_keys_response_json[
-            "choice_search_verifier_public_keys_list"
-        ]
-        protocol_dict["choice_search_verifier_public_keys_list"] = (
-            choice_search_verifier_public_keys_list
+        bitvmx_verifier_winternitz_public_keys_dto = BitVMXVerifierWinternitzPublicKeysDTO(
+            **public_keys_response_json["bitvmx_verifier_winternitz_public_keys_dto"]
         )
+
+        protocol_dict["bitvmx_verifier_winternitz_public_keys_dto"] = (
+            bitvmx_verifier_winternitz_public_keys_dto
+        )
+
         verifier_public_key = public_keys_response_json["verifier_public_key"]
         protocol_dict["verifier_public_key"] = verifier_public_key
-        trace_verifier_public_keys = public_keys_response_json["trace_verifier_public_keys"]
-        protocol_dict["trace_verifier_public_keys"] = trace_verifier_public_keys
 
         ## Scripts building ##
 
-        scripts_dict = self.scripts_dict_generator_service(protocol_dict)
+        scripts_dict = self.scripts_dict_generator_service(
+            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+            bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
+            bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+            signature_public_keys=protocol_dict["public_keys"],
+        )
 
         protocol_dict["initial_amount_satoshis"] = initial_amount_of_satoshis
         protocol_dict["step_fees_satoshis"] = step_fees_satoshis

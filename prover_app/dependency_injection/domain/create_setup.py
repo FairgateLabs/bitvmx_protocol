@@ -6,13 +6,13 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.services.generate_prover
 from bitvmx_protocol_library.script_generation.services.scripts_dict_generator_service import (
     ScriptsDictGeneratorService,
 )
-from bitvmx_protocol_library.transaction_generation.generate_signatures_service import (
+from bitvmx_protocol_library.transaction_generation.services.generate_signatures_service import (
     GenerateSignaturesService,
 )
-from bitvmx_protocol_library.transaction_generation.signatures.verify_verifier_signatures_service import (
+from bitvmx_protocol_library.transaction_generation.services.signature_verification.verify_verifier_signatures_service import (
     VerifyVerifierSignaturesService,
 )
-from bitvmx_protocol_library.transaction_generation.transaction_generator_from_public_keys_service import (
+from bitvmx_protocol_library.transaction_generation.services.transaction_generator_from_public_keys_service import (
     TransactionGeneratorFromPublicKeysService,
 )
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (

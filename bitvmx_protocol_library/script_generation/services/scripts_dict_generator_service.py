@@ -1,3 +1,14 @@
+from typing import List
+
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
+    BitVMXProtocolPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
+    BitVMXProverWinternitzPublicKeysDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
+    BitVMXVerifierWinternitzPublicKeysDTO,
+)
 from bitvmx_protocol_library.script_generation.services.execution_challenge_script_list_generator_service import (
     ExecutionChallengeScriptListGeneratorService,
 )
@@ -40,31 +51,15 @@ class ScriptsDictGeneratorService:
             ExecutionChallengeScriptListGeneratorService()
         )
 
-    def __call__(self, protocol_dict):
-        bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
-        # bitvmx_protocol_setup_properties_dto = protocol_dict["bitvmx_protocol_setup_properties_dto"]
-        bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
-            "bitvmx_prover_winternitz_public_keys_dto"
-        ]
+    def __call__(
+        self,
+        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
+        bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
+        signature_public_keys: List[str],
+    ) -> dict:
 
-        # amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
-        # amount_of_wrong_step_search_iterations = protocol_dict[
-        #     "amount_of_wrong_step_search_iterations"
-        # ]
-        # amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
-        # amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
-        # hash_result_public_keys = protocol_dict["hash_result_public_keys"]
-        # hash_search_public_keys_list = protocol_dict["hash_search_public_keys_list"]
-        # choice_search_prover_public_keys_list = protocol_dict[
-        #     "choice_search_prover_public_keys_list"
-        # ]
-        choice_search_verifier_public_keys_list = protocol_dict[
-            "choice_search_verifier_public_keys_list"
-        ]
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
-        # trace_prover_public_keys = protocol_dict["trace_prover_public_keys"]
-        trace_verifier_public_keys = protocol_dict["trace_verifier_public_keys"]
-        signature_public_keys = protocol_dict["public_keys"]
 
         scripts_dict = {}
 
@@ -89,7 +84,7 @@ class ScriptsDictGeneratorService:
                 bitvmx_prover_winternitz_public_keys_dto.hash_search_public_keys_list[iter_count]
             )
             if iter_count > 0:
-                previous_choice_verifier_public_keys = choice_search_verifier_public_keys_list[
+                previous_choice_verifier_public_keys = bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list[
                     iter_count - 1
                 ]
                 current_choice_prover_public_keys = (
@@ -117,7 +112,11 @@ class ScriptsDictGeneratorService:
             hash_search_scripts.append(current_search_script)
 
             # Choice
-            current_choice_public_keys = choice_search_verifier_public_keys_list[iter_count]
+            current_choice_public_keys = (
+                bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list[
+                    iter_count
+                ]
+            )
             current_choice_script = self.commit_search_choice_script_generator_service(
                 signature_public_keys,
                 current_choice_public_keys[0],
@@ -135,13 +134,15 @@ class ScriptsDictGeneratorService:
             bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
             bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list[-1][0],
-            choice_search_verifier_public_keys_list[-1][0],
+            bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list[-1][
+                0
+            ],
         )
 
         scripts_dict["trigger_execution_script"] = (
             self.verifier_challenge_execution_script_generator_service(
                 bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
-                trace_verifier_public_keys,
+                bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
                 signature_public_keys,
                 trace_words_lengths,
                 bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
@@ -153,7 +154,7 @@ class ScriptsDictGeneratorService:
         scripts_dict["execution_challenge_script_list"] = (
             self.execution_challenge_script_list_generator_service(
                 signature_public_keys,
-                trace_verifier_public_keys,
+                bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
                 trace_words_lengths,
                 bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             )

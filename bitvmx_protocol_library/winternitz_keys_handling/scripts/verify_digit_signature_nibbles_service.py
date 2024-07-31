@@ -1,7 +1,9 @@
 import math
 from typing import List, Optional
 
-from bitvmx_protocol_library.script_generation.entities.bitcoin_script import BitcoinScript
+from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin_script import (
+    BitcoinScript,
+)
 from bitvmx_protocol_library.winternitz_keys_handling.services.compute_max_checksum_service import (
     ComputeMaxChecksumService,
 )

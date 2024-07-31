@@ -49,7 +49,14 @@ class PublishNextStepController:
         with open(f"prover_files/{setup_uuid}/file_database.pkl", "rb") as f:
             protocol_dict = pickle.load(f)
 
+        bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
         bitvmx_protocol_setup_properties_dto = protocol_dict["bitvmx_protocol_setup_properties_dto"]
+        bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
+            "bitvmx_prover_winternitz_public_keys_dto"
+        ]
+        bitvmx_verifier_winternitz_public_keys_dto = protocol_dict[
+            "bitvmx_verifier_winternitz_public_keys_dto"
+        ]
 
         prover_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["prover_secret_key"]))
         last_confirmed_step = protocol_dict["last_confirmed_step"]
@@ -70,7 +77,13 @@ class PublishNextStepController:
             publish_hash_search_transaction_service = (
                 self.publish_hash_search_transaction_service_class(prover_private_key)
             )
-            last_confirmed_step_tx = publish_hash_search_transaction_service(protocol_dict, 0)
+            last_confirmed_step_tx = publish_hash_search_transaction_service(
+                protocol_dict=protocol_dict,
+                iteration=0,
+                bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
+                bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+            )
             last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
             last_confirmed_step = TransactionProverStepType.SEARCH_STEP_HASH
             protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
@@ -85,7 +98,12 @@ class PublishNextStepController:
                 publish_trace_transaction_service = self.publish_trace_transaction_service_class(
                     prover_private_key
                 )
-                last_confirmed_step_tx = publish_trace_transaction_service(protocol_dict)
+                last_confirmed_step_tx = publish_trace_transaction_service(
+                    protocol_dict=protocol_dict,
+                    bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                    bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
+                    bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+                )
                 last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
                 last_confirmed_step = TransactionProverStepType.TRACE
                 protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
@@ -108,7 +126,11 @@ class PublishNextStepController:
                         self.publish_hash_search_transaction_service_class(prover_private_key)
                     )
                     last_confirmed_step_tx = publish_hash_search_transaction_service(
-                        protocol_dict, i
+                        protocol_dict=protocol_dict,
+                        iteration=i,
+                        bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                        bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
+                        bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
                     )
                     last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
                     last_confirmed_step = TransactionProverStepType.SEARCH_STEP_HASH
@@ -122,7 +144,12 @@ class PublishNextStepController:
                 execution_challenge_transaction_service = (
                     self.execution_challenge_transaction_service_class()
                 )
-                last_confirmed_step_tx = execution_challenge_transaction_service(protocol_dict)
+                last_confirmed_step_tx = execution_challenge_transaction_service(
+                    protocol_dict=protocol_dict,
+                    bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                    bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
+                    bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+                )
                 last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
                 last_confirmed_step = TransactionProverStepType.EXECUTION_CHALLENGE
                 protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id

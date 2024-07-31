@@ -1,15 +1,15 @@
 from dependency_injector import containers, providers
 
-from bitvmx_protocol_library.transaction_generation.publication_services.prover.execution_challenge_transaction_service import (
+from bitvmx_protocol_library.transaction_generation.services.publication_services.prover.execution_challenge_transaction_service import (
     ExecutionChallengeTransactionService,
 )
-from bitvmx_protocol_library.transaction_generation.publication_services.prover.publish_hash_search_transaction_service import (
+from bitvmx_protocol_library.transaction_generation.services.publication_services.prover.publish_hash_search_transaction_service import (
     PublishHashSearchTransactionService,
 )
-from bitvmx_protocol_library.transaction_generation.publication_services.prover.publish_hash_transaction_service import (
+from bitvmx_protocol_library.transaction_generation.services.publication_services.prover.publish_hash_transaction_service import (
     PublishHashTransactionService,
 )
-from bitvmx_protocol_library.transaction_generation.publication_services.prover.publish_trace_transaction_service import (
+from bitvmx_protocol_library.transaction_generation.services.publication_services.prover.publish_trace_transaction_service import (
     PublishTraceTransactionService,
 )
 from blockchain_query_services.common.transaction_published_service import (

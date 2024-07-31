@@ -5,6 +5,12 @@ from bitcoinutils.transactions import TxWitnessInput
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_commitment_generation_service import (
     ExecutionTraceCommitmentGenerationService,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import \
+    BitVMXProtocolPropertiesDTO
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import \
+    BitVMXProverWinternitzPublicKeysDTO
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import \
+    BitVMXVerifierWinternitzPublicKeysDTO
 from bitvmx_protocol_library.script_generation.services.execution_challenge_script_list_generator_service import (
     ExecutionChallengeScriptListGeneratorService,
 )
@@ -25,8 +31,13 @@ class ExecutionChallengeTransactionService:
             )
         )
 
-    def __call__(self, protocol_dict):
-        bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
+    def __call__(
+            self,
+            protocol_dict,
+            bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+            bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
+            bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
+    ):
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
 
         trigger_execution_challenge_transaction = protocol_dict["trigger_execution_challenge_tx"]
@@ -35,7 +46,6 @@ class ExecutionChallengeTransactionService:
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
         signature_public_keys = protocol_dict["public_keys"]
         step_fees_satoshis = protocol_dict["step_fees_satoshis"]
-        trace_verifier_public_keys = protocol_dict["trace_verifier_public_keys"]
 
         bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
             "bitvmx_prover_winternitz_public_keys_dto"
@@ -82,7 +92,7 @@ class ExecutionChallengeTransactionService:
 
         execution_challenge_script_list = self.execution_challenge_script_generator_service(
             signature_public_keys,
-            trace_verifier_public_keys,
+            bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
             trace_words_lengths,
             bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )

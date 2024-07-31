@@ -25,7 +25,20 @@ class TransactionGeneratorFromPublicKeysService:
 
         destroyed_public_key = PublicKey(hex_str="02" + protocol_dict["destroyed_public_key"])
 
-        scripts_dict = self.scripts_dict_generator_service(protocol_dict)
+        bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
+        bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
+            "bitvmx_prover_winternitz_public_keys_dto"
+        ]
+        bitvmx_verifier_winternitz_public_keys_dto = protocol_dict[
+            "bitvmx_verifier_winternitz_public_keys_dto"
+        ]
+
+        scripts_dict = self.scripts_dict_generator_service(
+            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+            bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
+            bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+            signature_public_keys=protocol_dict["public_keys"],
+        )
 
         funding_txin = TxInput(funds_tx_id, funds_index)
         # hash_result_script_address = destroyed_public_key.get_taproot_address([[hash_result_script]])

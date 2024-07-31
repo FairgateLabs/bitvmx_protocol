@@ -11,6 +11,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
     BitVMXProverWinternitzPublicKeysDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
+    BitVMXVerifierWinternitzPublicKeysDTO,
+)
 
 
 class PublicKeysPostV1Input(BaseModel):
@@ -33,6 +36,5 @@ class PublicKeysPostV1Input(BaseModel):
 
 
 class PublicKeysPostV1Output(BaseModel):
-    choice_search_verifier_public_keys_list: List[List[List[str]]]
     verifier_public_key: str
-    trace_verifier_public_keys: List[List[str]]
+    bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO

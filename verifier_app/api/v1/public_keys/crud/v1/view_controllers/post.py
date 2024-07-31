@@ -14,8 +14,7 @@ class PublicKeysPostViewControllerV1:
     ) -> PublicKeysPostV1Output:
         setup_uuid = public_keys_post_view_input.setup_uuid
         (
-            choice_search_verifier_public_keys_list,
-            trace_verifier_public_keys,
+            bitvmx_verifier_winternitz_public_keys_dto,
             verifier_public_key_hex,
         ) = await self.generate_public_keys_controller(
             setup_uuid=setup_uuid,
@@ -23,7 +22,6 @@ class PublicKeysPostViewControllerV1:
             public_keys_post_view_input=public_keys_post_view_input,
         )
         return PublicKeysPostV1Output(
-            choice_search_verifier_public_keys_list=choice_search_verifier_public_keys_list,
-            trace_verifier_public_keys=trace_verifier_public_keys,
+            bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
             verifier_public_key=verifier_public_key_hex,
         )

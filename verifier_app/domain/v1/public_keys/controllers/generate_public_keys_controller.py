@@ -24,6 +24,9 @@ class GeneratePublicKeysController:
         else:
             assert NETWORK == protocol_dict["network"].value
         verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
+
+        bitvmx_protocol_properties_dto = public_keys_post_view_input.bitvmx_protocol_properties_dto
+
         protocol_dict["verifier_public_key"] = verifier_private_key.get_public_key().to_hex()
 
         if verifier_private_key.get_public_key().to_x_only_hex() not in unspendable_public_key_hex:
@@ -42,9 +45,7 @@ class GeneratePublicKeysController:
         protocol_dict["bitvmx_protocol_setup_properties_dto"] = (
             public_keys_post_view_input.bitvmx_protocol_setup_properties_dto
         )
-        protocol_dict["bitvmx_protocol_properties_dto"] = (
-            public_keys_post_view_input.bitvmx_protocol_properties_dto
-        )
+        protocol_dict["bitvmx_protocol_properties_dto"] = bitvmx_protocol_properties_dto
 
         protocol_dict["trace_words_lengths"] = public_keys_post_view_input.trace_words_lengths
         protocol_dict["amount_of_wrong_step_search_iterations"] = (
@@ -70,7 +71,12 @@ class GeneratePublicKeysController:
         generate_verifier_public_keys_service = self.generate_verifier_public_keys_service_class(
             verifier_private_key
         )
-        generate_verifier_public_keys_service(protocol_dict)
+        bitvmx_verifier_winternitz_public_keys_dto = generate_verifier_public_keys_service(
+            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto
+        )
+        protocol_dict["bitvmx_verifier_winternitz_public_keys_dto"] = (
+            bitvmx_verifier_winternitz_public_keys_dto
+        )
 
         protocol_dict["public_keys"] = [
             protocol_dict["verifier_public_key"],
@@ -81,7 +87,6 @@ class GeneratePublicKeysController:
             pickle.dump(protocol_dict, f)
 
         return (
-            protocol_dict["choice_search_verifier_public_keys_list"],
-            protocol_dict["trace_verifier_public_keys"],
+            bitvmx_verifier_winternitz_public_keys_dto,
             verifier_private_key.get_public_key().to_hex(),
         )

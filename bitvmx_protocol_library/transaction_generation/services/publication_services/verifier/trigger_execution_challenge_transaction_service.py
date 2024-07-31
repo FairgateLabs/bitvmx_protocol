@@ -2,6 +2,12 @@ from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import \
+    BitVMXProtocolPropertiesDTO
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import \
+    BitVMXProverWinternitzPublicKeysDTO
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import \
+    BitVMXVerifierWinternitzPublicKeysDTO
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_generic_challenge_script_generator_service import (
     TriggerGenericChallengeScriptGeneratorService,
 )
@@ -22,8 +28,16 @@ class TriggerExecutionChallengeTransactionService:
             verifier_private_key
         )
 
-    def __call__(self, protocol_dict):
+    def __call__(
+            self,
+            protocol_dict,
+            bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+            bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
+            bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
+    ):
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
+
+        trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
 
         # Ugly hardcoding here that should be computed somehow but it depends a lot on the structure of the
         # previous script
@@ -31,24 +45,15 @@ class TriggerExecutionChallengeTransactionService:
         # prover_trigger_challenge_witness = previous_trace_witness[10:246]
 
         prover_trace_witness = protocol_dict["prover_trace_witness"]
-        bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
-            "bitvmx_prover_winternitz_public_keys_dto"
-        ]
-        trigger_execution_challenge_tx = protocol_dict["trigger_execution_challenge_tx"]
 
-        trace_verifier_public_keys = protocol_dict["trace_verifier_public_keys"]
+        trigger_execution_challenge_tx = protocol_dict["trigger_execution_challenge_tx"]
         signature_public_keys = protocol_dict["public_keys"]
-        trace_words_lengths = protocol_dict["trace_words_lengths"]
-        amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
-        amount_of_wrong_step_search_iterations = protocol_dict[
-            "amount_of_wrong_step_search_iterations"
-        ]
         trigger_execution_signatures = protocol_dict["trigger_execution_signatures"]
 
         consumed_items = 0
         trace_values = []
-        for i in range(len(trace_verifier_public_keys)):
-            current_public_keys = trace_verifier_public_keys[i]
+        for i in range(len(bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys)):
+            current_public_keys = bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[i]
             current_length = trace_words_lengths[i]
             current_witness = prover_trace_witness[
                 len(prover_trace_witness)
@@ -72,18 +77,18 @@ class TriggerExecutionChallengeTransactionService:
                 input_number.append(int(letter, 16))
 
             verifier_trigger_challenge_witness += self.generate_witness_from_input_nibbles_service(
-                step=3 + amount_of_wrong_step_search_iterations * 2,
+                step=3 + bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations * 2,
                 case=len(trace_words_lengths) - word_count - 1,
                 input_numbers=input_number,
-                bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+                bits_per_digit_checksum=bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             )
 
         trigger_execution_script = self.verifier_challenge_execution_script_generator_service(
             bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
-            trace_verifier_public_keys,
+            bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
             signature_public_keys,
             trace_words_lengths,
-            amount_of_bits_per_digit_checksum,
+            bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
         # TODO: we should load this address from protocol dict as we add more challenges
@@ -108,7 +113,7 @@ class TriggerExecutionChallengeTransactionService:
                 + len(bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[i]) * 2
             ]
             trigger_challenge_witness += verifier_trigger_challenge_witness[
-                processed_values : processed_values + len(trace_verifier_public_keys[i]) * 2
+                processed_values : processed_values + len(bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[i]) * 2
             ]
             processed_values += (
                 len(bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[i]) * 2

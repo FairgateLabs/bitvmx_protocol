@@ -1,6 +1,8 @@
 from typing import List
 
-from bitvmx_protocol_library.script_generation.entities.bitcoin_script import BitcoinScript
+from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin_script import (
+    BitcoinScript,
+)
 from bitvmx_protocol_library.winternitz_keys_handling.scripts.verify_digit_signature_nibbles_service import (
     VerifyDigitSignatureNibblesService,
 )
