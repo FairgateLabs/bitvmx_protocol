@@ -1,9 +1,10 @@
 import math
+from typing import List
 
 
 class SplitListForMerkleTreeService:
 
-    def __call__(self, input_list):
+    def __call__(self, input_list: List[str]):
         if len(input_list) == 1:
             return input_list[0]
         else:

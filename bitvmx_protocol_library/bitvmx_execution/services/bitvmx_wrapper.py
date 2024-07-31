@@ -6,7 +6,7 @@ import subprocess
 
 class BitVMXWrapper:
 
-    def __init__(self, base_path):
+    def __init__(self, base_path: str):
         self.base_path = base_path
         self.execution_checkpoint_interval = 50000000
         self.fail_actor = "verifier"
@@ -23,7 +23,7 @@ class BitVMXWrapper:
             and self.fail_type is not None
         )
 
-    def get_execution_trace(self, protocol_dict, index):
+    def get_execution_trace(self, setup_uuid: str, index: int):
         base_point = (
             math.floor((index - 1) / self.execution_checkpoint_interval)
             * self.execution_checkpoint_interval
@@ -57,7 +57,7 @@ class BitVMXWrapper:
         if self.contains_fail:
             command.extend([self.fail_type, self.fail_step])
 
-        execution_directory = self.base_path + protocol_dict["setup_uuid"]
+        execution_directory = self.base_path + setup_uuid
 
         try:
             # Run the command in the specified directory
@@ -76,8 +76,8 @@ class BitVMXWrapper:
             print("Errors:\n", e.stderr)
             raise Exception("Some problem with the computation")
 
-    def generate_execution_checkpoints(self, protocol_dict, elf_file):
-        directory = self.base_path + protocol_dict["setup_uuid"]
+    def generate_execution_checkpoints(self, setup_uuid: str, elf_file: str):
+        directory = self.base_path + setup_uuid
         pattern = re.compile(r"^checkpoint\.\d+\.json$")
 
         # List all files in the specified directory
@@ -103,7 +103,7 @@ class BitVMXWrapper:
             ]
             if self.contains_fail:
                 command.extend([self.fail_type, self.fail_step])
-            execution_directory = self.base_path + protocol_dict["setup_uuid"]
+            execution_directory = self.base_path + setup_uuid
 
             try:
                 # Run the command in the specified directory

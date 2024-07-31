@@ -7,7 +7,7 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_generatio
 
 class ExecutionTraceCommitmentGenerationService:
 
-    def __init__(self, instruction_mapping_path):
+    def __init__(self, instruction_mapping_path: str):
         self.instruction_mapping_path = instruction_mapping_path
 
     def __call__(self):

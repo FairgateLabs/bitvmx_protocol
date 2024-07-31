@@ -1,15 +1,17 @@
 import csv
 import re
 
-from winternitz_keys_handling.functions.signature_functions import byte_sha256
+from bitvmx_protocol_library.winternitz_keys_handling.functions.signature_functions import (
+    byte_sha256,
+)
 
 
 class ExecutionTraceParsingService:
 
-    def __init__(self, input_file_path):
+    def __init__(self, input_file_path: str):
         self.input_file_path = input_file_path
 
-    def __call__(self, output_file_path, protocol_dict):
+    def __call__(self, output_file_path: str, amount_of_trace_steps: int):
         # Regular expressions to match the different parts of each step
         read_pattern = re.compile(r"TraceRead \{ address: (\d+), value: (\d+), last_step: (\d+) \}")
         read_pc_pattern = re.compile(
@@ -102,7 +104,7 @@ class ExecutionTraceParsingService:
                     writer.writerow(step_dict)
                     result.append(step_dict)
                     i += 1
-                while i < protocol_dict["amount_of_trace_steps"]:
+                while i < amount_of_trace_steps:
                     # Important to not forget the zfill so the size is as intended
                     write_address_hex = "f" * 8
                     write_value_hex = "f" * 8
@@ -111,8 +113,6 @@ class ExecutionTraceParsingService:
                     write_trace = (
                         write_address_hex + write_value_hex + write_pc_hex + write_micro_hex
                     )
-
-                    step_hash = byte_sha256(bytes.fromhex(step_hash + write_trace)).hex().zfill(64)
 
                     step_dict = {
                         "read1_address": "f" * 8,
@@ -134,6 +134,6 @@ class ExecutionTraceParsingService:
                     writer.writerow(step_dict)
                     result.append(step_dict)
                     i += 1
-        if i > protocol_dict["amount_of_trace_steps"]:
+        if i > amount_of_trace_steps:
             raise Exception("Execution longer than the setup amount of steps")
         return result

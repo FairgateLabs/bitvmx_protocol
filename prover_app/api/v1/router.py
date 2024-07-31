@@ -1,11 +1,21 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Body
 
 from prover_app.api.v1.fund.crud.v1.view_models.post import FundPostV1Input, FundPostV1Output
 from prover_app.api.v1.next_step.crud.v1.view_models.post import NextStepPostV1Input
+from prover_app.api.v1.setup.crud.v1.swagger_examples.post import (
+    setup_post_v1_input_swagger_examples,
+)
 from prover_app.api.v1.setup.crud.v1.view_models.post import SetupPostV1Input
+from prover_app.api.v1.setup.fund.v1.swagger_examples.post import (
+    setup_fund_post_v1_input_swagger_examples,
+)
+from prover_app.api.v1.setup.fund.v1.view_models.post import SetupFundPostV1Input
 from prover_app.dependency_injection.api.v1.fund import FundPostViewControllers
 from prover_app.dependency_injection.api.v1.next_step import NextStepPostViewControllers
 from prover_app.dependency_injection.api.v1.setup import SetupPostViewControllers
+from prover_app.dependency_injection.api.v1.setup_fund import SetupFundPostViewControllers
 
 router = APIRouter()
 
@@ -13,9 +23,23 @@ router = APIRouter()
 
 
 @router.post("/setup")
-async def setup_post(setup_post_input: SetupPostV1Input = Body()):
+async def setup_post(
+    setup_post_input: Annotated[
+        SetupPostV1Input, Body(openapi_examples=setup_post_v1_input_swagger_examples)
+    ]
+):
     view_controller = SetupPostViewControllers.v1()
     return await view_controller(setup_post_view_input=setup_post_input)
+
+
+@router.post("/setup/fund")
+async def setup_fund_post(
+    setup_fund_post_input: Annotated[
+        SetupFundPostV1Input, Body(openapi_examples=setup_fund_post_v1_input_swagger_examples)
+    ]
+):
+    view_controller = SetupFundPostViewControllers.v1()
+    return await view_controller(setup_post_view_input=setup_fund_post_input)
 
 
 @router.post("/next_step")

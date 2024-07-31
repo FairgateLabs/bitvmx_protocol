@@ -1,7 +1,9 @@
 from bitcoinutils.keys import PublicKey
 
-from bitvmx_protocol_library.script_generation.entities.bitcoin_script import BitcoinScript
-from winternitz_keys_handling.scripts.confirm_nibbles_script_generator_service import (
+from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin_script import (
+    BitcoinScript,
+)
+from bitvmx_protocol_library.winternitz_keys_handling.scripts.confirm_nibbles_script_generator_service import (
     ConfirmNibblesScriptGeneratorService,
 )
 
