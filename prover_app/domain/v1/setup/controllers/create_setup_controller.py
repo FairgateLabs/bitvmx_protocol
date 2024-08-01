@@ -1,5 +1,4 @@
 import hashlib
-import math
 import os
 import pickle
 import secrets
@@ -12,6 +11,9 @@ from bitcoinutils.transactions import TxWitnessInput
 
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_prover_private_dto import (
+    BitVMXProtocolProverPrivateDTO,
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
@@ -58,7 +60,7 @@ class CreateSetupController:
         funding_tx_id: str,
         funding_index: str,
         step_fees_satoshis: int,
-        origin_of_funds_private_key: PrivateKey
+        origin_of_funds_private_key: PrivateKey,
     ):
         setup_uuid = str(uuid.uuid4())
 
@@ -113,6 +115,8 @@ class CreateSetupController:
         prover_private_key = PrivateKey(b=secrets.token_bytes(32))
         prover_public_key = prover_private_key.get_public_key()
         public_keys.append(prover_public_key.to_hex())
+
+        winternitz_private_key = PrivateKey(b=secrets.token_bytes(32))
         while destroyed_public_key is None:
             try:
                 seed_destroyed_public_key_hex = "".join(public_keys)
@@ -134,7 +138,7 @@ class CreateSetupController:
         protocol_dict["network"] = common_protocol_properties.network
 
         generate_prover_public_keys_service = self.generate_prover_public_keys_service_class(
-            prover_private_key
+            winternitz_private_key
         )
 
         bitvmx_prover_winternitz_public_keys_dto = generate_prover_public_keys_service(
@@ -282,6 +286,10 @@ class CreateSetupController:
                 #     len(protocol_dict["public_keys"]) - i - 2
                 # ],
             )
+
+        protocol_dict["bitvmx_protocol_prover_private_dto"] = BitVMXProtocolProverPrivateDTO(
+            winternitz_private_key=winternitz_private_key.to_bytes().hex()
+        )
 
         os.makedirs(f"prover_files/{setup_uuid}")
 

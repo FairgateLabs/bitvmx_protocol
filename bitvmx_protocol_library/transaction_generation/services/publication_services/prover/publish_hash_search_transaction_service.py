@@ -184,24 +184,37 @@ class PublishHashSearchTransactionService:
         return bitvmx_transactions_dto.search_hash_tx_list[iteration]
 
     def _get_hashes(
-            self,
-            setup_uuid: str,
-            iteration: int,
-            protocol_dict,
-            bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO
+        self,
+        setup_uuid: str,
+        iteration: int,
+        protocol_dict,
+        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
     ):
         prefix = ""
         for search_choice in protocol_dict["search_choices"]:
-            prefix += bin(search_choice)[2:].zfill(bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search)
+            prefix += bin(search_choice)[2:].zfill(
+                bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+            )
         suffix = (
             "1"
             * bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
-            * (bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations - iteration - 1)
+            * (
+                bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+                - iteration
+                - 1
+            )
         )
         index_list = []
         for j in range(2**bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search - 1):
             index_list.append(
-                int(prefix + bin(j)[2:].zfill(bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search) + suffix, 2)
+                int(
+                    prefix
+                    + bin(j)[2:].zfill(
+                        bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                    )
+                    + suffix,
+                    2,
+                )
             )
         hash_list = []
         for index in index_list:

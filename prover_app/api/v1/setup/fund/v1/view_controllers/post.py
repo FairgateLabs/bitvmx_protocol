@@ -39,7 +39,9 @@ class SetupFundPostViewControllerV1:
                 b=bytes.fromhex(self.protocol_properties.prover_private_key)
             )
 
-        origin_of_funds_private_key = PrivateKey(b=bytes.fromhex(setup_post_view_input.secret_origin_of_funds))
+        origin_of_funds_private_key = PrivateKey(
+            b=bytes.fromhex(setup_post_view_input.secret_origin_of_funds)
+        )
 
         setup_uuid = await self.create_setup_with_funding_controller(
             max_amount_of_steps=setup_post_view_input.max_amount_of_steps,
