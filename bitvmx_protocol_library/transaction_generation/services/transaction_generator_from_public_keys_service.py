@@ -15,15 +15,15 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier
 )
 from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.enums import BitcoinNetwork
-from bitvmx_protocol_library.script_generation.services.scripts_dict_generator_service import (
-    ScriptsDictGeneratorService,
+from bitvmx_protocol_library.script_generation.services.bitvmx_bitcoin_scripts_generator_service import (
+    BitVMXBitcoinScriptsGeneratorService,
 )
 
 
 class TransactionGeneratorFromPublicKeysService:
 
     def __init__(self):
-        self.scripts_dict_generator_service = ScriptsDictGeneratorService()
+        self.bitvmx_bitcoin_scripts_generator_service = BitVMXBitcoinScriptsGeneratorService()
 
     def __call__(
         self,
@@ -36,7 +36,7 @@ class TransactionGeneratorFromPublicKeysService:
 
         destroyed_public_key = PublicKey(hex_str="02" + protocol_dict["destroyed_public_key"])
 
-        scripts_dict = self.scripts_dict_generator_service(
+        bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
             bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
@@ -47,14 +47,9 @@ class TransactionGeneratorFromPublicKeysService:
             bitvmx_protocol_setup_properties_dto.funding_tx_id,
             bitvmx_protocol_setup_properties_dto.funding_index,
         )
-        # hash_result_script_address = destroyed_public_key.get_taproot_address([[hash_result_script]])
 
-        protocol_dict["funding_amount_satoshis"] = (
-            bitvmx_protocol_setup_properties_dto.funding_amount_of_satoshis
-        )
-
-        hash_result_script_address = destroyed_public_key.get_taproot_address(
-            [[scripts_dict["hash_result_script"]]]
+        hash_result_script_address = (
+            bitvmx_bitcoin_scripts_dto.hash_result_script.get_taproot_address(destroyed_public_key)
         )
 
         funding_txout = TxOutput(
@@ -65,8 +60,10 @@ class TransactionGeneratorFromPublicKeysService:
 
         protocol_dict["funding_tx"] = funding_tx
 
-        trigger_protocol_script_address = destroyed_public_key.get_taproot_address(
-            [[scripts_dict["trigger_protocol_script"]]]
+        trigger_protocol_script_address = (
+            bitvmx_bitcoin_scripts_dto.trigger_protocol_script.get_taproot_address(
+                destroyed_public_key
+            )
         )
 
         hash_result_txin = TxInput(funding_tx.get_txid(), 0)
@@ -83,20 +80,17 @@ class TransactionGeneratorFromPublicKeysService:
 
         protocol_dict["hash_result_tx"] = hash_result_tx
 
-        hash_search_scripts = scripts_dict["hash_search_scripts"]
-        choice_search_scripts = scripts_dict["choice_search_scripts"]
-
         hash_search_scripts_addresses = list(
             map(
-                lambda search_script: destroyed_public_key.get_taproot_address([[search_script]]),
-                hash_search_scripts,
+                lambda search_script: search_script.get_taproot_address(destroyed_public_key),
+                bitvmx_bitcoin_scripts_dto.hash_search_scripts,
             )
         )
 
         choice_search_scripts_addresses = list(
             map(
-                lambda choice_script: destroyed_public_key.get_taproot_address([[choice_script]]),
-                choice_search_scripts,
+                lambda choice_script: choice_script.get_taproot_address(destroyed_public_key),
+                bitvmx_bitcoin_scripts_dto.choice_search_scripts,
             )
         )
 
@@ -119,8 +113,8 @@ class TransactionGeneratorFromPublicKeysService:
         search_hash_tx_list = []
         search_choice_tx_list = []
 
-        trace_script_address = destroyed_public_key.get_taproot_address(
-            [[scripts_dict["trace_script"]]]
+        trace_script_address = bitvmx_bitcoin_scripts_dto.trace_script.get_taproot_address(
+            destroyed_public_key
         )
 
         for i in range(len(choice_search_scripts_addresses)):
@@ -152,8 +146,10 @@ class TransactionGeneratorFromPublicKeysService:
         protocol_dict["search_hash_tx_list"] = search_hash_tx_list
         protocol_dict["search_choice_tx_list"] = search_choice_tx_list
 
-        trigger_challenge_script_address = destroyed_public_key.get_taproot_address(
-            [[scripts_dict["trigger_challenge_scripts"]]]
+        trigger_challenge_script_address = (
+            bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts.get_taproot_address(
+                destroyed_public_key
+            )
         )
 
         trace_txin = TxInput(search_choice_tx_list[-1].get_txid(), 0)
@@ -181,9 +177,11 @@ class TransactionGeneratorFromPublicKeysService:
         if "execution_challenge_address" in protocol_dict:
             execution_challenge_address = protocol_dict["execution_challenge_address"]
         else:
-            execution_challenge_address = scripts_dict[
-                "execution_challenge_script_list"
-            ].get_taproot_address(destroyed_public_key)
+            execution_challenge_address = (
+                bitvmx_bitcoin_scripts_dto.execution_challenge_script_list.get_taproot_address(
+                    destroyed_public_key
+                )
+            )
 
             protocol_dict["execution_challenge_address"] = execution_challenge_address
 

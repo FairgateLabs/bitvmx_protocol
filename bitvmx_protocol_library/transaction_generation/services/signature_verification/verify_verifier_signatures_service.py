@@ -1,3 +1,9 @@
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
+    BitVMXProtocolSetupPropertiesDTO,
+)
+from bitvmx_protocol_library.script_generation.entities.dtos.bitvmx_bitcoin_scripts_dto import (
+    BitVMXBitcoinScriptsDTO,
+)
 from bitvmx_protocol_library.transaction_generation.services.signature_verification.verify_signature_service import (
     VerifySignatureService,
 )
@@ -12,20 +18,22 @@ class VerifyVerifierSignaturesService:
     def __call__(
         self,
         protocol_dict,
-        scripts_dict,
-        public_key,
-        hash_result_signature,
-        search_hash_signatures,
-        trace_signature,
+        public_key: str,
+        hash_result_signature: str,
+        search_hash_signatures: str,
+        trace_signature: str,
+        bitvmx_bitcoin_scripts_dto: BitVMXBitcoinScriptsDTO,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         # execution_challenge_signature,
     ):
 
-        funding_result_output_amount = protocol_dict["funding_amount_satoshis"]
-        step_fees_satoshis = protocol_dict["step_fees_satoshis"]
+        funding_result_output_amount = (
+            bitvmx_protocol_setup_properties_dto.funding_amount_of_satoshis
+        )
 
         self.verify_signature_service(
             protocol_dict["hash_result_tx"],
-            scripts_dict["hash_result_script"],
+            bitvmx_bitcoin_scripts_dto.hash_result_script,
             funding_result_output_amount,
             public_key,
             hash_result_signature,
@@ -34,17 +42,19 @@ class VerifyVerifierSignaturesService:
         for i in range(len(search_hash_signatures)):
             self.verify_signature_service(
                 protocol_dict["search_hash_tx_list"][i],
-                scripts_dict["hash_search_scripts"][i],
-                funding_result_output_amount - (2 + 2 * i) * step_fees_satoshis,
+                bitvmx_bitcoin_scripts_dto.hash_search_scripts[i],
+                funding_result_output_amount
+                - (2 + 2 * i) * bitvmx_protocol_setup_properties_dto.step_fees_satoshis,
                 public_key,
                 search_hash_signatures[i],
             )
 
         self.verify_signature_service(
             protocol_dict["trace_tx"],
-            scripts_dict["trace_script"],
+            bitvmx_bitcoin_scripts_dto.trace_script,
             funding_result_output_amount
-            - (2 + 2 * len(search_hash_signatures)) * step_fees_satoshis,
+            - (2 + 2 * len(search_hash_signatures))
+            * bitvmx_protocol_setup_properties_dto.step_fees_satoshis,
             public_key,
             trace_signature,
         )

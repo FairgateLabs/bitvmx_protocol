@@ -3,6 +3,9 @@ from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
+from bitvmx_protocol_library.script_generation.entities.dtos.bitvmx_bitcoin_scripts_dto import (
+    BitVMXBitcoinScriptsDTO,
+)
 
 
 class GenerateSignaturesService:
@@ -14,7 +17,7 @@ class GenerateSignaturesService:
     def __call__(
         self,
         protocol_dict,
-        scripts_dict,
+        bitvmx_bitcoin_scripts_dto: BitVMXBitcoinScriptsDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
     ):
         signatures_dict = {}
@@ -24,8 +27,10 @@ class GenerateSignaturesService:
         )
 
         hash_result_tx = protocol_dict["hash_result_tx"]
-        hash_result_script_address = self.destroyed_public_key.get_taproot_address(
-            [[scripts_dict["hash_result_script"]]]
+        hash_result_script_address = (
+            bitvmx_bitcoin_scripts_dto.hash_result_script.get_taproot_address(
+                self.destroyed_public_key
+            )
         )
         hash_result_signature = self.private_key.sign_taproot_input(
             hash_result_tx,
@@ -33,15 +38,17 @@ class GenerateSignaturesService:
             [hash_result_script_address.to_script_pub_key()],
             [funding_result_output_amount],
             script_path=True,
-            tapleaf_script=scripts_dict["hash_result_script"],
+            tapleaf_script=bitvmx_bitcoin_scripts_dto.hash_result_script,
             sighash=TAPROOT_SIGHASH_ALL,
             tweak=False,
         )
         signatures_dict["hash_result_signature"] = hash_result_signature
 
         trigger_protocol_tx = protocol_dict["trigger_protocol_tx"]
-        trigger_protocol_script_address = self.destroyed_public_key.get_taproot_address(
-            [[scripts_dict["trigger_protocol_script"]]]
+        trigger_protocol_script_address = (
+            bitvmx_bitcoin_scripts_dto.trigger_protocol_script.get_taproot_address(
+                self.destroyed_public_key
+            )
         )
         trigger_protocol_signature = self.private_key.sign_taproot_input(
             trigger_protocol_tx,
@@ -52,7 +59,7 @@ class GenerateSignaturesService:
                 - bitvmx_protocol_setup_properties_dto.step_fees_satoshis
             ],
             script_path=True,
-            tapleaf_script=scripts_dict["trigger_protocol_script"],
+            tapleaf_script=bitvmx_bitcoin_scripts_dto.trigger_protocol_script,
             sighash=TAPROOT_SIGHASH_ALL,
             tweak=False,
         )
@@ -62,9 +69,9 @@ class GenerateSignaturesService:
         search_choice_signatures = []
         for i in range(len(protocol_dict["search_hash_tx_list"])):
             current_search_hash_tx = protocol_dict["search_hash_tx_list"][i]
-            current_search_hash_script_address = self.destroyed_public_key.get_taproot_address(
-                [[scripts_dict["hash_search_scripts"][i]]]
-            )
+            current_search_hash_script_address = bitvmx_bitcoin_scripts_dto.hash_search_scripts[
+                i
+            ].get_taproot_address(self.destroyed_public_key)
             current_search_hash_signature = self.private_key.sign_taproot_input(
                 current_search_hash_tx,
                 0,
@@ -74,16 +81,16 @@ class GenerateSignaturesService:
                     - (2 * i + 2) * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
                 ],
                 script_path=True,
-                tapleaf_script=scripts_dict["hash_search_scripts"][i],
+                tapleaf_script=bitvmx_bitcoin_scripts_dto.hash_search_scripts[i],
                 sighash=TAPROOT_SIGHASH_ALL,
                 tweak=False,
             )
             search_hash_signatures.append(current_search_hash_signature)
 
             current_search_choice_tx = protocol_dict["search_choice_tx_list"][i]
-            current_search_choice_script_address = self.destroyed_public_key.get_taproot_address(
-                [[scripts_dict["choice_search_scripts"][i]]]
-            )
+            current_search_choice_script_address = bitvmx_bitcoin_scripts_dto.choice_search_scripts[
+                i
+            ].get_taproot_address(self.destroyed_public_key)
             current_search_choice_signature = self.private_key.sign_taproot_input(
                 current_search_choice_tx,
                 0,
@@ -93,7 +100,7 @@ class GenerateSignaturesService:
                     - (2 * i + 3) * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
                 ],
                 script_path=True,
-                tapleaf_script=scripts_dict["choice_search_scripts"][i],
+                tapleaf_script=bitvmx_bitcoin_scripts_dto.choice_search_scripts[i],
                 sighash=TAPROOT_SIGHASH_ALL,
                 tweak=False,
             )
@@ -103,8 +110,8 @@ class GenerateSignaturesService:
         signatures_dict["search_choice_signatures"] = search_choice_signatures
 
         trace_tx = protocol_dict["trace_tx"]
-        trace_script_address = self.destroyed_public_key.get_taproot_address(
-            [[scripts_dict["trace_script"]]]
+        trace_script_address = bitvmx_bitcoin_scripts_dto.trace_script.get_taproot_address(
+            self.destroyed_public_key
         )
         trace_signature = self.private_key.sign_taproot_input(
             trace_tx,
@@ -116,15 +123,17 @@ class GenerateSignaturesService:
                 * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
             ],
             script_path=True,
-            tapleaf_script=scripts_dict["trace_script"],
+            tapleaf_script=bitvmx_bitcoin_scripts_dto.trace_script,
             sighash=TAPROOT_SIGHASH_ALL,
             tweak=False,
         )
         signatures_dict["trace_signature"] = trace_signature
 
         trigger_execution_challenge_tx = protocol_dict["trigger_execution_challenge_tx"]
-        trigger_challenge_address = self.destroyed_public_key.get_taproot_address(
-            scripts_dict["trigger_challenge_scripts"]
+        trigger_challenge_address = (
+            bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts.get_taproot_address(
+                self.destroyed_public_key
+            )
         )
         trigger_execution_challenge_signature = self.private_key.sign_taproot_input(
             trigger_execution_challenge_tx,
@@ -136,7 +145,7 @@ class GenerateSignaturesService:
                 * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
             ],
             script_path=True,
-            tapleaf_script=scripts_dict["trigger_execution_script"],
+            tapleaf_script=bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts[0],
             sighash=TAPROOT_SIGHASH_ALL,
             tweak=False,
         )

@@ -29,7 +29,7 @@ class CreateSetupController:
         transaction_info_service,
         transaction_generator_from_public_keys_service,
         faucet_service,
-        scripts_dict_generator_service,
+        bitvmx_bitcoin_scripts_generator_service,
         generate_prover_public_keys_service_class,
         verify_verifier_signatures_service_class,
         generate_signatures_service_class,
@@ -40,7 +40,7 @@ class CreateSetupController:
             transaction_generator_from_public_keys_service
         )
         self.faucet_service = faucet_service
-        self.scripts_dict_generator_service = scripts_dict_generator_service
+        self.bitvmx_bitcoin_scripts_generator_service = bitvmx_bitcoin_scripts_generator_service
         self.generate_prover_public_keys_service_class = generate_prover_public_keys_service_class
         self.verify_verifier_signatures_service_class = verify_verifier_signatures_service_class
         self.generate_signatures_service_class = generate_signatures_service_class
@@ -197,7 +197,7 @@ class CreateSetupController:
 
         ## Scripts building ##
 
-        scripts_dict = self.scripts_dict_generator_service(
+        bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
             bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
@@ -229,7 +229,7 @@ class CreateSetupController:
         )
         signatures_dict = generate_signatures_service(
             protocol_dict=protocol_dict,
-            scripts_dict=scripts_dict,
+            bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
 
@@ -284,7 +284,6 @@ class CreateSetupController:
         for i in range(len(protocol_dict["public_keys"]) - 1):
             verify_verifier_signatures_service(
                 protocol_dict=protocol_dict,
-                scripts_dict=scripts_dict,
                 public_key=protocol_dict["public_keys"][i],
                 hash_result_signature=protocol_dict["hash_result_signatures"][
                     len(protocol_dict["public_keys"]) - i - 2
@@ -296,6 +295,8 @@ class CreateSetupController:
                 trace_signature=protocol_dict["trace_signatures"][
                     len(protocol_dict["public_keys"]) - i - 2
                 ],
+                bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                 # execution_challenge_signature=protocol_dict["execution_challenge_signatures"][
                 #     len(protocol_dict["public_keys"]) - i - 2
                 # ],

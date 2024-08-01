@@ -10,12 +10,12 @@ from bitvmx_protocol_library.enums import BitcoinNetwork
 class GenerateSignaturesController:
     def __init__(
         self,
-        scripts_dict_generator_service,
+        bitvmx_bitcoin_scripts_generator_service,
         transaction_generator_from_public_keys_service,
         generate_signatures_service_class,
         verify_prover_signatures_service_class,
     ):
-        self.scripts_dict_generator_service = scripts_dict_generator_service
+        self.bitvmx_bitcoin_scripts_generator_service = bitvmx_bitcoin_scripts_generator_service
         self.transaction_generator_from_public_keys_service = (
             transaction_generator_from_public_keys_service
         )
@@ -63,7 +63,7 @@ class GenerateSignaturesController:
         )
 
         # Scripts construction
-        scripts_dict = self.scripts_dict_generator_service(
+        bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
             bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
@@ -76,13 +76,12 @@ class GenerateSignaturesController:
             destroyed_public_key
         )
         verify_prover_signatures_service(
-            protocol_dict,
-            scripts_dict,
-            protocol_dict["prover_public_key"],
-            protocol_dict["trigger_protocol_prover_signature"],
-            protocol_dict["search_choice_prover_signatures"],
-            protocol_dict["trigger_execution_signature"],
-            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+            protocol_dict=protocol_dict,
+            public_key=protocol_dict["prover_public_key"],
+            trigger_protocol_signature=protocol_dict["trigger_protocol_prover_signature"],
+            search_choice_signatures=protocol_dict["search_choice_prover_signatures"],
+            trigger_execution_signature=protocol_dict["trigger_execution_signature"],
+            bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
 
@@ -91,7 +90,7 @@ class GenerateSignaturesController:
         )
         signatures_dict = generate_signatures_service(
             protocol_dict=protocol_dict,
-            scripts_dict=scripts_dict,
+            bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
 
