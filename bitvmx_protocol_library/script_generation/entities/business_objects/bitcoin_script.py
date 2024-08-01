@@ -1,5 +1,6 @@
 from typing import Any, Optional, Union
 
+from bitcoinutils.keys import PublicKey
 from bitcoinutils.script import Script
 
 
@@ -55,3 +56,6 @@ class BitcoinScript(Script):
                 self.script,
             )
         )
+
+    def get_taproot_address(self, public_key: PublicKey):
+        return public_key.get_taproot_address([[self]])

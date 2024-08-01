@@ -3,8 +3,8 @@ from dependency_injector import containers, providers
 from bitvmx_protocol_library.bitvmx_protocol_definition.services.generate_prover_public_keys_service import (
     GenerateProverPublicKeysService,
 )
-from bitvmx_protocol_library.script_generation.services.scripts_dict_generator_service import (
-    ScriptsDictGeneratorService,
+from bitvmx_protocol_library.script_generation.services.bitvmx_bitcoin_scripts_generator_service import (
+    BitVMXBitcoinScriptsGeneratorService,
 )
 from bitvmx_protocol_library.transaction_generation.services.generate_signatures_service import (
     GenerateSignaturesService,
@@ -30,7 +30,7 @@ class CreateSetupControllers(containers.DeclarativeContainer):
         transaction_info_service=transaction_info_service,
         transaction_generator_from_public_keys_service=TransactionGeneratorFromPublicKeysService(),
         faucet_service=FaucetService(),
-        scripts_dict_generator_service=ScriptsDictGeneratorService(),
+        bitvmx_bitcoin_scripts_generator_service=BitVMXBitcoinScriptsGeneratorService(),
         generate_prover_public_keys_service_class=GenerateProverPublicKeysService,
         verify_verifier_signatures_service_class=VerifyVerifierSignaturesService,
         generate_signatures_service_class=GenerateSignaturesService,

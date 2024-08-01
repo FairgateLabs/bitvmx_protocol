@@ -2,14 +2,20 @@ from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import \
-    BitVMXProtocolPropertiesDTO
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import \
-    BitVMXProverWinternitzPublicKeysDTO
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import \
-    BitVMXVerifierWinternitzPublicKeysDTO
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
+    BitVMXProtocolPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
+    BitVMXProverWinternitzPublicKeysDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
+    BitVMXVerifierWinternitzPublicKeysDTO,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_generic_challenge_script_generator_service import (
     TriggerGenericChallengeScriptGeneratorService,
+)
+from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
+    BitVMXTransactionsDTO,
 )
 from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,
@@ -29,11 +35,12 @@ class TriggerExecutionChallengeTransactionService:
         )
 
     def __call__(
-            self,
-            protocol_dict,
-            bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
-            bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
-            bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
+        self,
+        protocol_dict,
+        bitvmx_transactions_dto: BitVMXTransactionsDTO,
+        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
+        bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
     ):
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
 
@@ -46,14 +53,15 @@ class TriggerExecutionChallengeTransactionService:
 
         prover_trace_witness = protocol_dict["prover_trace_witness"]
 
-        trigger_execution_challenge_tx = protocol_dict["trigger_execution_challenge_tx"]
         signature_public_keys = protocol_dict["public_keys"]
         trigger_execution_signatures = protocol_dict["trigger_execution_signatures"]
 
         consumed_items = 0
         trace_values = []
         for i in range(len(bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys)):
-            current_public_keys = bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[i]
+            current_public_keys = (
+                bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[i]
+            )
             current_length = trace_words_lengths[i]
             current_witness = prover_trace_witness[
                 len(prover_trace_witness)
@@ -113,13 +121,14 @@ class TriggerExecutionChallengeTransactionService:
                 + len(bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[i]) * 2
             ]
             trigger_challenge_witness += verifier_trigger_challenge_witness[
-                processed_values : processed_values + len(bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[i]) * 2
+                processed_values : processed_values
+                + len(bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[i]) * 2
             ]
             processed_values += (
                 len(bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[i]) * 2
             )
 
-        trigger_execution_challenge_tx.witnesses.append(
+        bitvmx_transactions_dto.trigger_execution_challenge_tx.witnesses.append(
             TxWitnessInput(
                 trigger_execution_signatures
                 + trigger_challenge_witness
@@ -130,8 +139,11 @@ class TriggerExecutionChallengeTransactionService:
             )
         )
 
-        broadcast_transaction_service(transaction=trigger_execution_challenge_tx.serialize())
-        print(
-            "Trigger execution challenge transaction: " + trigger_execution_challenge_tx.get_txid()
+        broadcast_transaction_service(
+            transaction=bitvmx_transactions_dto.trigger_execution_challenge_tx.serialize()
         )
-        return trigger_execution_challenge_tx
+        print(
+            "Trigger execution challenge transaction: "
+            + bitvmx_transactions_dto.trigger_execution_challenge_tx.get_txid()
+        )
+        return bitvmx_transactions_dto.trigger_execution_challenge_tx

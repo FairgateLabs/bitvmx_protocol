@@ -1,7 +1,7 @@
 from multiprocessing import Manager, Process
 from multiprocessing.managers import ListProxy
 from time import time
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from bitcoinutils.constants import LEAF_VERSION_TAPSCRIPT
 from bitcoinutils.keys import P2trAddress, PublicKey
@@ -12,6 +12,7 @@ from bitcoinutils.utils import (
     tapleaf_tagged_hash,
     tweak_taproot_pubkey,
 )
+from pydantic import BaseModel
 
 from bitvmx_protocol_library.script_generation.services.script_generation.execution_challenge_script_from_key_generator_service import (
     ExecutionChallengeScriptFromKeyGeneratorService,
@@ -169,7 +170,7 @@ def _traverse_level(
     public_keys: List[List[str]],
     trace_words_lengths: List[int],
     bits_per_digit_checksum: int,
-    instruction_dict: Dict[str, int],
+    instruction_dict: Dict[str, str],
     trace_to_script_mapping: List[int],
     shared_list: Optional[ListProxy] = None,
 ):
@@ -318,23 +319,15 @@ def _traverse_level(
             return
 
 
-class BitVMXExecutionScriptList:
-    def __init__(
-        self,
-        key_list: List[str],
-        instruction_dict: Dict[str, str],
-        signature_public_keys: List[str],
-        public_keys: List[List[str]],
-        trace_words_lengths: List[int],
-        bits_per_digit_checksum: int,
-    ):
-        self.key_list = key_list
-        self.instruction_dict = instruction_dict
-        self.signature_public_keys = signature_public_keys
-        self.public_keys = public_keys
-        self.trace_words_lengths = trace_words_lengths
-        self.bits_per_digit_checksum = bits_per_digit_checksum
-        self.taproot_address = None
+class BitVMXExecutionScriptList(BaseModel):
+
+    key_list: List[str]
+    instruction_dict: Dict[str, str]
+    signature_public_keys: List[str]
+    public_keys: List[List[str]]
+    trace_words_lengths: List[int]
+    bits_per_digit_checksum: int
+    taproot_address: Optional[Any] = None
 
     @staticmethod
     def get_tree_depth(splitted_key_list: Union[List, str]):

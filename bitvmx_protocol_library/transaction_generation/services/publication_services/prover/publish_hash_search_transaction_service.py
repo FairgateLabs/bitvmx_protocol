@@ -20,6 +20,9 @@ from bitvmx_protocol_library.script_generation.services.script_generation.commit
 from bitvmx_protocol_library.script_generation.services.script_generation.commit_search_hashes_script_generator_service import (
     CommitSearchHashesScriptGeneratorService,
 )
+from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
+    BitVMXTransactionsDTO,
+)
 from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,
 )
@@ -53,11 +56,11 @@ class PublishHashSearchTransactionService:
         self,
         protocol_dict,
         iteration: int,
+        bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
     ):
-        search_hash_tx_list = protocol_dict["search_hash_tx_list"]
 
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
 
@@ -74,7 +77,9 @@ class PublishHashSearchTransactionService:
         )
 
         if iteration > 0:
-            previous_choice_tx = protocol_dict["search_choice_tx_list"][iteration - 1].get_txid()
+            previous_choice_tx = bitvmx_transactions_dto.search_choice_tx_list[
+                iteration - 1
+            ].get_txid()
             previous_choice_transaction_info = transaction_info_service(previous_choice_tx)
             previous_witness = previous_choice_transaction_info.inputs[0].witness
             previous_choice_verifier_public_keys = (
@@ -150,7 +155,7 @@ class PublishHashSearchTransactionService:
             is_odd=current_hash_search_scripts_address.is_odd(),
         )
 
-        search_hash_tx_list[iteration].witnesses.append(
+        bitvmx_transactions_dto.search_hash_tx_list[iteration].witnesses.append(
             TxWitnessInput(
                 search_hash_signatures[iteration]
                 + hash_search_witness
@@ -161,14 +166,16 @@ class PublishHashSearchTransactionService:
             )
         )
 
-        broadcast_transaction_service(transaction=search_hash_tx_list[iteration].serialize())
+        broadcast_transaction_service(
+            transaction=bitvmx_transactions_dto.search_hash_tx_list[iteration].serialize()
+        )
         print(
             "Search hash iteration transaction "
             + str(iteration)
             + ": "
-            + search_hash_tx_list[iteration].get_txid()
+            + bitvmx_transactions_dto.search_hash_tx_list[iteration].get_txid()
         )
-        return search_hash_tx_list[iteration]
+        return bitvmx_transactions_dto.search_hash_tx_list[iteration]
 
     def _get_hashes(self, iteration, protocol_dict):
         amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]

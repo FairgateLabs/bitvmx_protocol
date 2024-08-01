@@ -132,12 +132,12 @@ class ExecutionChallengeScriptListGeneratorService:
         key_list, instruction_dict = self.execution_trace_commitment_generation_service()
 
         bitvmx_execution_script_list = BitVMXExecutionScriptList(
-            key_list,
-            instruction_dict,
-            signature_public_keys,
-            public_keys,
-            trace_words_lengths,
-            bits_per_digit_checksum,
+            key_list=key_list,
+            instruction_dict=instruction_dict,
+            signature_public_keys=signature_public_keys,
+            public_keys=public_keys,
+            trace_words_lengths=trace_words_lengths,
+            bits_per_digit_checksum=bits_per_digit_checksum,
         )
 
         # test_public_key = PublicKey(hex_str=signature_public_keys[0])

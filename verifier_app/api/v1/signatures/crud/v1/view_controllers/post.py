@@ -16,18 +16,11 @@ class SignaturesPostViewControllerV1:
     ) -> SignaturesPostV1Output:
         setup_uuid = setup_post_view_input.setup_uuid
 
-        hash_result_signature_verifier, search_hash_signatures, trace_signature = (
-            self.generate_signatures_controller(
-                setup_uuid=setup_uuid,
-                trigger_protocol_signature=setup_post_view_input.trigger_protocol_signature,
-                search_choice_signatures=setup_post_view_input.search_choice_signatures,
-                trigger_execution_signature=setup_post_view_input.trigger_execution_signature,
-            )
+        verifier_signatures = self.generate_signatures_controller(
+            setup_uuid=setup_uuid,
+            bitvmx_prover_signatures_dto=setup_post_view_input.prover_signatures,
         )
 
         return SignaturesPostV1Output(
-            verifier_hash_result_signature=hash_result_signature_verifier,
-            verifier_search_hash_signatures=search_hash_signatures,
-            verifier_trace_signature=trace_signature,
-            # verifier_execution_challenge_signature=execution_challenge_signature,
+            verifier_signatures=verifier_signatures,
         )

@@ -13,6 +13,9 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_ser
 from bitvmx_protocol_library.script_generation.services.script_generation.hash_result_script_generator_service import (
     HashResultScriptGeneratorService,
 )
+from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
+    BitVMXTransactionsDTO,
+)
 from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,
 )
@@ -40,12 +43,15 @@ class PublishHashTransactionService:
         self.execution_trace_generation_service = ExecutionTraceGenerationService("prover_files/")
         self.execution_trace_query_service = ExecutionTraceQueryService("prover_files/")
 
-    def __call__(self, protocol_dict) -> Transaction:
+    def __call__(
+        self,
+        protocol_dict,
+        bitvmx_transactions_dto: BitVMXTransactionsDTO,
+    ) -> Transaction:
 
         amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
         amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
-        hash_result_tx = protocol_dict["hash_result_tx"]
         hash_result_signatures = protocol_dict["hash_result_signatures"]
 
         self.execution_trace_generation_service(protocol_dict["setup_uuid"])
@@ -83,7 +89,7 @@ class PublishHashTransactionService:
             is_odd=hash_result_script_address.is_odd(),
         )
 
-        hash_result_tx.witnesses.append(
+        bitvmx_transactions_dto.hash_result_tx.witnesses.append(
             TxWitnessInput(
                 hash_result_signatures
                 + hash_result_witness
@@ -94,6 +100,11 @@ class PublishHashTransactionService:
             )
         )
 
-        broadcast_transaction_service(transaction=hash_result_tx.serialize())
-        print("Hash result revelation transaction: " + hash_result_tx.get_txid())
-        return hash_result_tx
+        broadcast_transaction_service(
+            transaction=bitvmx_transactions_dto.hash_result_tx.serialize()
+        )
+        print(
+            "Hash result revelation transaction: "
+            + bitvmx_transactions_dto.hash_result_tx.get_txid()
+        )
+        return bitvmx_transactions_dto.hash_result_tx
