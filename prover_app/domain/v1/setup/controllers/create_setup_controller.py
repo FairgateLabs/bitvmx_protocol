@@ -61,13 +61,6 @@ class CreateSetupController:
         origin_of_funds_private_key: PrivateKey
     ):
         setup_uuid = str(uuid.uuid4())
-        # This is hardcoded since it depends on the hashing function
-        amount_of_nibbles_hash = 64
-        # Computed parameters
-        amount_of_wrong_step_search_hashes_per_iteration = 2**amount_of_bits_wrong_step_search - 1
-        amount_of_wrong_step_search_iterations = math.ceil(
-            math.ceil(math.log2(max_amount_of_steps)) / amount_of_bits_wrong_step_search
-        )
 
         funding_tx = self.transaction_info_service(tx_id=funding_tx_id)
         initial_amount_of_satoshis = funding_tx.outputs[funding_index].value - step_fees_satoshis
@@ -297,15 +290,17 @@ class CreateSetupController:
 
         #################################################################
 
-        funding_sig = controlled_prover_private_key.sign_segwit_input(
+        origin_of_funds_public_key = origin_of_funds_private_key.get_public_key()
+
+        funding_sig = origin_of_funds_private_key.sign_segwit_input(
             bitvmx_transactions_dto.funding_tx,
             0,
-            controlled_prover_public_key.get_address().to_script_pub_key(),
+            origin_of_funds_public_key.get_address().to_script_pub_key(),
             initial_amount_of_satoshis + step_fees_satoshis,
         )
 
         bitvmx_transactions_dto.funding_tx.witnesses.append(
-            TxWitnessInput([funding_sig, controlled_prover_public_key.to_hex()])
+            TxWitnessInput([funding_sig, origin_of_funds_public_key.to_hex()])
         )
 
         self.broadcast_transaction_service(

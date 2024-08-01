@@ -38,9 +38,10 @@ class CreateSetupWithFundingController:
             )
 
         controlled_prover_public_key = controlled_prover_private_key.get_public_key()
+        origin_of_funds_public_key = origin_of_funds_private_key.get_public_key()
         funding_tx_id, funding_index = self.faucet_service(
             amount=initial_amount_of_satoshis + step_fees_satoshis,
-            destination_address=controlled_prover_public_key.get_segwit_address().to_string(),
+            destination_address=origin_of_funds_public_key.get_segwit_address().to_string(),
         )
         return await self.create_setup_controller(
             max_amount_of_steps=max_amount_of_steps,
