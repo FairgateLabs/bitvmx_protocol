@@ -1,7 +1,7 @@
 from multiprocessing import Manager, Process
 from multiprocessing.managers import ListProxy
 from time import time
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from bitcoinutils.constants import LEAF_VERSION_TAPSCRIPT
 from bitcoinutils.keys import P2trAddress, PublicKey
@@ -170,7 +170,7 @@ def _traverse_level(
     public_keys: List[List[str]],
     trace_words_lengths: List[int],
     bits_per_digit_checksum: int,
-    instruction_dict: Dict[str, int],
+    instruction_dict: Dict[str, str],
     trace_to_script_mapping: List[int],
     shared_list: Optional[ListProxy] = None,
 ):
@@ -327,7 +327,7 @@ class BitVMXExecutionScriptList(BaseModel):
     public_keys: List[List[str]]
     trace_words_lengths: List[int]
     bits_per_digit_checksum: int
-    taproot_address: Optional[str] = None
+    taproot_address: Optional[Any] = None
 
     @staticmethod
     def get_tree_depth(splitted_key_list: Union[List, str]):

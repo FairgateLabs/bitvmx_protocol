@@ -17,6 +17,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier
 from bitvmx_protocol_library.script_generation.services.script_generation.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
 )
+from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
+    BitVMXTransactionsDTO,
+)
 from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_single_word_service import (
     GenerateWitnessFromInputSingleWordService,
 )
@@ -41,12 +44,12 @@ class PublishChoiceSearchTransactionService:
         self,
         protocol_dict,
         iteration: int,
+        bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
     ):
         destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
-        search_choice_tx_list = protocol_dict["search_choice_tx_list"]
 
         signature_public_keys = protocol_dict["public_keys"]
         search_choice_signatures = protocol_dict["search_choice_signatures"]
@@ -66,6 +69,7 @@ class PublishChoiceSearchTransactionService:
         current_choice = self._get_choice(
             iteration=iteration,
             protocol_dict=protocol_dict,
+            bitvmx_transactions_dto=bitvmx_transactions_dto,
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
         )
         protocol_dict["search_choices"].append(current_choice)
@@ -85,7 +89,7 @@ class PublishChoiceSearchTransactionService:
             is_odd=current_choice_search_scripts_address.is_odd(),
         )
 
-        search_choice_tx_list[iteration].witnesses.append(
+        bitvmx_transactions_dto.search_choice_tx_list[iteration].witnesses.append(
             TxWitnessInput(
                 search_choice_signatures[iteration]
                 + choice_search_witness
@@ -96,20 +100,28 @@ class PublishChoiceSearchTransactionService:
             )
         )
 
-        broadcast_transaction_service(transaction=search_choice_tx_list[iteration].serialize())
+        broadcast_transaction_service(
+            transaction=bitvmx_transactions_dto.search_choice_tx_list[iteration].serialize()
+        )
         print(
             "Search choice iteration transaction "
             + str(iteration)
             + ": "
-            + search_choice_tx_list[iteration].get_txid()
+            + bitvmx_transactions_dto.search_choice_tx_list[iteration].get_txid()
         )
-        return search_choice_tx_list[iteration]
+        return bitvmx_transactions_dto.search_choice_tx_list[iteration]
 
     def _get_choice(
-        self, iteration, protocol_dict, bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO
+        self,
+        iteration,
+        protocol_dict,
+        bitvmx_transactions_dto: BitVMXTransactionsDTO,
+        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
     ):
 
-        previous_hash_search_txid = protocol_dict["search_hash_tx_list"][iteration].get_txid()
+        previous_hash_search_txid = bitvmx_transactions_dto.search_hash_tx_list[
+            iteration
+        ].get_txid()
         previous_hash_search_tx = transaction_info_service(previous_hash_search_txid)
         previous_hash_search_witness = previous_hash_search_tx.inputs[0].witness
         public_keys = protocol_dict["public_keys"]

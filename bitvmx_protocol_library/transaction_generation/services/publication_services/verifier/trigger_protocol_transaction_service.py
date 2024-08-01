@@ -14,6 +14,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
 )
+from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
+    BitVMXTransactionsDTO,
+)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
 )
@@ -29,6 +32,7 @@ class TriggerProtocolTransactionService:
         self,
         protocol_dict,
         hash_result_transaction,
+        bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
     ):
         hash_result_witness = hash_result_transaction.inputs[0].witness
@@ -54,7 +58,6 @@ class TriggerProtocolTransactionService:
             # protocol_dict["search_hashes"][len(execution_result) - 1] = published_result_hash
             protocol_dict["search_hashes"][last_step_index] = published_result_hash
             destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
-            trigger_protocol_tx = protocol_dict["trigger_protocol_tx"]
             trigger_protocol_signatures = protocol_dict["trigger_protocol_signatures"]
 
             trigger_protocol_script_generator = TriggerProtocolScriptGeneratorService()
@@ -73,7 +76,7 @@ class TriggerProtocolTransactionService:
             )
 
             trigger_protocol_witness = []
-            trigger_protocol_tx.witnesses.append(
+            bitvmx_transactions_dto.trigger_protocol_tx.witnesses.append(
                 TxWitnessInput(
                     trigger_protocol_witness
                     + trigger_protocol_signatures
@@ -84,8 +87,13 @@ class TriggerProtocolTransactionService:
                 )
             )
 
-            broadcast_transaction_service(transaction=trigger_protocol_tx.serialize())
-            print("Trigger protocol transaction: " + trigger_protocol_tx.get_txid())
-            return trigger_protocol_tx
+            broadcast_transaction_service(
+                transaction=bitvmx_transactions_dto.trigger_protocol_tx.serialize()
+            )
+            print(
+                "Trigger protocol transaction: "
+                + bitvmx_transactions_dto.trigger_protocol_tx.get_txid()
+            )
+            return bitvmx_transactions_dto.trigger_protocol_tx
 
         raise Exception("Protocol aborted at trigger step because both hashes are equal")

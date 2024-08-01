@@ -54,13 +54,15 @@ class GenerateSignaturesController:
         ]
 
         # Transaction construction
-        self.transaction_generator_from_public_keys_service(
+        bitvmx_transactions_dto = self.transaction_generator_from_public_keys_service(
             protocol_dict,
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
             bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
         )
+
+        protocol_dict["bitvmx_transactions_dto"] = bitvmx_transactions_dto
 
         # Scripts construction
         bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
@@ -76,11 +78,11 @@ class GenerateSignaturesController:
             destroyed_public_key
         )
         verify_prover_signatures_service(
-            protocol_dict=protocol_dict,
             public_key=protocol_dict["prover_public_key"],
             trigger_protocol_signature=protocol_dict["trigger_protocol_prover_signature"],
             search_choice_signatures=protocol_dict["search_choice_prover_signatures"],
             trigger_execution_signature=protocol_dict["trigger_execution_signature"],
+            bitvmx_transactions_dto=bitvmx_transactions_dto,
             bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
@@ -90,6 +92,7 @@ class GenerateSignaturesController:
         )
         signatures_dict = generate_signatures_service(
             protocol_dict=protocol_dict,
+            bitvmx_transactions_dto=bitvmx_transactions_dto,
             bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )

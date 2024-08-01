@@ -18,6 +18,9 @@ from bitvmx_protocol_library.enums import BitcoinNetwork
 from bitvmx_protocol_library.script_generation.services.bitvmx_bitcoin_scripts_generator_service import (
     BitVMXBitcoinScriptsGeneratorService,
 )
+from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
+    BitVMXTransactionsDTO,
+)
 
 
 class TransactionGeneratorFromPublicKeysService:
@@ -32,7 +35,7 @@ class TransactionGeneratorFromPublicKeysService:
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
-    ):
+    ) -> BitVMXTransactionsDTO:
 
         destroyed_public_key = PublicKey(hex_str="02" + protocol_dict["destroyed_public_key"])
 
@@ -58,8 +61,6 @@ class TransactionGeneratorFromPublicKeysService:
         )
         funding_tx = Transaction([funding_txin], [funding_txout], has_segwit=True)
 
-        protocol_dict["funding_tx"] = funding_tx
-
         trigger_protocol_script_address = (
             bitvmx_bitcoin_scripts_dto.trigger_protocol_script.get_taproot_address(
                 destroyed_public_key
@@ -77,8 +78,6 @@ class TransactionGeneratorFromPublicKeysService:
         )
 
         hash_result_tx = Transaction([hash_result_txin], [hash_result_txOut], has_segwit=True)
-
-        protocol_dict["hash_result_tx"] = hash_result_tx
 
         hash_search_scripts_addresses = list(
             map(
@@ -105,8 +104,6 @@ class TransactionGeneratorFromPublicKeysService:
         trigger_protocol_tx = Transaction(
             [trigger_protocol_txin], [trigger_protocol_txOut], has_segwit=True
         )
-
-        protocol_dict["trigger_protocol_tx"] = trigger_protocol_tx
 
         previous_tx_id = trigger_protocol_tx.get_txid()
         current_output_amount = trigger_protocol_output_amount
@@ -143,9 +140,6 @@ class TransactionGeneratorFromPublicKeysService:
             search_choice_tx_list.append(current_tx)
             previous_tx_id = current_tx.get_txid()
 
-        protocol_dict["search_hash_tx_list"] = search_hash_tx_list
-        protocol_dict["search_choice_tx_list"] = search_choice_tx_list
-
         trigger_challenge_script_address = (
             bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts.get_taproot_address(
                 destroyed_public_key
@@ -161,7 +155,6 @@ class TransactionGeneratorFromPublicKeysService:
         )
 
         trace_tx = Transaction([trace_txin], [trace_txout], has_segwit=True)
-        protocol_dict["trace_tx"] = trace_tx
 
         trigger_challenge_output_amount = (
             trace_output_amount - bitvmx_protocol_setup_properties_dto.step_fees_satoshis
@@ -173,6 +166,7 @@ class TransactionGeneratorFromPublicKeysService:
 
         #  Here we should put all the challenges
 
+        # TODO: cache in class
         ## Execution challenge
         if "execution_challenge_address" in protocol_dict:
             execution_challenge_address = protocol_dict["execution_challenge_address"]
@@ -193,7 +187,6 @@ class TransactionGeneratorFromPublicKeysService:
         trigger_execution_challenge_tx = Transaction(
             [trigger_execution_challenge_txin], [trigger_execution_challenge_txout], has_segwit=True
         )
-        protocol_dict["trigger_execution_challenge_tx"] = trigger_execution_challenge_tx
 
         execution_challenge_txin = TxInput(trigger_execution_challenge_tx.get_txid(), 0)
 
@@ -213,9 +206,17 @@ class TransactionGeneratorFromPublicKeysService:
         execution_challenge_tx = Transaction(
             [execution_challenge_txin], [execution_challenge_txout], has_segwit=True
         )
-        protocol_dict["execution_challenge_tx"] = execution_challenge_tx
-
-        protocol_dict["transactions"] = protocol_dict
 
         protocol_dict["last_confirmed_step"] = None
         protocol_dict["last_confirmed_step_tx_id"] = None
+
+        return BitVMXTransactionsDTO(
+            funding_tx=funding_tx,
+            hash_result_tx=hash_result_tx,
+            trigger_protocol_tx=trigger_protocol_tx,
+            search_hash_tx_list=search_hash_tx_list,
+            search_choice_tx_list=search_choice_tx_list,
+            trace_tx=trace_tx,
+            trigger_execution_challenge_tx=trigger_execution_challenge_tx,
+            execution_challenge_tx=execution_challenge_tx,
+        )
