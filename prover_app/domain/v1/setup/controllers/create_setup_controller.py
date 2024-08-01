@@ -20,6 +20,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier
     BitVMXVerifierWinternitzPublicKeysDTO,
 )
 from bitvmx_protocol_library.config import common_protocol_properties
+from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_verifier_signatures_dto import (
+    BitVMXVerifierSignaturesDTO,
+)
 
 
 class CreateSetupController:
@@ -226,46 +229,42 @@ class CreateSetupController:
         generate_signatures_service = self.generate_signatures_service_class(
             prover_private_key, destroyed_public_key
         )
-        signatures_dict = generate_signatures_service(
-            protocol_dict=protocol_dict,
+        bitvmx_signatures_dto = generate_signatures_service(
             bitvmx_transactions_dto=bitvmx_transactions_dto,
             bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
 
         # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
-        hash_result_signatures = [signatures_dict["hash_result_signature"]]
+        hash_result_signatures = [bitvmx_signatures_dto.hash_result_signature]
         search_hash_signatures = [
-            [signature] for signature in signatures_dict["search_hash_signatures"]
+            [signature] for signature in bitvmx_signatures_dto.search_hash_signatures
         ]
-        trace_signatures = [signatures_dict["trace_signature"]]
+        trace_signatures = [bitvmx_signatures_dto.trace_signature]
         # execution_challenge_signatures = [signatures_dict["execution_challenge_signature"]]
         for verifier in verifier_list:
             url = f"{verifier}/signatures"
             headers = {"accept": "application/json", "Content-Type": "application/json"}
             data = {
                 "setup_uuid": setup_uuid,
-                "trigger_protocol_signature": signatures_dict["trigger_protocol_signature"],
-                "search_choice_signatures": signatures_dict["search_choice_signatures"],
-                "trigger_execution_signature": signatures_dict["trigger_execution_signature"],
+                "prover_signatures": bitvmx_signatures_dto.prover_signatures.model_dump(),
             }
             signatures_response = requests.post(url, headers=headers, json=data)
             if signatures_response.status_code != 200:
                 raise Exception("Some error when exchanging the signatures")
 
             signatures_response_json = signatures_response.json()
-            for j in range(len(signatures_response_json["verifier_search_hash_signatures"])):
+            bitvmx_verifier_signatures_dto = BitVMXVerifierSignaturesDTO(
+                **signatures_response_json["verifier_signatures"]
+            )
+            protocol_dict["bitvmx_verifier_signatures_dto"] = bitvmx_verifier_signatures_dto
+            for j in range(len(bitvmx_verifier_signatures_dto.search_hash_signatures)):
                 search_hash_signatures[j].append(
-                    signatures_response_json["verifier_search_hash_signatures"][j]
+                    bitvmx_verifier_signatures_dto.search_hash_signatures[j]
                 )
 
-            hash_result_signatures.append(
-                signatures_response_json["verifier_hash_result_signature"]
-            )
-            trace_signatures.append(signatures_response_json["verifier_trace_signature"])
-            # execution_challenge_signatures.append(
-            #     signatures_response_json["verifier_execution_challenge_signature"]
-            # )
+            hash_result_signatures.append(bitvmx_verifier_signatures_dto.hash_result_signature)
+            trace_signatures.append(bitvmx_verifier_signatures_dto.trace_signature)
 
         hash_result_signatures.reverse()
         for signature_list in search_hash_signatures:

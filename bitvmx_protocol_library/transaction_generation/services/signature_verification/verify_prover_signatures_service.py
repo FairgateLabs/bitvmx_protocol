@@ -4,6 +4,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.script_generation.entities.dtos.bitvmx_bitcoin_scripts_dto import (
     BitVMXBitcoinScriptsDTO,
 )
+from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_prover_signatures_dto import (
+    BitVMXProverSignaturesDTO,
+)
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
     BitVMXTransactionsDTO,
 )
@@ -21,9 +24,7 @@ class VerifyProverSignaturesService:
     def __call__(
         self,
         public_key: str,
-        trigger_protocol_signature: str,
-        search_choice_signatures: str,
-        trigger_execution_signature: str,
+        bitvmx_prover_signatures_dto: BitVMXProverSignaturesDTO,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_bitcoin_scripts_dto: BitVMXBitcoinScriptsDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
@@ -38,25 +39,25 @@ class VerifyProverSignaturesService:
             bitvmx_bitcoin_scripts_dto.trigger_protocol_script,
             funding_result_output_amount - bitvmx_protocol_setup_properties_dto.step_fees_satoshis,
             public_key,
-            trigger_protocol_signature,
+            bitvmx_prover_signatures_dto.trigger_protocol_signature,
         )
 
-        for i in range(len(search_choice_signatures)):
+        for i in range(len(bitvmx_prover_signatures_dto.search_choice_signatures)):
             self.verify_signature_service(
                 bitvmx_transactions_dto.search_choice_tx_list[i],
                 bitvmx_bitcoin_scripts_dto.choice_search_scripts[i],
                 funding_result_output_amount
                 - (3 + 2 * i) * bitvmx_protocol_setup_properties_dto.step_fees_satoshis,
                 public_key,
-                search_choice_signatures[i],
+                bitvmx_prover_signatures_dto.search_choice_signatures[i],
             )
 
         self.verify_signature_service(
             bitvmx_transactions_dto.trigger_execution_challenge_tx,
             bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts[0],
             funding_result_output_amount
-            - (2 * len(search_choice_signatures) + 3)
+            - (2 * len(bitvmx_prover_signatures_dto.search_choice_signatures) + 3)
             * bitvmx_protocol_setup_properties_dto.step_fees_satoshis,
             public_key,
-            trigger_execution_signature,
+            bitvmx_prover_signatures_dto.trigger_execution_challenge_signature,
         )
