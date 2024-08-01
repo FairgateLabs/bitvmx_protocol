@@ -8,6 +8,7 @@ class SetupPostV1Input(BaseModel):
     amount_of_bits_wrong_step_search: conint(ge=1, le=3)
     funding_tx_id: str
     funding_index: int
+    secret_origin_of_funds: str
     verifier_list: Optional[List[str]] = None
     # Debug this field (not that important since the optimal is 4)
     amount_of_bits_per_digit_checksum: Optional[conint(ge=4, le=4)] = 4

@@ -47,6 +47,7 @@ class PublishTraceTransactionService:
     def __call__(
         self,
         protocol_dict,
+        setup_uuid: str,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
@@ -83,7 +84,7 @@ class PublishTraceTransactionService:
         print("First wrong step: " + str(first_wrong_step))
 
         current_trace = self.execution_trace_query_service(
-            protocol_dict["setup_uuid"], first_wrong_step
+            setup_uuid=setup_uuid, index=first_wrong_step
         )
         current_trace_values = current_trace[:13].to_list()
         current_trace_values.reverse()

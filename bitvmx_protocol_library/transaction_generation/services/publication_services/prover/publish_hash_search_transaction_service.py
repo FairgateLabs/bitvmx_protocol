@@ -56,6 +56,7 @@ class PublishHashSearchTransactionService:
         self,
         protocol_dict,
         iteration: int,
+        setup_uuid: str,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
@@ -126,7 +127,12 @@ class PublishHashSearchTransactionService:
                 bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             )
 
-        iteration_hashes = self._get_hashes(iteration, protocol_dict)
+        iteration_hashes = self._get_hashes(
+            setup_uuid=setup_uuid,
+            iteration=iteration,
+            protocol_dict=protocol_dict,
+            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+        )
 
         for word_count in range(
             bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
@@ -177,28 +183,30 @@ class PublishHashSearchTransactionService:
         )
         return bitvmx_transactions_dto.search_hash_tx_list[iteration]
 
-    def _get_hashes(self, iteration, protocol_dict):
-        amount_of_bits_wrong_step_search = protocol_dict["amount_of_bits_wrong_step_search"]
-        amount_of_wrong_step_search_iterations = protocol_dict[
-            "amount_of_wrong_step_search_iterations"
-        ]
+    def _get_hashes(
+            self,
+            setup_uuid: str,
+            iteration: int,
+            protocol_dict,
+            bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO
+    ):
         prefix = ""
         for search_choice in protocol_dict["search_choices"]:
-            prefix += bin(search_choice)[2:].zfill(amount_of_bits_wrong_step_search)
+            prefix += bin(search_choice)[2:].zfill(bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search)
         suffix = (
             "1"
-            * amount_of_bits_wrong_step_search
-            * (amount_of_wrong_step_search_iterations - iteration - 1)
+            * bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+            * (bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations - iteration - 1)
         )
         index_list = []
-        for j in range(2**amount_of_bits_wrong_step_search - 1):
+        for j in range(2**bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search - 1):
             index_list.append(
-                int(prefix + bin(j)[2:].zfill(amount_of_bits_wrong_step_search) + suffix, 2)
+                int(prefix + bin(j)[2:].zfill(bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search) + suffix, 2)
             )
         hash_list = []
         for index in index_list:
             hash_list.append(
-                self.execution_trace_query_service(protocol_dict["setup_uuid"], index)["step_hash"]
+                self.execution_trace_query_service(setup_uuid=setup_uuid, index=index)["step_hash"]
             )
         for j in range(len(index_list)):
             protocol_dict["published_hashes_dict"][index_list[j]] = hash_list[j]

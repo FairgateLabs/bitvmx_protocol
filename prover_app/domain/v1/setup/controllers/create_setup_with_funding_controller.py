@@ -28,6 +28,7 @@ class CreateSetupWithFundingController:
         initial_amount_of_satoshis: int,
         step_fees_satoshis: int,
         controlled_prover_private_key: PrivateKey,
+        origin_of_funds_private_key: PrivateKey
     ):
         if not self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
             raise HTTPException(
@@ -35,6 +36,7 @@ class CreateSetupWithFundingController:
                 detail="Endpoint not available for network "
                 + str(self.common_protocol_properties.network.value),
             )
+
         controlled_prover_public_key = controlled_prover_private_key.get_public_key()
         funding_tx_id, funding_index = self.faucet_service(
             amount=initial_amount_of_satoshis + step_fees_satoshis,
@@ -49,4 +51,5 @@ class CreateSetupWithFundingController:
             funding_tx_id=funding_tx_id,
             funding_index=funding_index,
             step_fees_satoshis=step_fees_satoshis,
+            origin_of_funds_private_key=origin_of_funds_private_key,
         )

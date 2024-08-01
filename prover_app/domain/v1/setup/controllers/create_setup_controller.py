@@ -58,6 +58,7 @@ class CreateSetupController:
         funding_tx_id: str,
         funding_index: str,
         step_fees_satoshis: int,
+        origin_of_funds_private_key: PrivateKey
     ):
         setup_uuid = str(uuid.uuid4())
         # This is hardcoded since it depends on the hashing function
@@ -88,19 +89,7 @@ class CreateSetupController:
         protocol_dict = {}
         protocol_dict["bitvmx_protocol_properties_dto"] = bitvmx_protocol_properties_dto
         protocol_dict["bitvmx_protocol_setup_properties_dto"] = bitvmx_protocol_setup_properties_dto
-        protocol_dict["setup_uuid"] = setup_uuid
-        protocol_dict["amount_of_trace_steps"] = (
-            2**amount_of_bits_wrong_step_search
-        ) ** amount_of_wrong_step_search_iterations
-        protocol_dict["amount_of_bits_per_digit_checksum"] = amount_of_bits_per_digit_checksum
-        protocol_dict["amount_of_wrong_step_search_iterations"] = (
-            amount_of_wrong_step_search_iterations
-        )
-        protocol_dict["amount_of_bits_wrong_step_search"] = amount_of_bits_wrong_step_search
-        protocol_dict["amount_of_wrong_step_search_hashes_per_iteration"] = (
-            amount_of_wrong_step_search_hashes_per_iteration
-        )
-        protocol_dict["amount_of_nibbles_hash"] = amount_of_nibbles_hash
+
         protocol_dict["search_choices"] = []
         protocol_dict["published_hashes_dict"] = {}
 
