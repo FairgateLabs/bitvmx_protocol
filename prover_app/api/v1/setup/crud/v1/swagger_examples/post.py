@@ -8,6 +8,7 @@ setup_post_v1_input_swagger_examples = {
             "funding_tx_id": "7eaa1105206b94afb9c6bc918f19377a6caa63d6193b668540d997dd4778e195",
             "funding_index": 0,
             "secret_origin_of_funds": "7920e3e47f7c977dab446d6d55ee679241b13c28edf363d519866ede017ef1b4",
+            "prover_destination_address": "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
         },
     },
     "zk_verifier": {
@@ -19,6 +20,7 @@ setup_post_v1_input_swagger_examples = {
             "funding_tx_id": "7eaa1105206b94afb9c6bc918f19377a6caa63d6193b668540d997dd4778e195",
             "funding_index": 0,
             "secret_origin_of_funds": "7920e3e47f7c977dab446d6d55ee679241b13c28edf363d519866ede017ef1b4",
+            "prover_destination_address": "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
         },
     },
 }

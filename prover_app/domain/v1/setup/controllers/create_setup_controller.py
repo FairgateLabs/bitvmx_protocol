@@ -61,7 +61,10 @@ class CreateSetupController:
         funding_index: str,
         step_fees_satoshis: int,
         origin_of_funds_private_key: PrivateKey,
-    ):
+        prover_destination_address: str,
+        prover_signature_private_key: str,
+        prover_signature_public_key: str
+    ) -> str:
         setup_uuid = str(uuid.uuid4())
 
         funding_tx = self.transaction_info_service(tx_id=funding_tx_id)
@@ -72,18 +75,9 @@ class CreateSetupController:
             amount_of_bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
         )
 
-        bitvmx_protocol_setup_properties_dto = BitVMXProtocolSetupPropertiesDTO(
-            setup_uuid=setup_uuid,
-            funding_amount_of_satoshis=initial_amount_of_satoshis,
-            step_fees_satoshis=step_fees_satoshis,
-            funding_tx_id=funding_tx_id,
-            funding_index=funding_index,
-            verifier_list=verifier_list,
-        )
-
         protocol_dict = {}
         protocol_dict["bitvmx_protocol_properties_dto"] = bitvmx_protocol_properties_dto
-        protocol_dict["bitvmx_protocol_setup_properties_dto"] = bitvmx_protocol_setup_properties_dto
+
 
         protocol_dict["search_choices"] = []
         protocol_dict["published_hashes_dict"] = {}
@@ -104,33 +98,27 @@ class CreateSetupController:
         controlled_prover_public_key = controlled_prover_private_key.get_public_key()
         controlled_prover_address = controlled_prover_public_key.get_segwit_address().to_string()
 
-        protocol_dict["controlled_prover_secret_key"] = (
-            controlled_prover_private_key.to_bytes().hex()
-        )
-        protocol_dict["controlled_prover_public_key"] = controlled_prover_public_key.to_hex()
         protocol_dict["controlled_prover_address"] = controlled_prover_address
 
+        winternitz_private_key = PrivateKey(b=secrets.token_bytes(32))
+
         destroyed_public_key = None
-        seed_destroyed_public_key_hex = ""
+        seed_unspendable_public_key = ""
         prover_private_key = PrivateKey(b=secrets.token_bytes(32))
         prover_public_key = prover_private_key.get_public_key()
         public_keys.append(prover_public_key.to_hex())
-
-        winternitz_private_key = PrivateKey(b=secrets.token_bytes(32))
         while destroyed_public_key is None:
             try:
-                seed_destroyed_public_key_hex = "".join(public_keys)
-                destroyed_public_key_hex = hashlib.sha256(
-                    bytes.fromhex(seed_destroyed_public_key_hex)
-                ).hexdigest()
-                destroyed_public_key = PublicKey(hex_str="02" + destroyed_public_key_hex)
+                seed_unspendable_public_key = "".join(public_keys)
+                destroyed_public_key = BitVMXProtocolSetupPropertiesDTO.unspendable_public_key_from_seed(
+                    seed_unspendable_public_key=seed_unspendable_public_key
+                )
                 continue
             except IndexError:
                 prover_private_key = PrivateKey(b=secrets.token_bytes(32))
                 prover_public_key = prover_private_key.get_public_key()
                 public_keys[-1] = prover_public_key.to_hex()
 
-        protocol_dict["seed_destroyed_public_key_hex"] = seed_destroyed_public_key_hex
         protocol_dict["destroyed_public_key"] = destroyed_public_key.to_hex()
         protocol_dict["prover_secret_key"] = prover_private_key.to_bytes().hex()
         protocol_dict["prover_public_key"] = prover_public_key.to_hex()
@@ -154,13 +142,25 @@ class CreateSetupController:
 
         print("Funding tx: " + funding_tx_id)
 
+        bitvmx_protocol_setup_properties_dto = BitVMXProtocolSetupPropertiesDTO(
+            setup_uuid=setup_uuid,
+            funding_amount_of_satoshis=initial_amount_of_satoshis,
+            step_fees_satoshis=step_fees_satoshis,
+            funding_tx_id=funding_tx_id,
+            funding_index=funding_index,
+            verifier_list=verifier_list,
+            prover_destination_address=prover_destination_address,
+            prover_signature_public_key=prover_signature_public_key,
+            seed_unspendable_public_key=seed_unspendable_public_key
+        )
+        protocol_dict["bitvmx_protocol_setup_properties_dto"] = bitvmx_protocol_setup_properties_dto
+
         # Think how to iterate all verifiers here -> Make a call per verifier
         # All verifiers should sign all transactions so they are sure there is not any of them lying
         url = f"{verifier_list[0]}/public_keys"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
         data = {
             "setup_uuid": setup_uuid,
-            "seed_destroyed_public_key_hex": seed_destroyed_public_key_hex,
             "prover_public_key": prover_public_key.to_hex(),
             "bitvmx_prover_winternitz_public_keys_dto": bitvmx_prover_winternitz_public_keys_dto.dict(),
             "bitvmx_protocol_setup_properties_dto": bitvmx_protocol_setup_properties_dto.dict(),
@@ -288,7 +288,8 @@ class CreateSetupController:
             )
 
         protocol_dict["bitvmx_protocol_prover_private_dto"] = BitVMXProtocolProverPrivateDTO(
-            winternitz_private_key=winternitz_private_key.to_bytes().hex()
+            winternitz_private_key=winternitz_private_key.to_bytes().hex(),
+            prover_signature_private_key=prover_signature_private_key,
         )
 
         os.makedirs(f"prover_files/{setup_uuid}")

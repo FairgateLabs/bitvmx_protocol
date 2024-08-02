@@ -50,6 +50,7 @@ class PublishNextStepController:
         last_confirmed_step_tx_id = protocol_dict["last_confirmed_step_tx_id"]
 
         bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
+        bitvmx_protocol_setup_properties_dto = protocol_dict["bitvmx_protocol_setup_properties_dto"]
         bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
             "bitvmx_prover_winternitz_public_keys_dto"
         ]
@@ -68,6 +69,7 @@ class PublishNextStepController:
                 hash_result_transaction=hash_result_transaction,
                 bitvmx_transactions_dto=bitvmx_transactions_dto,
                 bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             )
             last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
             last_confirmed_step = TransactionVerifierStepType.TRIGGER_PROTOCOL
@@ -87,6 +89,7 @@ class PublishNextStepController:
                 iteration=i,
                 bitvmx_transactions_dto=bitvmx_transactions_dto,
                 bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                 bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
                 bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
             )
@@ -120,6 +123,7 @@ class PublishNextStepController:
                     protocol_dict=protocol_dict,
                     bitvmx_transactions_dto=bitvmx_transactions_dto,
                     bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                    bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                     bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
                     bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
                 )
@@ -147,6 +151,7 @@ class PublishNextStepController:
                 last_confirmed_step_tx = publish_choice_search_transaction_service(
                     protocol_dict=protocol_dict,
                     bitvmx_transactions_dto=bitvmx_transactions_dto,
+                    bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                     iteration=i,
                     bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
                     bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,

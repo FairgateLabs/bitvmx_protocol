@@ -5,6 +5,8 @@ from bitcoinutils.utils import ControlBlock
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import \
+    BitVMXProtocolSetupPropertiesDTO
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
     BitVMXProverWinternitzPublicKeysDTO,
 )
@@ -39,10 +41,10 @@ class TriggerExecutionChallengeTransactionService:
         protocol_dict,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
     ):
-        destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
 
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
 
@@ -101,12 +103,12 @@ class TriggerExecutionChallengeTransactionService:
 
         # TODO: we should load this address from protocol dict as we add more challenges
         trigger_challenge_taptree = [[trigger_execution_script]]
-        challenge_scripts_address = destroyed_public_key.get_taproot_address(
+        challenge_scripts_address = bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
             trigger_challenge_taptree
         )
 
         challenge_scripts_control_block = ControlBlock(
-            destroyed_public_key,
+            bitvmx_protocol_setup_properties_dto.unspendable_public_key,
             scripts=trigger_challenge_taptree,
             index=0,
             is_odd=challenge_scripts_address.is_odd(),

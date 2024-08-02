@@ -1,3 +1,5 @@
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import \
+    BitVMXProtocolSetupPropertiesDTO
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_generic_challenge_script_generator_service import (
     TriggerGenericChallengeScriptGeneratorService,
 )
@@ -18,5 +20,5 @@ class TriggerWrongHashChallengeTransactionService:
             verifier_private_key
         )
 
-    def __call__(self, protocol_dict, bitvmx_transactions_dto: BitVMXTransactionsDTO):
+    def __call__(self, protocol_dict, bitvmx_transactions_dto: BitVMXTransactionsDTO, bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO):
         raise Exception("Trigger wrong hash challenge not implemented")

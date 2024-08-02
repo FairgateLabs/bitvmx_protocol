@@ -71,10 +71,8 @@ class GenerateSignaturesController:
             signature_public_keys=protocol_dict["public_keys"],
         )
 
-        destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
-
         verify_prover_signatures_service = self.verify_prover_signatures_service_class(
-            destroyed_public_key
+            bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
         verify_prover_signatures_service(
             public_key=protocol_dict["prover_public_key"],
@@ -85,7 +83,7 @@ class GenerateSignaturesController:
         )
 
         generate_signatures_service = self.generate_signatures_service_class(
-            verifier_private_key, destroyed_public_key
+            verifier_private_key, bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
         bitvmx_signatures_dto = generate_signatures_service(
             bitvmx_transactions_dto=bitvmx_transactions_dto,

@@ -11,6 +11,8 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_ser
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import \
+    BitVMXProtocolSetupPropertiesDTO
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
 )
@@ -34,6 +36,7 @@ class TriggerProtocolTransactionService:
         hash_result_transaction,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
     ):
         hash_result_witness = hash_result_transaction.inputs[0].witness
         public_keys = protocol_dict["public_keys"]
@@ -57,19 +60,18 @@ class TriggerProtocolTransactionService:
         if not last_step_trace["step_hash"] == published_result_hash:
             # protocol_dict["search_hashes"][len(execution_result) - 1] = published_result_hash
             protocol_dict["search_hashes"][last_step_index] = published_result_hash
-            destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
             trigger_protocol_signatures = protocol_dict["trigger_protocol_signatures"]
 
             trigger_protocol_script_generator = TriggerProtocolScriptGeneratorService()
             trigger_protocol_script = trigger_protocol_script_generator(
                 protocol_dict["public_keys"]
             )
-            trigger_protocol_script_address = destroyed_public_key.get_taproot_address(
+            trigger_protocol_script_address = bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
                 [[trigger_protocol_script]]
             )
 
             trigger_protocol_control_block = ControlBlock(
-                destroyed_public_key,
+                bitvmx_protocol_setup_properties_dto.unspendable_public_key,
                 scripts=[[trigger_protocol_script]],
                 index=0,
                 is_odd=trigger_protocol_script_address.is_odd(),

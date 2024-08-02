@@ -42,5 +42,8 @@ class SetupPostViewControllerV1:
             funding_index=setup_post_view_input.funding_index,
             step_fees_satoshis=self.common_protocol_properties.step_fees_satoshis,
             origin_of_funds_private_key=origin_of_funds_private_key,
+            prover_destination_address=setup_post_view_input.prover_destination_address,
+            prover_signature_private_key=setup_post_view_input.prover_signature_private_key,
+            prover_signature_public_key=setup_post_view_input.prover_signature_public_key,
         )
         return SetupPostV1Output(setup_uuid=setup_uuid)
