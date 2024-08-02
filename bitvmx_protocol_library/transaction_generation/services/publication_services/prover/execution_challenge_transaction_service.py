@@ -1,5 +1,5 @@
 from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
-from bitcoinutils.keys import PrivateKey, PublicKey
+from bitcoinutils.keys import PrivateKey
 from bitcoinutils.transactions import TxWitnessInput
 
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_commitment_generation_service import (
@@ -51,7 +51,6 @@ class ExecutionChallengeTransactionService:
     ):
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
         # execution_challenge_signatures = protocol_dict["execution_challenge_signatures"]
-        destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
         signature_public_keys = protocol_dict["public_keys"]
 
         bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
@@ -108,7 +107,9 @@ class ExecutionChallengeTransactionService:
             execution_challenge_script_address = protocol_dict["execution_challenge_address"]
         else:
             execution_challenge_script_address = (
-                execution_challenge_script_list.get_taproot_address(destroyed_public_key)
+                execution_challenge_script_list.get_taproot_address(
+                    bitvmx_protocol_setup_properties_dto.unspendable_public_key
+                )
             )
 
             protocol_dict["execution_challenge_address"] = execution_challenge_script_address
@@ -129,7 +130,7 @@ class ExecutionChallengeTransactionService:
         # execution_challenge_control_block_hex = execution_challenge_control_block.to_hex()
         execution_challenge_control_block_hex = (
             execution_challenge_script_list.get_control_block_hex(
-                destroyed_public_key,
+                bitvmx_protocol_setup_properties_dto.unspendable_public_key,
                 current_script_index,
                 execution_challenge_script_address.is_odd(),
             )

@@ -1,12 +1,12 @@
-from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import \
-    BitVMXProtocolSetupPropertiesDTO
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
+    BitVMXProtocolSetupPropertiesDTO,
+)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
     BitVMXProverWinternitzPublicKeysDTO,
 )
@@ -103,8 +103,10 @@ class TriggerExecutionChallengeTransactionService:
 
         # TODO: we should load this address from protocol dict as we add more challenges
         trigger_challenge_taptree = [[trigger_execution_script]]
-        challenge_scripts_address = bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
-            trigger_challenge_taptree
+        challenge_scripts_address = (
+            bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
+                trigger_challenge_taptree
+            )
         )
 
         challenge_scripts_control_block = ControlBlock(

@@ -1,6 +1,5 @@
 from typing import List
 
-from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import Transaction, TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
@@ -12,6 +11,9 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_ser
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
+    BitVMXProtocolSetupPropertiesDTO,
 )
 from bitvmx_protocol_library.script_generation.services.script_generation.hash_result_script_generator_service import (
     HashResultScriptGeneratorService,
@@ -51,10 +53,10 @@ class PublishHashTransactionService:
         protocol_dict,
         setup_uuid: str,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
     ) -> Transaction:
 
-        destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
         hash_result_signatures = protocol_dict["hash_result_signatures"]
 
         self.execution_trace_generation_service(setup_uuid=setup_uuid)
@@ -81,12 +83,14 @@ class PublishHashTransactionService:
             bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
             bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
-        hash_result_script_address = destroyed_public_key.get_taproot_address(
-            [[hash_result_script]]
+        hash_result_script_address = (
+            bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
+                [[hash_result_script]]
+            )
         )
 
         hash_result_control_block = ControlBlock(
-            destroyed_public_key,
+            bitvmx_protocol_setup_properties_dto.unspendable_public_key,
             scripts=[[hash_result_script]],
             index=0,
             is_odd=hash_result_script_address.is_odd(),

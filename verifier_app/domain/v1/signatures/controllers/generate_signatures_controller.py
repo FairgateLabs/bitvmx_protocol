@@ -1,6 +1,6 @@
 import pickle
 
-from bitcoinutils.keys import PrivateKey, PublicKey
+from bitcoinutils.keys import PrivateKey
 from bitcoinutils.setup import NETWORK
 
 from bitvmx_protocol_library.enums import BitcoinNetwork
@@ -75,7 +75,7 @@ class GenerateSignaturesController:
             bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
         verify_prover_signatures_service(
-            public_key=protocol_dict["prover_public_key"],
+            public_key=bitvmx_protocol_setup_properties_dto.prover_destroyed_public_key,
             bitvmx_prover_signatures_dto=bitvmx_prover_signatures_dto,
             bitvmx_transactions_dto=bitvmx_transactions_dto,
             bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,

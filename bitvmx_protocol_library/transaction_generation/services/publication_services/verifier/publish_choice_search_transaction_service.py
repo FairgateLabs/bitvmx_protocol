@@ -1,4 +1,3 @@
-from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
@@ -8,8 +7,9 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_ser
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import \
-    BitVMXProtocolSetupPropertiesDTO
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
+    BitVMXProtocolSetupPropertiesDTO,
+)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
     BitVMXProverWinternitzPublicKeysDTO,
 )
@@ -81,8 +81,10 @@ class PublishChoiceSearchTransactionService:
             input_number=current_choice,
             amount_of_bits=bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
         )
-        current_choice_search_scripts_address = bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
-            [[current_choice_search_script]]
+        current_choice_search_scripts_address = (
+            bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
+                [[current_choice_search_script]]
+            )
         )
         current_choice_search_control_block = ControlBlock(
             bitvmx_protocol_setup_properties_dto.unspendable_public_key,

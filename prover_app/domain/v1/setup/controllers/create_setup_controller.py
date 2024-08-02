@@ -1,4 +1,3 @@
-import hashlib
 import os
 import pickle
 import secrets
@@ -6,7 +5,7 @@ import uuid
 from typing import List
 
 import requests
-from bitcoinutils.keys import PrivateKey, PublicKey
+from bitcoinutils.keys import PrivateKey
 from bitcoinutils.transactions import TxWitnessInput
 
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
@@ -63,7 +62,7 @@ class CreateSetupController:
         origin_of_funds_private_key: PrivateKey,
         prover_destination_address: str,
         prover_signature_private_key: str,
-        prover_signature_public_key: str
+        prover_signature_public_key: str,
     ) -> str:
         setup_uuid = str(uuid.uuid4())
 
@@ -78,11 +77,11 @@ class CreateSetupController:
         protocol_dict = {}
         protocol_dict["bitvmx_protocol_properties_dto"] = bitvmx_protocol_properties_dto
 
-
         protocol_dict["search_choices"] = []
         protocol_dict["published_hashes_dict"] = {}
 
         public_keys = []
+        verifier_destroyed_public_key_hex = None
         for verifier in verifier_list:
             url = f"{verifier}/setup"
             headers = {"accept": "application/json", "Content-Type": "application/json"}
@@ -91,7 +90,8 @@ class CreateSetupController:
             response = requests.post(url, headers=headers, json=data)
             if response.status_code == 200:
                 response_json = response.json()
-                public_keys.append(response_json["public_key"])
+                verifier_destroyed_public_key_hex = response_json["public_key"]
+                public_keys.append(verifier_destroyed_public_key_hex)
             else:
                 raise Exception("Some error ocurred with the setup call to the verifier")
 
@@ -102,28 +102,26 @@ class CreateSetupController:
 
         winternitz_private_key = PrivateKey(b=secrets.token_bytes(32))
 
-        destroyed_public_key = None
+        unspendable_public_key = None
         seed_unspendable_public_key = ""
-        prover_private_key = PrivateKey(b=secrets.token_bytes(32))
-        prover_public_key = prover_private_key.get_public_key()
-        public_keys.append(prover_public_key.to_hex())
-        while destroyed_public_key is None:
+        prover_destroyed_private_key = PrivateKey(b=secrets.token_bytes(32))
+        prover_destroyed_public_key = prover_destroyed_private_key.get_public_key()
+        public_keys.append(prover_destroyed_public_key.to_hex())
+        while unspendable_public_key is None:
             try:
                 seed_unspendable_public_key = "".join(public_keys)
-                destroyed_public_key = BitVMXProtocolSetupPropertiesDTO.unspendable_public_key_from_seed(
-                    seed_unspendable_public_key=seed_unspendable_public_key
+                unspendable_public_key = (
+                    BitVMXProtocolSetupPropertiesDTO.unspendable_public_key_from_seed(
+                        seed_unspendable_public_key=seed_unspendable_public_key
+                    )
                 )
                 continue
             except IndexError:
-                prover_private_key = PrivateKey(b=secrets.token_bytes(32))
-                prover_public_key = prover_private_key.get_public_key()
-                public_keys[-1] = prover_public_key.to_hex()
+                prover_destroyed_private_key = PrivateKey(b=secrets.token_bytes(32))
+                prover_destroyed_public_key = prover_destroyed_private_key.get_public_key()
+                public_keys[-1] = prover_destroyed_public_key.to_hex()
 
-        protocol_dict["destroyed_public_key"] = destroyed_public_key.to_hex()
-        protocol_dict["prover_secret_key"] = prover_private_key.to_bytes().hex()
-        protocol_dict["prover_public_key"] = prover_public_key.to_hex()
         protocol_dict["public_keys"] = public_keys
-        protocol_dict["network"] = common_protocol_properties.network
 
         generate_prover_public_keys_service = self.generate_prover_public_keys_service_class(
             winternitz_private_key
@@ -151,7 +149,9 @@ class CreateSetupController:
             verifier_list=verifier_list,
             prover_destination_address=prover_destination_address,
             prover_signature_public_key=prover_signature_public_key,
-            seed_unspendable_public_key=seed_unspendable_public_key
+            seed_unspendable_public_key=seed_unspendable_public_key,
+            prover_destroyed_public_key=prover_destroyed_private_key.get_public_key().to_hex(),
+            verifier_destroyed_public_key=verifier_destroyed_public_key_hex,
         )
         protocol_dict["bitvmx_protocol_setup_properties_dto"] = bitvmx_protocol_setup_properties_dto
 
@@ -161,7 +161,6 @@ class CreateSetupController:
         headers = {"accept": "application/json", "Content-Type": "application/json"}
         data = {
             "setup_uuid": setup_uuid,
-            "prover_public_key": prover_public_key.to_hex(),
             "bitvmx_prover_winternitz_public_keys_dto": bitvmx_prover_winternitz_public_keys_dto.dict(),
             "bitvmx_protocol_setup_properties_dto": bitvmx_protocol_setup_properties_dto.dict(),
             "bitvmx_protocol_properties_dto": bitvmx_protocol_properties_dto.dict(),
@@ -213,7 +212,7 @@ class CreateSetupController:
         # Signature computation
 
         generate_signatures_service = self.generate_signatures_service_class(
-            prover_private_key, destroyed_public_key
+            private_key=prover_destroyed_private_key, destroyed_public_key=unspendable_public_key
         )
         bitvmx_signatures_dto = generate_signatures_service(
             bitvmx_transactions_dto=bitvmx_transactions_dto,
@@ -264,7 +263,7 @@ class CreateSetupController:
         # protocol_dict["execution_challenge_signatures"] = execution_challenge_signatures
 
         verify_verifier_signatures_service = self.verify_verifier_signatures_service_class(
-            destroyed_public_key
+            unspendable_public_key=unspendable_public_key
         )
         for i in range(len(protocol_dict["public_keys"]) - 1):
             verify_verifier_signatures_service(

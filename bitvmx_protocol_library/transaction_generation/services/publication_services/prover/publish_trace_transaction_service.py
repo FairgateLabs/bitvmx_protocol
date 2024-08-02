@@ -1,4 +1,3 @@
-from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
@@ -7,6 +6,9 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_ser
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
+    BitVMXProtocolSetupPropertiesDTO,
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
     BitVMXProverWinternitzPublicKeysDTO,
@@ -50,10 +52,10 @@ class PublishTraceTransactionService:
         setup_uuid: str,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
     ):
-        destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
         trace_signatures = protocol_dict["trace_signatures"]
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
 
@@ -128,10 +130,14 @@ class PublishTraceTransactionService:
                 0
             ],
         )
-        trace_script_address = destroyed_public_key.get_taproot_address([[trace_script]])
+        trace_script_address = (
+            bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
+                [[trace_script]]
+            )
+        )
 
         trace_control_block = ControlBlock(
-            destroyed_public_key,
+            bitvmx_protocol_setup_properties_dto.unspendable_public_key,
             scripts=[[trace_script]],
             index=0,
             is_odd=trace_script_address.is_odd(),

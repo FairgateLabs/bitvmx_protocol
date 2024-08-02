@@ -1,8 +1,9 @@
+import hashlib
 from typing import List
 
 from bitcoinutils.keys import PublicKey
 from pydantic import BaseModel
-import hashlib
+
 
 class BitVMXProtocolSetupPropertiesDTO(BaseModel):
     setup_uuid: str
@@ -16,8 +17,8 @@ class BitVMXProtocolSetupPropertiesDTO(BaseModel):
     seed_unspendable_public_key: str
     # controlled_prover_address: str
     # controlled_verifier_address: str
-    # destroyed_prover_public_key: str
-    # destroyed_verifier_public_key: str
+    prover_destroyed_public_key: str
+    verifier_destroyed_public_key: str
 
     @staticmethod
     def unspendable_public_key_from_seed(seed_unspendable_public_key: str):

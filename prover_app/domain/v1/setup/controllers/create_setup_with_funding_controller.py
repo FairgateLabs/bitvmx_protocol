@@ -1,3 +1,4 @@
+import secrets
 from typing import List
 
 import aiohttp
@@ -6,7 +7,7 @@ from fastapi import HTTPException
 
 from bitvmx_protocol_library.enums import BitcoinNetwork
 from prover_app.api.v1.setup.crud.v1.view_models.post import SetupPostV1Input
-import secrets
+
 
 class CreateSetupWithFundingController:
     def __init__(

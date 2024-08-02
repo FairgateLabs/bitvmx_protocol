@@ -1,4 +1,4 @@
-from bitcoinutils.keys import P2wpkhAddress, PublicKey
+from bitcoinutils.keys import P2wpkhAddress
 from bitcoinutils.transactions import Transaction, TxInput, TxOutput
 
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
@@ -52,7 +52,9 @@ class TransactionGeneratorFromPublicKeysService:
         )
 
         hash_result_script_address = (
-            bitvmx_bitcoin_scripts_dto.hash_result_script.get_taproot_address(bitvmx_protocol_setup_properties_dto.unspendable_public_key)
+            bitvmx_bitcoin_scripts_dto.hash_result_script.get_taproot_address(
+                bitvmx_protocol_setup_properties_dto.unspendable_public_key
+            )
         )
 
         funding_txout = TxOutput(

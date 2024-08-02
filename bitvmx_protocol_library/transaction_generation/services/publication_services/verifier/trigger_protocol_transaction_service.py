@@ -1,4 +1,3 @@
-from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
@@ -11,8 +10,9 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_ser
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import \
-    BitVMXProtocolSetupPropertiesDTO
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
+    BitVMXProtocolSetupPropertiesDTO,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
 )
@@ -66,8 +66,10 @@ class TriggerProtocolTransactionService:
             trigger_protocol_script = trigger_protocol_script_generator(
                 protocol_dict["public_keys"]
             )
-            trigger_protocol_script_address = bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
-                [[trigger_protocol_script]]
+            trigger_protocol_script_address = (
+                bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
+                    [[trigger_protocol_script]]
+                )
             )
 
             trigger_protocol_control_block = ControlBlock(

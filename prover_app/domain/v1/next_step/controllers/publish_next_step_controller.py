@@ -74,6 +74,7 @@ class PublishNextStepController:
                 protocol_dict=protocol_dict,
                 setup_uuid=setup_uuid,
                 bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                 bitvmx_transactions_dto=bitvmx_transactions_dto,
             )
             last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
@@ -95,6 +96,7 @@ class PublishNextStepController:
                 iteration=0,
                 setup_uuid=setup_uuid,
                 bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                 bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
                 bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
             )
@@ -117,6 +119,7 @@ class PublishNextStepController:
                     setup_uuid=setup_uuid,
                     bitvmx_transactions_dto=bitvmx_transactions_dto,
                     bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                    bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                     bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
                     bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
                 )
@@ -147,6 +150,7 @@ class PublishNextStepController:
                         iteration=i,
                         setup_uuid=setup_uuid,
                         bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                        bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                         bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
                         bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
                     )

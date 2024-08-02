@@ -19,7 +19,6 @@ class PublicKeysPostV1Input(BaseModel):
     bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO
     bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO
     bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO
-    prover_public_key: str
     controlled_prover_address: str
 
 

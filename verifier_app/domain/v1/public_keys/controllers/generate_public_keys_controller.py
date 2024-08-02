@@ -1,8 +1,7 @@
-import hashlib
 import pickle
 from http import HTTPStatus
 
-from bitcoinutils.keys import PrivateKey, PublicKey
+from bitcoinutils.keys import PrivateKey
 from bitcoinutils.setup import NETWORK
 from fastapi import HTTPException
 
@@ -43,13 +42,14 @@ class GeneratePublicKeysController:
 
         protocol_dict["verifier_public_key"] = verifier_private_key.get_public_key().to_hex()
 
-        if verifier_private_key.get_public_key().to_x_only_hex() not in bitvmx_protocol_setup_properties_dto.seed_unspendable_public_key:
+        if (
+            verifier_private_key.get_public_key().to_x_only_hex()
+            not in bitvmx_protocol_setup_properties_dto.seed_unspendable_public_key
+        ):
             raise HTTPException(
-                status_code=HTTPStatus.EXPECTATION_FAILED,
-                detail="Seed does not contain public key"
+                status_code=HTTPStatus.EXPECTATION_FAILED, detail="Seed does not contain public key"
             )
 
-        protocol_dict["prover_public_key"] = public_keys_post_view_input.prover_public_key
         protocol_dict["bitvmx_prover_winternitz_public_keys_dto"] = (
             bitvmx_prover_winternitz_public_keys_dto
         )
@@ -67,8 +67,8 @@ class GeneratePublicKeysController:
         )
 
         protocol_dict["public_keys"] = [
-            protocol_dict["verifier_public_key"],
-            protocol_dict["prover_public_key"],
+            bitvmx_protocol_setup_properties_dto.verifier_destroyed_public_key,
+            bitvmx_protocol_setup_properties_dto.prover_destroyed_public_key,
         ]
 
         with open(f"verifier_files/{setup_uuid}/file_database.pkl", "wb") as f:
