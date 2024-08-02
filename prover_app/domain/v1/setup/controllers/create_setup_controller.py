@@ -121,7 +121,7 @@ class CreateSetupController:
                 prover_destroyed_public_key = prover_destroyed_private_key.get_public_key()
                 public_keys[-1] = prover_destroyed_public_key.to_hex()
 
-        protocol_dict["public_keys"] = public_keys
+        # protocol_dict["public_keys"] = public_keys
 
         generate_prover_public_keys_service = self.generate_prover_public_keys_service_class(
             winternitz_private_key
@@ -187,18 +187,15 @@ class CreateSetupController:
 
         bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
             bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
-            signature_public_keys=protocol_dict["public_keys"],
+            signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys,
         )
 
         # We need to know the origin of the funds or change the signature to only sign the output (it's possible and gives more flexibility)
 
-        funding_result_output_amount = initial_amount_of_satoshis
-        protocol_dict["funding_amount_satoshis"] = funding_result_output_amount
-
         # Transaction construction
-
         bitvmx_transactions_dto = self.transaction_generator_from_public_keys_service(
             protocol_dict=protocol_dict,
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
@@ -210,7 +207,6 @@ class CreateSetupController:
         protocol_dict["bitvmx_transactions_dto"] = bitvmx_transactions_dto
 
         # Signature computation
-
         generate_signatures_service = self.generate_signatures_service_class(
             private_key=prover_destroyed_private_key, destroyed_public_key=unspendable_public_key
         )
@@ -265,18 +261,20 @@ class CreateSetupController:
         verify_verifier_signatures_service = self.verify_verifier_signatures_service_class(
             unspendable_public_key=unspendable_public_key
         )
-        for i in range(len(protocol_dict["public_keys"]) - 1):
+        for i in range(len(bitvmx_protocol_setup_properties_dto.signature_public_keys) - 1):
             verify_verifier_signatures_service(
-                public_key=protocol_dict["public_keys"][i],
+                public_key=bitvmx_protocol_setup_properties_dto.signature_public_keys[i],
                 hash_result_signature=protocol_dict["hash_result_signatures"][
-                    len(protocol_dict["public_keys"]) - i - 2
+                    len(bitvmx_protocol_setup_properties_dto.signature_public_keys) - i - 2
                 ],
                 search_hash_signatures=[
-                    signatures_list[len(protocol_dict["public_keys"]) - i - 2]
+                    signatures_list[
+                        len(bitvmx_protocol_setup_properties_dto.signature_public_keys) - i - 2
+                    ]
                     for signatures_list in protocol_dict["search_hash_signatures"]
                 ],
                 trace_signature=protocol_dict["trace_signatures"][
-                    len(protocol_dict["public_keys"]) - i - 2
+                    len(bitvmx_protocol_setup_properties_dto.signature_public_keys) - i - 2
                 ],
                 bitvmx_transactions_dto=bitvmx_transactions_dto,
                 bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,

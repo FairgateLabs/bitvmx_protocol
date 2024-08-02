@@ -66,7 +66,6 @@ class PublishHashSearchTransactionService:
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
     ):
 
-        signature_public_keys = protocol_dict["public_keys"]
         search_hash_signatures = protocol_dict["search_hash_signatures"]
 
         bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
@@ -95,7 +94,7 @@ class PublishHashSearchTransactionService:
                 ]
             )
             current_hash_search_script = self.commit_search_hashes_script_generator_service(
-                signature_public_keys,
+                bitvmx_protocol_setup_properties_dto.signature_public_keys,
                 current_hash_public_keys,
                 bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
                 bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
@@ -105,11 +104,22 @@ class PublishHashSearchTransactionService:
             )
 
             hash_search_witness += previous_witness[
-                len(signature_public_keys) + 0 : len(signature_public_keys) + 4
+                len(bitvmx_protocol_setup_properties_dto.signature_public_keys)
+                + 0 : len(bitvmx_protocol_setup_properties_dto.signature_public_keys)
+                + 4
             ]
             current_choice = (
-                int(previous_witness[len(signature_public_keys) + 1])
-                if len(previous_witness[len(signature_public_keys) + 1]) > 0
+                int(
+                    previous_witness[
+                        len(bitvmx_protocol_setup_properties_dto.signature_public_keys) + 1
+                    ]
+                )
+                if len(
+                    previous_witness[
+                        len(bitvmx_protocol_setup_properties_dto.signature_public_keys) + 1
+                    ]
+                )
+                > 0
                 else 0
             )
             protocol_dict["search_choices"].append(current_choice)
@@ -122,7 +132,7 @@ class PublishHashSearchTransactionService:
 
         else:
             current_hash_search_script = self.commit_search_hashes_script_generator_service(
-                signature_public_keys,
+                bitvmx_protocol_setup_properties_dto.signature_public_keys,
                 current_hash_public_keys,
                 bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
                 bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,

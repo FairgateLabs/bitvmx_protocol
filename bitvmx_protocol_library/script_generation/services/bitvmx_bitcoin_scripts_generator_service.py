@@ -3,6 +3,9 @@ from typing import List
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
+    BitVMXProtocolSetupPropertiesDTO,
+)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
     BitVMXProverWinternitzPublicKeysDTO,
 )
@@ -60,11 +63,12 @@ class BitVMXBitcoinScriptsGeneratorService:
     def __call__(
         self,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
         signature_public_keys: List[str],
     ) -> BitVMXBitcoinScriptsDTO:
-
+        assert signature_public_keys == bitvmx_protocol_setup_properties_dto.signature_public_keys
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
 
         hash_result_script = self.hash_result_script_generator(
@@ -152,10 +156,11 @@ class BitVMXBitcoinScriptsGeneratorService:
         trigger_challenge_scripts = BitcoinScriptList(trigger_execution_script)
 
         execution_challenge_script_list = self.execution_challenge_script_list_generator_service(
-            signature_public_keys,
-            bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
-            trace_words_lengths,
-            bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            signature_public_keys=signature_public_keys,
+            public_keys=bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
+            trace_words_lengths=trace_words_lengths,
+            bits_per_digit_checksum=bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            prover_signature_public_key=bitvmx_protocol_setup_properties_dto.prover_signature_public_key,
         )
 
         return BitVMXBitcoinScriptsDTO(

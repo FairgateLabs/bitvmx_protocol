@@ -53,7 +53,6 @@ class PublishChoiceSearchTransactionService:
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
     ):
 
-        signature_public_keys = protocol_dict["public_keys"]
         search_choice_signatures = protocol_dict["search_choice_signatures"]
 
         current_choice_public_keys = (
@@ -62,7 +61,7 @@ class PublishChoiceSearchTransactionService:
             ]
         )
         current_choice_search_script = self.commit_search_choice_script_generator_service(
-            signature_public_keys,
+            bitvmx_protocol_setup_properties_dto.signature_public_keys,
             current_choice_public_keys[0],
             bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
         )
@@ -73,6 +72,7 @@ class PublishChoiceSearchTransactionService:
             protocol_dict=protocol_dict,
             bitvmx_transactions_dto=bitvmx_transactions_dto,
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
         protocol_dict["search_choices"].append(current_choice)
         choice_search_witness += self.generate_verifier_witness_from_input_single_word_service(
@@ -121,6 +121,7 @@ class PublishChoiceSearchTransactionService:
         protocol_dict,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
     ):
 
         previous_hash_search_txid = bitvmx_transactions_dto.search_hash_tx_list[
@@ -128,7 +129,6 @@ class PublishChoiceSearchTransactionService:
         ].get_txid()
         previous_hash_search_tx = transaction_info_service(previous_hash_search_txid)
         previous_hash_search_witness = previous_hash_search_tx.inputs[0].witness
-        public_keys = protocol_dict["public_keys"]
 
         published_hashes = []
         if iteration == 0:
@@ -137,9 +137,9 @@ class PublishChoiceSearchTransactionService:
             choice_offset = 8
         for j in range(2**bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search - 1):
             hash_witness_portion = previous_hash_search_witness[
-                len(public_keys)
+                len(bitvmx_protocol_setup_properties_dto.signature_public_keys)
                 + (bitvmx_protocol_properties_dto.amount_of_nibbles_hash_with_checksum * j * 2)
-                + choice_offset : len(public_keys)
+                + choice_offset : len(bitvmx_protocol_setup_properties_dto.signature_public_keys)
                 + 2 * bitvmx_protocol_properties_dto.amount_of_nibbles_hash
                 + bitvmx_protocol_properties_dto.amount_of_nibbles_hash_with_checksum * j * 2
                 + choice_offset

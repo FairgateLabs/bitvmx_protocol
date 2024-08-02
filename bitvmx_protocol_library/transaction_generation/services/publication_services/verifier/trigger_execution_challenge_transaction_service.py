@@ -55,7 +55,7 @@ class TriggerExecutionChallengeTransactionService:
 
         prover_trace_witness = protocol_dict["prover_trace_witness"]
 
-        signature_public_keys = protocol_dict["public_keys"]
+        # signature_public_keys = protocol_dict["public_keys"]
         trigger_execution_signatures = protocol_dict["trigger_execution_signatures"]
 
         consumed_items = 0
@@ -96,7 +96,7 @@ class TriggerExecutionChallengeTransactionService:
         trigger_execution_script = self.verifier_challenge_execution_script_generator_service(
             bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
             bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
-            signature_public_keys,
+            bitvmx_protocol_setup_properties_dto.signature_public_keys,
             trace_words_lengths,
             bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )

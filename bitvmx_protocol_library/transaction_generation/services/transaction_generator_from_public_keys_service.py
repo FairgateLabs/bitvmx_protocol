@@ -39,9 +39,10 @@ class TransactionGeneratorFromPublicKeysService:
 
         bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
             bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
-            signature_public_keys=protocol_dict["public_keys"],
+            signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys,
         )
 
         destroyed_public_key = bitvmx_protocol_setup_properties_dto.unspendable_public_key

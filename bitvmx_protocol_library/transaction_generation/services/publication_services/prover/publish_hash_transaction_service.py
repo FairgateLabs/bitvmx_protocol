@@ -78,7 +78,7 @@ class PublishHashTransactionService:
         ]
 
         hash_result_script = self.hash_result_script_generator(
-            protocol_dict["public_keys"],
+            bitvmx_protocol_setup_properties_dto.signature_public_keys,
             bitvmx_prover_winternitz_public_keys_dto.hash_result_public_keys,
             bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
             bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,

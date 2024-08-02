@@ -32,3 +32,7 @@ class BitVMXProtocolSetupPropertiesDTO(BaseModel):
     @property
     def unspendable_public_key(self):
         return self.unspendable_public_key_from_seed(self.seed_unspendable_public_key)
+
+    @property
+    def signature_public_keys(self):
+        return [self.verifier_destroyed_public_key, self.prover_destroyed_public_key]

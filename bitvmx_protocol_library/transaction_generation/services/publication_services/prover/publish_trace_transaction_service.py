@@ -120,7 +120,7 @@ class PublishTraceTransactionService:
             )
 
         trace_script = self.execution_trace_script_generator_service(
-            protocol_dict["public_keys"],
+            bitvmx_protocol_setup_properties_dto.signature_public_keys,
             bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
             trace_words_lengths,
             bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,

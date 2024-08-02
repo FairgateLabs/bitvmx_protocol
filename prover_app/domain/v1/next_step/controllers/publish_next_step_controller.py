@@ -173,6 +173,7 @@ class PublishNextStepController:
                     bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
                     bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
                     bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+                    bitvmx_protocol_prover_private_dto=bitvmx_protocol_prover_private_dto,
                 )
                 last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
                 last_confirmed_step = TransactionProverStepType.EXECUTION_CHALLENGE

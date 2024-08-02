@@ -117,7 +117,12 @@ class ExecutionChallengeScriptListGeneratorService:
         return script_list
 
     def __call__(
-        self, signature_public_keys, public_keys, trace_words_lengths, bits_per_digit_checksum
+        self,
+        signature_public_keys,
+        public_keys,
+        trace_words_lengths,
+        bits_per_digit_checksum,
+        prover_signature_public_key,
     ) -> BitVMXExecutionScriptList:
         # Original method
         # script_list = self._generate_script_for_file(
@@ -134,7 +139,7 @@ class ExecutionChallengeScriptListGeneratorService:
         bitvmx_execution_script_list = BitVMXExecutionScriptList(
             key_list=key_list,
             instruction_dict=instruction_dict,
-            signature_public_keys=signature_public_keys,
+            signature_public_keys=[prover_signature_public_key],
             public_keys=public_keys,
             trace_words_lengths=trace_words_lengths,
             bits_per_digit_checksum=bits_per_digit_checksum,

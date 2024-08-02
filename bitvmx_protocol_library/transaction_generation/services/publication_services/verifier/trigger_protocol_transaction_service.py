@@ -39,9 +39,11 @@ class TriggerProtocolTransactionService:
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
     ):
         hash_result_witness = hash_result_transaction.inputs[0].witness
-        public_keys = protocol_dict["public_keys"]
+
         hash_witness_portion = hash_result_witness[
-            len(public_keys) : len(public_keys)
+            len(bitvmx_protocol_setup_properties_dto.signature_public_keys) : len(
+                bitvmx_protocol_setup_properties_dto.signature_public_keys
+            )
             + 2 * bitvmx_protocol_properties_dto.amount_of_nibbles_hash
         ]
         published_result_hash = "".join(
@@ -64,7 +66,7 @@ class TriggerProtocolTransactionService:
 
             trigger_protocol_script_generator = TriggerProtocolScriptGeneratorService()
             trigger_protocol_script = trigger_protocol_script_generator(
-                protocol_dict["public_keys"]
+                signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys
             )
             trigger_protocol_script_address = (
                 bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
