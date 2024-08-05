@@ -39,7 +39,7 @@ class PublishNextStepController:
         )
         self.protocol_properties = protocol_properties
 
-    async def __call__(self, setup_uuid):
+    async def __call__(self, setup_uuid: str):
         with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
             protocol_dict = pickle.load(f)
         if protocol_dict["network"] == BitcoinNetwork.MUTINYNET:
@@ -107,6 +107,7 @@ class PublishNextStepController:
                     protocol_dict=protocol_dict,
                     bitvmx_transactions_dto=bitvmx_transactions_dto,
                     bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                    bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                     bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
                     bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
                 )

@@ -169,18 +169,11 @@ class TransactionGeneratorFromPublicKeysService:
 
         #  Here we should put all the challenges
 
-        # TODO: cache in class
-        ## Execution challenge
-        if "execution_challenge_address" in protocol_dict:
-            execution_challenge_address = protocol_dict["execution_challenge_address"]
-        else:
-            execution_challenge_address = (
-                bitvmx_bitcoin_scripts_dto.execution_challenge_script_list.get_taproot_address(
-                    destroyed_public_key
-                )
+        execution_challenge_address = (
+            bitvmx_bitcoin_scripts_dto.execution_challenge_script_list.get_taproot_address(
+                destroyed_public_key
             )
-
-            protocol_dict["execution_challenge_address"] = execution_challenge_address
+        )
 
         trigger_execution_challenge_txin = TxInput(trace_tx.get_txid(), 0)
         trigger_execution_challenge_txout = TxOutput(

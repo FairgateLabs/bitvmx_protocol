@@ -107,16 +107,9 @@ class ExecutionChallengeTransactionService:
             prover_signature_public_key=bitvmx_protocol_setup_properties_dto.prover_signature_public_key,
         )
 
-        if "execution_challenge_address" in protocol_dict:
-            execution_challenge_script_address = protocol_dict["execution_challenge_address"]
-        else:
-            execution_challenge_script_address = (
-                execution_challenge_script_list.get_taproot_address(
-                    bitvmx_protocol_setup_properties_dto.unspendable_public_key
-                )
-            )
-
-            protocol_dict["execution_challenge_address"] = execution_challenge_script_address
+        execution_challenge_script_address = execution_challenge_script_list.get_taproot_address(
+            bitvmx_protocol_setup_properties_dto.unspendable_public_key
+        )
 
         key_list, instruction_dict = self.execution_trace_commitment_generation_service()
         pc_read_addr = real_values[6]
