@@ -386,10 +386,9 @@ class BitVMXExecutionScriptList(BaseModel):
         tweak_and_odd = tweak_taproot_pubkey(public_key.key.to_string(), tweak_int)
         pubkey = tweak_and_odd[0][:32]
         is_odd = tweak_and_odd[1]
-        self.taproot_address = P2trAddress(witness_program=pubkey.hex(), is_odd=is_odd)
         self.taproot_address_pubkey = pubkey.hex()
         self.taproot_address_is_odd = is_odd
-        return self.taproot_address
+        return P2trAddress(witness_program=pubkey.hex(), is_odd=is_odd)
 
     def get_control_block_hex(self, public_key: PublicKey, index: int, is_odd: bool):
 

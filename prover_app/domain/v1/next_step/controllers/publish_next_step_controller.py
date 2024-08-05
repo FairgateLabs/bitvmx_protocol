@@ -191,7 +191,7 @@ class PublishNextStepController:
             asyncio.create_task(
                 _trigger_next_step_verifier(
                     setup_uuid=setup_uuid,
-                    verifier_list=bitvmx_protocol_setup_properties_dto.verifier_list,
+                    verifier_list=bitvmx_protocol_setup_properties_dto.verifier_dict.values(),
                 )
             )
 

@@ -13,8 +13,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_w
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
     BitVMXVerifierWinternitzPublicKeysDTO,
 )
-from bitvmx_protocol_library.config import common_protocol_properties
-from bitvmx_protocol_library.enums import BitcoinNetwork
 from bitvmx_protocol_library.script_generation.services.bitvmx_bitcoin_scripts_generator_service import (
     BitVMXBitcoinScriptsGeneratorService,
 )
@@ -186,13 +184,9 @@ class TransactionGeneratorFromPublicKeysService:
 
         execution_challenge_txin = TxInput(trigger_execution_challenge_tx.get_txid(), 0)
 
-        if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-            faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
-            execution_challenge_output_address = P2wpkhAddress.from_address(address=faucet_address)
-        else:
-            execution_challenge_output_address = P2wpkhAddress.from_address(
-                address=protocol_dict["controlled_prover_address"]
-            )
+        execution_challenge_output_address = P2wpkhAddress.from_address(
+            address=bitvmx_protocol_setup_properties_dto.prover_destination_address
+        )
 
         execution_challenge_txout = TxOutput(
             challenge_output_amount,

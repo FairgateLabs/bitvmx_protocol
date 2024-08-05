@@ -195,9 +195,9 @@ class PublishChoiceSearchTransactionService:
         )
         for j in range(len(index_list)):
             index = index_list[j]
-            current_hash = self.execution_trace_query_service(protocol_dict["setup_uuid"], index)[
-                "step_hash"
-            ]
+            current_hash = self.execution_trace_query_service(
+                setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid, index=index
+            )["step_hash"]
             if not current_hash == protocol_dict["search_hashes"][index]:
                 return j
         raise Exception("There was some error when choosing the wrong step")

@@ -1,5 +1,5 @@
 import hashlib
-from typing import List
+from typing import Dict, Optional
 
 from bitcoinutils.keys import PublicKey
 from pydantic import BaseModel
@@ -7,16 +7,15 @@ from pydantic import BaseModel
 
 class BitVMXProtocolSetupPropertiesDTO(BaseModel):
     setup_uuid: str
+    uuid: Optional[str]
     funding_amount_of_satoshis: int
     step_fees_satoshis: int
     funding_tx_id: str
     funding_index: int
-    verifier_list: List[str]
+    verifier_dict: Dict[str, str]
     prover_destination_address: str
     prover_signature_public_key: str
     seed_unspendable_public_key: str
-    # controlled_prover_address: str
-    # controlled_verifier_address: str
     prover_destroyed_public_key: str
     verifier_destroyed_public_key: str
 

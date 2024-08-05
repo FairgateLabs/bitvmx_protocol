@@ -65,6 +65,7 @@ class CreateSetupController:
         prover_signature_public_key: str,
     ) -> str:
         setup_uuid = str(uuid.uuid4())
+        prover_uuid = str(uuid.uuid4())
 
         funding_tx = self.transaction_info_service(tx_id=funding_tx_id)
         initial_amount_of_satoshis = funding_tx.outputs[funding_index].value - step_fees_satoshis
@@ -82,7 +83,10 @@ class CreateSetupController:
 
         public_keys = []
         verifier_destroyed_public_key_hex = None
+        verifier_dict = {}
         for verifier in verifier_list:
+            current_uuid = str(uuid.uuid4())
+            verifier_dict[current_uuid] = verifier
             url = f"{verifier}/setup"
             headers = {"accept": "application/json", "Content-Type": "application/json"}
             data = {"setup_uuid": setup_uuid, "network": common_protocol_properties.network.value}
@@ -97,8 +101,6 @@ class CreateSetupController:
 
         controlled_prover_public_key = controlled_prover_private_key.get_public_key()
         controlled_prover_address = controlled_prover_public_key.get_segwit_address().to_string()
-
-        protocol_dict["controlled_prover_address"] = controlled_prover_address
 
         winternitz_private_key = PrivateKey(b=secrets.token_bytes(32))
 
@@ -121,8 +123,6 @@ class CreateSetupController:
                 prover_destroyed_public_key = prover_destroyed_private_key.get_public_key()
                 public_keys[-1] = prover_destroyed_public_key.to_hex()
 
-        # protocol_dict["public_keys"] = public_keys
-
         generate_prover_public_keys_service = self.generate_prover_public_keys_service_class(
             winternitz_private_key
         )
@@ -142,11 +142,12 @@ class CreateSetupController:
 
         bitvmx_protocol_setup_properties_dto = BitVMXProtocolSetupPropertiesDTO(
             setup_uuid=setup_uuid,
+            uuid=prover_uuid,
             funding_amount_of_satoshis=initial_amount_of_satoshis,
             step_fees_satoshis=step_fees_satoshis,
             funding_tx_id=funding_tx_id,
             funding_index=funding_index,
-            verifier_list=verifier_list,
+            verifier_dict=verifier_dict,
             prover_destination_address=prover_destination_address,
             prover_signature_public_key=prover_signature_public_key,
             seed_unspendable_public_key=seed_unspendable_public_key,
@@ -157,7 +158,7 @@ class CreateSetupController:
 
         # Think how to iterate all verifiers here -> Make a call per verifier
         # All verifiers should sign all transactions so they are sure there is not any of them lying
-        url = f"{verifier_list[0]}/public_keys"
+        url = f"{list(verifier_dict.values())[0]}/public_keys"
         headers = {"accept": "application/json", "Content-Type": "application/json"}
         data = {
             "setup_uuid": setup_uuid,
@@ -223,8 +224,8 @@ class CreateSetupController:
         ]
         trace_signatures = [bitvmx_signatures_dto.trace_signature]
         # execution_challenge_signatures = [signatures_dict["execution_challenge_signature"]]
-        for verifier in verifier_list:
-            url = f"{verifier}/signatures"
+        for verifier_uuid, verifier_value in verifier_dict.items():
+            url = f"{verifier_value}/signatures"
             headers = {"accept": "application/json", "Content-Type": "application/json"}
             data = {
                 "setup_uuid": setup_uuid,

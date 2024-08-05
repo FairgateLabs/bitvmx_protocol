@@ -53,10 +53,10 @@ class TriggerProtocolTransactionService:
             ]
         )
 
-        self.execution_trace_generation_service(protocol_dict["setup_uuid"])
+        self.execution_trace_generation_service(bitvmx_protocol_setup_properties_dto.setup_uuid)
         last_step_index = bitvmx_protocol_properties_dto.amount_of_trace_steps - 1
         last_step_trace = self.execution_trace_query_service(
-            protocol_dict["setup_uuid"], last_step_index
+            setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid, index=last_step_index
         )
 
         if not last_step_trace["step_hash"] == published_result_hash:
