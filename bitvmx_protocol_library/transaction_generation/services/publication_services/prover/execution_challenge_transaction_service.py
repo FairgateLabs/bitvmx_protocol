@@ -58,7 +58,6 @@ class ExecutionChallengeTransactionService:
         bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
     ):
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
-        # execution_challenge_signatures = protocol_dict["execution_challenge_signatures"]
 
         bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
             "bitvmx_prover_winternitz_public_keys_dto"

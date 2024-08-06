@@ -281,7 +281,6 @@ class CreateSetupController:
             verifier_signatures_dtos=verifier_signatures_dto_dict,
         )
         protocol_dict["bitvmx_protocol_prover_dto"] = bitvmx_protocol_prover_dto
-        # protocol_dict["execution_challenge_signatures"] = execution_challenge_signatures
 
         verify_verifier_signatures_service = self.verify_verifier_signatures_service_class(
             unspendable_public_key=unspendable_public_key
@@ -295,9 +294,6 @@ class CreateSetupController:
                 bitvmx_transactions_dto=bitvmx_transactions_dto,
                 bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
                 bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-                # execution_challenge_signature=protocol_dict["execution_challenge_signatures"][
-                #     len(protocol_dict["public_keys"]) - i - 2
-                # ],
             )
 
         protocol_dict["bitvmx_protocol_prover_private_dto"] = BitVMXProtocolProverPrivateDTO(

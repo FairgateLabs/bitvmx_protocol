@@ -28,8 +28,6 @@ class CreateSetupController:
             destroyed_private_key=private_key.to_bytes().hex(),
         )
         protocol_dict = {
-            "last_confirmed_step": None,
-            "last_confirmed_step_tx_id": None,
             "setup_uuid": setup_uuid,
             "search_choices": [],
             "search_hashes": {},

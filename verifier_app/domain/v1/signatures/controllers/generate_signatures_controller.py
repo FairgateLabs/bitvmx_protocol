@@ -101,11 +101,6 @@ class GenerateSignaturesController:
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
 
-        protocol_dict["trigger_protocol_signatures"] = [
-            bitvmx_signatures_dto.trigger_protocol_signature,
-            bitvmx_prover_signatures_dto.trigger_protocol_signature,
-        ]
-
         search_choice_signatures = []
         for i in range(len(bitvmx_signatures_dto.search_choice_signatures)):
             search_choice_signatures.append(
@@ -114,12 +109,7 @@ class GenerateSignaturesController:
                     bitvmx_prover_signatures_dto.search_choice_signatures[i],
                 ]
             )
-        protocol_dict["search_choice_signatures"] = search_choice_signatures
 
-        protocol_dict["trigger_execution_signatures"] = [
-            bitvmx_signatures_dto.trigger_execution_challenge_signature,
-            bitvmx_prover_signatures_dto.trigger_execution_challenge_signature,
-        ]
         # execution_challenge_signature = signatures_dict["execution_challenge_signature"]
 
         bitvmx_verifier_signatures_dto = bitvmx_signatures_dto.prover_signatures_dto

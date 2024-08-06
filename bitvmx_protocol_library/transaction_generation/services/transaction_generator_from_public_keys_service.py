@@ -197,9 +197,6 @@ class TransactionGeneratorFromPublicKeysService:
             [execution_challenge_txin], [execution_challenge_txout], has_segwit=True
         )
 
-        protocol_dict["last_confirmed_step"] = None
-        protocol_dict["last_confirmed_step_tx_id"] = None
-
         return BitVMXTransactionsDTO(
             funding_tx=funding_tx,
             hash_result_tx=hash_result_tx,
