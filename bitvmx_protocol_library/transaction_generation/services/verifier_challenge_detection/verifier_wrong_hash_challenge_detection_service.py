@@ -17,7 +17,6 @@ class VerifierWrongHashChallengeDetectionService:
 
     def __call__(
         self,
-        protocol_dict,
         setup_uuid: str,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):

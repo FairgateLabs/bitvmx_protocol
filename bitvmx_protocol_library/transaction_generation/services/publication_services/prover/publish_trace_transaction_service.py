@@ -51,7 +51,6 @@ class PublishTraceTransactionService:
 
     def __call__(
         self,
-        protocol_dict,
         setup_uuid: str,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,

@@ -28,9 +28,6 @@ class CreateSetupController:
             destroyed_private_key=private_key.to_bytes().hex(),
         )
         protocol_dict = {
-            "setup_uuid": setup_uuid,
-            "search_hashes": {},
-            "network": network,
             "bitvmx_protocol_verifier_private_dto": bitvmx_protocol_verifier_private_dto,
         }
         os.makedirs(f"verifier_files/{setup_uuid}")

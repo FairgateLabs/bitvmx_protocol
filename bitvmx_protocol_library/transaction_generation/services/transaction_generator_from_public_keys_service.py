@@ -28,7 +28,6 @@ class TransactionGeneratorFromPublicKeysService:
 
     def __call__(
         self,
-        protocol_dict,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,

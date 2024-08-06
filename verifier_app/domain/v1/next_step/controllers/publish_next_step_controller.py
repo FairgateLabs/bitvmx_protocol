@@ -67,7 +67,6 @@ class PublishNextStepController:
             )
         ):
             last_confirmed_step_tx = self.trigger_protocol_transaction_service(
-                protocol_dict=protocol_dict,
                 hash_result_transaction=hash_result_transaction,
                 bitvmx_transactions_dto=bitvmx_transactions_dto,
                 bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
@@ -95,7 +94,6 @@ class PublishNextStepController:
                 )
             )
             last_confirmed_step_tx = publish_choice_search_transaction_service(
-                protocol_dict=protocol_dict,
                 iteration=i,
                 bitvmx_transactions_dto=bitvmx_transactions_dto,
                 bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
@@ -118,7 +116,6 @@ class PublishNextStepController:
         ):
             challenge_transaction_service, transaction_step_type = (
                 self.verifier_challenge_detection_service(
-                    protocol_dict=protocol_dict,
                     bitvmx_transactions_dto=bitvmx_transactions_dto,
                     bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
                     bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
@@ -136,7 +133,6 @@ class PublishNextStepController:
                     winternitz_verifier_private_key
                 )
                 last_confirmed_step_tx = trigger_challenge_transaction_service(
-                    protocol_dict=protocol_dict,
                     bitvmx_transactions_dto=bitvmx_transactions_dto,
                     bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
                     bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
@@ -171,7 +167,6 @@ class PublishNextStepController:
                     )
                 )
                 last_confirmed_step_tx = publish_choice_search_transaction_service(
-                    protocol_dict=protocol_dict,
                     bitvmx_transactions_dto=bitvmx_transactions_dto,
                     bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                     iteration=i,

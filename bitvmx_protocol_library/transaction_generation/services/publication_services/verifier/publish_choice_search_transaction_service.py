@@ -49,7 +49,6 @@ class PublishChoiceSearchTransactionService:
 
     def __call__(
         self,
-        protocol_dict,
         iteration: int,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
@@ -74,7 +73,6 @@ class PublishChoiceSearchTransactionService:
         choice_search_witness = []
         current_choice, new_published_hashes_dict = self._get_choice(
             iteration=iteration,
-            protocol_dict=protocol_dict,
             bitvmx_transactions_dto=bitvmx_transactions_dto,
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
@@ -126,7 +124,6 @@ class PublishChoiceSearchTransactionService:
     def _get_choice(
         self,
         iteration,
-        protocol_dict,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,

@@ -61,7 +61,6 @@ class PublishHashSearchTransactionService:
 
     def __call__(
         self,
-        protocol_dict,
         iteration: int,
         setup_uuid: str,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,

@@ -187,9 +187,6 @@ class CreateSetupController:
                 "verifier_public_key"
             ]
 
-            verifier_public_key = public_keys_response_json["verifier_public_key"]
-            protocol_dict["verifier_public_key"] = verifier_public_key
-
         ## Scripts building ##
 
         # One call per verifier should be done
@@ -207,7 +204,6 @@ class CreateSetupController:
 
         # One call per verifier should be done
         bitvmx_transactions_dto = self.transaction_generator_from_public_keys_service(
-            protocol_dict=protocol_dict,
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,

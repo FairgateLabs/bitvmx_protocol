@@ -37,7 +37,6 @@ class VerifierChallengeDetectionService:
 
     def __call__(
         self,
-        protocol_dict,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
@@ -112,7 +111,6 @@ class VerifierChallengeDetectionService:
         for verifier_challenge_detection_service in self.verifier_challenge_detection_services:
             trigger_challenge_transaction_service, transaction_step_type = (
                 verifier_challenge_detection_service(
-                    protocol_dict,
                     setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid,
                     bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
                 )
