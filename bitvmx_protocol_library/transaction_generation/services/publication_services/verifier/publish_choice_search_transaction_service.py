@@ -10,6 +10,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
+    BitVMXProtocolVerifierDTO,
+)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
     BitVMXProverWinternitzPublicKeysDTO,
 )
@@ -51,9 +54,9 @@ class PublishChoiceSearchTransactionService:
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
+        bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
-
-        search_choice_signatures = protocol_dict["search_choice_signatures"]
+        search_choice_signatures = bitvmx_protocol_verifier_dto.search_choice_signatures
 
         current_choice_public_keys = (
             bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list[

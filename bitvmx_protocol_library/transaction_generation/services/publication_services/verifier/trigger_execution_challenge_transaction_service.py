@@ -7,6 +7,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
+    BitVMXProtocolVerifierDTO,
+)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
     BitVMXProverWinternitzPublicKeysDTO,
 )
@@ -44,6 +47,7 @@ class TriggerExecutionChallengeTransactionService:
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
+        bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
 
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
@@ -54,9 +58,9 @@ class TriggerExecutionChallengeTransactionService:
         # prover_trigger_challenge_witness = previous_trace_witness[10:246]
 
         prover_trace_witness = protocol_dict["prover_trace_witness"]
-
-        # signature_public_keys = protocol_dict["public_keys"]
-        trigger_execution_signatures = protocol_dict["trigger_execution_signatures"]
+        trigger_execution_challenge_signature = (
+            bitvmx_protocol_verifier_dto.trigger_execution_challenge_signatures
+        )
 
         consumed_items = 0
         trace_values = []
@@ -134,7 +138,7 @@ class TriggerExecutionChallengeTransactionService:
 
         bitvmx_transactions_dto.trigger_execution_challenge_tx.witnesses.append(
             TxWitnessInput(
-                trigger_execution_signatures
+                trigger_execution_challenge_signature
                 + trigger_challenge_witness
                 + [
                     trigger_execution_script.to_hex(),

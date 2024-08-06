@@ -19,10 +19,11 @@ from bitvmx_protocol_library.enums import BitcoinNetwork
 
 class GeneratePublicKeysController:
 
-    def __init__(self, generate_verifier_public_keys_service_class):
+    def __init__(self, generate_verifier_public_keys_service_class, common_protocol_properties):
         self.generate_verifier_public_keys_service_class = (
             generate_verifier_public_keys_service_class
         )
+        self.common_protocol_properties = common_protocol_properties
 
     async def __call__(
         self,
@@ -34,10 +35,10 @@ class GeneratePublicKeysController:
     ):
         with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
             protocol_dict = pickle.load(f)
-        if protocol_dict["network"] == BitcoinNetwork.MUTINYNET:
+        if self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
             assert NETWORK == "testnet"
         else:
-            assert NETWORK == protocol_dict["network"].value
+            assert NETWORK == self.common_protocol_properties.network.value
         verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
 
         protocol_dict["verifier_public_key"] = verifier_private_key.get_public_key().to_hex()

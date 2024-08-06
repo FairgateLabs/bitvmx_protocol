@@ -1,5 +1,6 @@
 from dependency_injector import containers, providers
 
+from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.script_generation.services.bitvmx_bitcoin_scripts_generator_service import (
     BitVMXBitcoinScriptsGeneratorService,
 )
@@ -24,4 +25,5 @@ class GenerateSignaturesControllers(containers.DeclarativeContainer):
         transaction_generator_from_public_keys_service=TransactionGeneratorFromPublicKeysService(),
         generate_signatures_service_class=GenerateSignaturesService,
         verify_prover_signatures_service_class=VerifyProverSignaturesService,
+        common_protocol_properties=common_protocol_properties,
     )

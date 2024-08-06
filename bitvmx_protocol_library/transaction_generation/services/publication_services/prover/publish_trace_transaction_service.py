@@ -7,6 +7,9 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_ser
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_prover_dto import (
+    BitVMXProtocolProverDTO,
+)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
@@ -55,8 +58,10 @@ class PublishTraceTransactionService:
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
+        bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
     ):
-        trace_signatures = protocol_dict["trace_signatures"]
+
+        trace_signatures = bitvmx_protocol_prover_dto.trace_signatures
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
 
         trace_witness = []

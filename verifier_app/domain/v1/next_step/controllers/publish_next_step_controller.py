@@ -31,6 +31,7 @@ class PublishNextStepController:
         verifier_challenge_detection_service,
         publish_choice_search_transaction_service_class,
         protocol_properties,
+        common_protocol_properties,
     ):
         self.trigger_protocol_transaction_service = trigger_protocol_transaction_service
         self.verifier_challenge_detection_service = verifier_challenge_detection_service
@@ -38,14 +39,15 @@ class PublishNextStepController:
             publish_choice_search_transaction_service_class
         )
         self.protocol_properties = protocol_properties
+        self.common_protocol_properties = common_protocol_properties
 
     async def __call__(self, setup_uuid: str):
         with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
             protocol_dict = pickle.load(f)
-        if protocol_dict["network"] == BitcoinNetwork.MUTINYNET:
+        if self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
             assert NETWORK == "testnet"
         else:
-            assert NETWORK == protocol_dict["network"].value
+            assert NETWORK == self.common_protocol_properties.network.value
         last_confirmed_step = protocol_dict["last_confirmed_step"]
         last_confirmed_step_tx_id = protocol_dict["last_confirmed_step_tx_id"]
 
@@ -58,6 +60,7 @@ class PublishNextStepController:
             "bitvmx_verifier_winternitz_public_keys_dto"
         ]
         bitvmx_transactions_dto = protocol_dict["bitvmx_transactions_dto"]
+        bitvmx_protocol_verifier_dto = protocol_dict["bitvmx_protocol_verifier_dto"]
 
         if last_confirmed_step is None and (
             hash_result_transaction := transaction_info_service(
@@ -70,6 +73,7 @@ class PublishNextStepController:
                 bitvmx_transactions_dto=bitvmx_transactions_dto,
                 bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
                 bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
             )
             last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
             last_confirmed_step = TransactionVerifierStepType.TRIGGER_PROTOCOL
@@ -92,6 +96,7 @@ class PublishNextStepController:
                 bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                 bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
                 bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+                bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
             )
             last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
             last_confirmed_step = TransactionVerifierStepType.SEARCH_STEP_CHOICE
@@ -110,6 +115,7 @@ class PublishNextStepController:
                     bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                     bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
                     bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+                    bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
                 )
             )
             # As of now, this only holds for single step challenges
@@ -127,6 +133,7 @@ class PublishNextStepController:
                     bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                     bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
                     bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+                    bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
                 )
                 last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
                 last_confirmed_step = transaction_step_type
@@ -157,6 +164,7 @@ class PublishNextStepController:
                     bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
                     bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
                     bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+                    bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
                 )
                 last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
                 last_confirmed_step = TransactionVerifierStepType.SEARCH_STEP_CHOICE

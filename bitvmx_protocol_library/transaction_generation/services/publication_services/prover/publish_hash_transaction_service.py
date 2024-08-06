@@ -12,8 +12,14 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_ser
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_prover_dto import (
+    BitVMXProtocolProverDTO,
+)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
+    BitVMXProverWinternitzPublicKeysDTO,
 )
 from bitvmx_protocol_library.script_generation.services.script_generation.hash_result_script_generator_service import (
     HashResultScriptGeneratorService,
@@ -50,14 +56,15 @@ class PublishHashTransactionService:
 
     def __call__(
         self,
-        protocol_dict,
         setup_uuid: str,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
+        bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
+        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
     ) -> Transaction:
 
-        hash_result_signatures = protocol_dict["hash_result_signatures"]
+        hash_result_signatures = bitvmx_protocol_prover_dto.hash_result_signatures
 
         self.execution_trace_generation_service(setup_uuid=setup_uuid)
         last_step_trace = self.execution_trace_query_service(
@@ -72,10 +79,6 @@ class PublishHashTransactionService:
             input_numbers=hash_result_split_number,
             bits_per_digit_checksum=bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
-
-        bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
-            "bitvmx_prover_winternitz_public_keys_dto"
-        ]
 
         hash_result_script = self.hash_result_script_generator(
             bitvmx_protocol_setup_properties_dto.signature_public_keys,

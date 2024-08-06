@@ -13,6 +13,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
+    BitVMXProtocolVerifierDTO,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
 )
@@ -37,6 +40,7 @@ class TriggerProtocolTransactionService:
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
+        bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
         hash_result_witness = hash_result_transaction.inputs[0].witness
 
@@ -62,7 +66,7 @@ class TriggerProtocolTransactionService:
         if not last_step_trace["step_hash"] == published_result_hash:
             # protocol_dict["search_hashes"][len(execution_result) - 1] = published_result_hash
             protocol_dict["search_hashes"][last_step_index] = published_result_hash
-            trigger_protocol_signatures = protocol_dict["trigger_protocol_signatures"]
+            trigger_protocol_signatures = bitvmx_protocol_verifier_dto.trigger_protocol_signatures
 
             trigger_protocol_script_generator = TriggerProtocolScriptGeneratorService()
             trigger_protocol_script = trigger_protocol_script_generator(

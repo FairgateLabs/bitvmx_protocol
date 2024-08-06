@@ -18,13 +18,13 @@ class BitVMXSignaturesDTO(BitVMXVerifierSignaturesDTO, BitVMXProverSignaturesDTO
         )
 
     @property
-    def prover_signatures(self):
+    def prover_signatures_dto(self):
         return BitVMXProverSignaturesDTO(
             **self.model_dump(),
         )
 
     @property
-    def verifier_signatures(self):
+    def verifier_signatures_dto(self):
         return BitVMXVerifierSignaturesDTO(
             **self.model_dump(),
         )

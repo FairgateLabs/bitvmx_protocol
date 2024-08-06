@@ -8,6 +8,9 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_commitmen
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_prover_dto import (
+    BitVMXProtocolProverDTO,
+)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_prover_private_dto import (
     BitVMXProtocolProverPrivateDTO,
 )
@@ -52,6 +55,7 @@ class ExecutionChallengeTransactionService:
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
         bitvmx_protocol_prover_private_dto: BitVMXProtocolProverPrivateDTO,
+        bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
     ):
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
         # execution_challenge_signatures = protocol_dict["execution_challenge_signatures"]

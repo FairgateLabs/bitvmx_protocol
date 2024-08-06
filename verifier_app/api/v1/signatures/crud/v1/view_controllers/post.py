@@ -16,11 +16,11 @@ class SignaturesPostViewControllerV1:
     ) -> SignaturesPostV1Output:
         setup_uuid = setup_post_view_input.setup_uuid
 
-        verifier_signatures = self.generate_signatures_controller(
+        verifier_signatures_dto = self.generate_signatures_controller(
             setup_uuid=setup_uuid,
-            bitvmx_prover_signatures_dto=setup_post_view_input.prover_signatures,
+            bitvmx_prover_signatures_dto=setup_post_view_input.prover_signatures_dto,
         )
 
         return SignaturesPostV1Output(
-            verifier_signatures=verifier_signatures,
+            verifier_signatures_dto=verifier_signatures_dto,
         )
