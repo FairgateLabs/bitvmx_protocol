@@ -61,6 +61,7 @@ class PublishNextStepController:
         ]
         bitvmx_transactions_dto = protocol_dict["bitvmx_transactions_dto"]
         bitvmx_protocol_verifier_dto = protocol_dict["bitvmx_protocol_verifier_dto"]
+        bitvmx_protocol_verifier_private_dto = protocol_dict["bitvmx_protocol_verifier_private_dto"]
 
         if last_confirmed_step is None and (
             hash_result_transaction := transaction_info_service(
@@ -81,12 +82,14 @@ class PublishNextStepController:
             protocol_dict["last_confirmed_step"] = last_confirmed_step
         elif last_confirmed_step is TransactionVerifierStepType.TRIGGER_PROTOCOL:
             ## VERIFY THE PREVIOUS STEP ##
-            verifier_private_key = PrivateKey(
-                b=bytes.fromhex(protocol_dict["verifier_private_key"])
+            winternitz_verifier_private_key = PrivateKey(
+                b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.winternitz_private_key)
             )
             i = 0
             publish_choice_search_transaction_service = (
-                self.publish_choice_search_transaction_service_class(verifier_private_key)
+                self.publish_choice_search_transaction_service_class(
+                    winternitz_verifier_private_key
+                )
             )
             last_confirmed_step_tx = publish_choice_search_transaction_service(
                 protocol_dict=protocol_dict,
@@ -120,11 +123,11 @@ class PublishNextStepController:
             )
             # As of now, this only holds for single step challenges
             if challenge_transaction_service is not None and transaction_step_type is not None:
-                verifier_private_key = PrivateKey(
-                    b=bytes.fromhex(protocol_dict["verifier_private_key"])
+                winternitz_verifier_private_key = PrivateKey(
+                    b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.winternitz_private_key)
                 )
                 trigger_challenge_transaction_service = challenge_transaction_service(
-                    verifier_private_key
+                    winternitz_verifier_private_key
                 )
                 last_confirmed_step_tx = trigger_challenge_transaction_service(
                     protocol_dict=protocol_dict,
@@ -141,8 +144,8 @@ class PublishNextStepController:
                 protocol_dict["last_confirmed_step"] = last_confirmed_step
         elif last_confirmed_step is TransactionVerifierStepType.SEARCH_STEP_CHOICE:
             ## VERIFY THE PREVIOUS STEP ##
-            verifier_private_key = PrivateKey(
-                b=bytes.fromhex(protocol_dict["verifier_private_key"])
+            winternitz_verifier_private_key = PrivateKey(
+                b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.winternitz_private_key)
             )
             i = 0
             for i in range(len(bitvmx_transactions_dto.search_choice_tx_list)):
@@ -154,7 +157,9 @@ class PublishNextStepController:
             i += 1
             if i < len(bitvmx_transactions_dto.search_choice_tx_list):
                 publish_choice_search_transaction_service = (
-                    self.publish_choice_search_transaction_service_class(verifier_private_key)
+                    self.publish_choice_search_transaction_service_class(
+                        winternitz_verifier_private_key
+                    )
                 )
                 last_confirmed_step_tx = publish_choice_search_transaction_service(
                     protocol_dict=protocol_dict,

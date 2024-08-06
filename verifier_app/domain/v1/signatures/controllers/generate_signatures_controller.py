@@ -44,7 +44,11 @@ class GenerateSignaturesController:
             assert NETWORK == "testnet"
         else:
             assert NETWORK == self.common_protocol_properties.network.value
-        verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
+
+        bitvmx_protocol_verifier_private_dto = protocol_dict["bitvmx_protocol_verifier_private_dto"]
+        destroyed_private_key = PrivateKey(
+            b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.destroyed_private_key)
+        )
 
         protocol_dict["bitvmx_prover_signatures_dto"] = bitvmx_prover_signatures_dto
 
@@ -89,7 +93,7 @@ class GenerateSignaturesController:
         )
 
         generate_signatures_service = self.generate_signatures_service_class(
-            verifier_private_key, bitvmx_protocol_setup_properties_dto.unspendable_public_key
+            destroyed_private_key, bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
         bitvmx_signatures_dto = generate_signatures_service(
             bitvmx_transactions_dto=bitvmx_transactions_dto,

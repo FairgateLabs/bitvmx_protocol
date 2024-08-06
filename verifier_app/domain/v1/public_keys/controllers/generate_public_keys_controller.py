@@ -39,12 +39,18 @@ class GeneratePublicKeysController:
             assert NETWORK == "testnet"
         else:
             assert NETWORK == self.common_protocol_properties.network.value
-        verifier_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["verifier_private_key"]))
 
-        protocol_dict["verifier_public_key"] = verifier_private_key.get_public_key().to_hex()
+        bitvmx_protocol_verifier_private_dto = protocol_dict["bitvmx_protocol_verifier_private_dto"]
+
+        destroyed_verifier_private_key = PrivateKey(
+            b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.destroyed_private_key)
+        )
+        winternitz_private_key = PrivateKey(
+            b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.winternitz_private_key)
+        )
 
         if (
-            verifier_private_key.get_public_key().to_x_only_hex()
+            destroyed_verifier_private_key.get_public_key().to_x_only_hex()
             not in bitvmx_protocol_setup_properties_dto.seed_unspendable_public_key
         ):
             raise HTTPException(
@@ -58,7 +64,7 @@ class GeneratePublicKeysController:
         protocol_dict["bitvmx_protocol_properties_dto"] = bitvmx_protocol_properties_dto
 
         generate_verifier_public_keys_service = self.generate_verifier_public_keys_service_class(
-            verifier_private_key
+            private_key=winternitz_private_key
         )
         bitvmx_verifier_winternitz_public_keys_dto = generate_verifier_public_keys_service(
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto
@@ -77,5 +83,5 @@ class GeneratePublicKeysController:
 
         return (
             bitvmx_verifier_winternitz_public_keys_dto,
-            verifier_private_key.get_public_key().to_hex(),
+            winternitz_private_key.get_public_key().to_hex(),
         )
