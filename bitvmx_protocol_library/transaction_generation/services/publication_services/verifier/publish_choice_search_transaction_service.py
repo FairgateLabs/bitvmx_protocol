@@ -1,3 +1,5 @@
+from typing import Dict, Tuple
+
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
@@ -47,7 +49,6 @@ class PublishChoiceSearchTransactionService:
 
     def __call__(
         self,
-        protocol_dict,
         iteration: int,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
@@ -70,14 +71,14 @@ class PublishChoiceSearchTransactionService:
         )
 
         choice_search_witness = []
-        current_choice = self._get_choice(
+        current_choice, new_published_hashes_dict = self._get_choice(
             iteration=iteration,
-            protocol_dict=protocol_dict,
             bitvmx_transactions_dto=bitvmx_transactions_dto,
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
         )
-        protocol_dict["search_choices"].append(current_choice)
+
         choice_search_witness += self.generate_verifier_witness_from_input_single_word_service(
             step=(3 + iteration * 2 + 1),
             case=0,
@@ -110,6 +111,8 @@ class PublishChoiceSearchTransactionService:
         broadcast_transaction_service(
             transaction=bitvmx_transactions_dto.search_choice_tx_list[iteration].serialize()
         )
+        bitvmx_protocol_verifier_dto.search_choices.append(current_choice)
+        bitvmx_protocol_verifier_dto.published_hashes_dict = new_published_hashes_dict
         print(
             "Search choice iteration transaction "
             + str(iteration)
@@ -121,11 +124,11 @@ class PublishChoiceSearchTransactionService:
     def _get_choice(
         self,
         iteration,
-        protocol_dict,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
-    ):
+        bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
+    ) -> Tuple[int, Dict[int, str]]:
 
         previous_hash_search_txid = bitvmx_transactions_dto.search_hash_tx_list[
             iteration
@@ -157,7 +160,7 @@ class PublishChoiceSearchTransactionService:
             )
         published_hashes.reverse()
         prefix = ""
-        for search_choice in protocol_dict["search_choices"]:
+        for search_choice in bitvmx_protocol_verifier_dto.search_choices:
             prefix += bin(search_choice)[2:].zfill(
                 bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
             )
@@ -183,8 +186,10 @@ class PublishChoiceSearchTransactionService:
                 )
             )
 
+        previous_published_hashes_dict = bitvmx_protocol_verifier_dto.published_hashes_dict.copy()
+
         for j in range(len(index_list)):
-            protocol_dict["search_hashes"][index_list[j]] = published_hashes[j]
+            previous_published_hashes_dict[index_list[j]] = published_hashes[j]
 
         index_list.append(
             int(
@@ -201,6 +206,6 @@ class PublishChoiceSearchTransactionService:
             current_hash = self.execution_trace_query_service(
                 setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid, index=index
             )["step_hash"]
-            if not current_hash == protocol_dict["search_hashes"][index]:
-                return j
+            if not current_hash == previous_published_hashes_dict[index]:
+                return j, previous_published_hashes_dict
         raise Exception("There was some error when choosing the wrong step")

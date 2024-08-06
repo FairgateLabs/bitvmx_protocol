@@ -1,7 +1,8 @@
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from bitvmx_protocol_library.bitvmx_execution.entities.execution_trace_dto import ExecutionTraceDTO
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_prover_signatures_dto import (
     BitVMXProverSignaturesDTO,
 )
@@ -15,9 +16,14 @@ class BitVMXProtocolVerifierDTO(BaseModel):
     verifier_signatures_dtos: Dict[str, BitVMXProverSignaturesDTO]
     last_confirmed_step: Optional[TransactionVerifierStepType] = None
     last_confirmed_step_tx_id: Optional[str] = None
+    search_choices: List[int] = Field(default_factory=list)
+    published_hashes_dict: Dict[int, str] = Field(default_factory=dict)
+    prover_trace_witness: Optional[List[str]] = None
+    published_execution_trace: Optional[ExecutionTraceDTO] = None
+    first_wrong_step: Optional[int] = None
 
     @property
-    def trigger_protocol_signatures(self):
+    def trigger_protocol_signatures(self) -> List[str]:
         trigger_protocol_signatures_list = []
         for elem in reversed(sorted(self.verifier_public_keys.keys())):
             trigger_protocol_signatures_list.append(
@@ -29,7 +35,7 @@ class BitVMXProtocolVerifierDTO(BaseModel):
         return trigger_protocol_signatures_list
 
     @property
-    def search_choice_signatures(self):
+    def search_choice_signatures(self) -> List[List[str]]:
         search_choice_signatures_list = []
         amount_of_iterations = len(
             list(self.verifier_signatures_dtos.values())[0].search_choice_signatures
@@ -45,7 +51,7 @@ class BitVMXProtocolVerifierDTO(BaseModel):
         return search_choice_signatures_list
 
     @property
-    def trigger_execution_challenge_signatures(self):
+    def trigger_execution_challenge_signatures(self) -> List[str]:
         trigger_execution_challenge_signatures_list = []
         for elem in reversed(sorted(self.verifier_public_keys.keys())):
             trigger_execution_challenge_signatures_list.append(
@@ -55,3 +61,7 @@ class BitVMXProtocolVerifierDTO(BaseModel):
             self.prover_signatures_dto.trigger_execution_challenge_signature
         )
         return trigger_execution_challenge_signatures_list
+
+    @property
+    def amount_of_signatures(self) -> int:
+        return len(self.verifier_public_keys.keys()) + 1

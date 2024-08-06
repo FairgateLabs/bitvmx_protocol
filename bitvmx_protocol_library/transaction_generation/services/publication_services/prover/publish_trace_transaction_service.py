@@ -51,7 +51,6 @@ class PublishTraceTransactionService:
 
     def __call__(
         self,
-        protocol_dict,
         setup_uuid: str,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
@@ -76,14 +75,14 @@ class PublishTraceTransactionService:
             else 0
         )
 
-        protocol_dict["search_choices"].append(current_choice)
+        bitvmx_protocol_prover_dto.search_choices.append(current_choice)
         first_wrong_step = int(
             "".join(
                 map(
                     lambda digit: bin(digit)[2:].zfill(
                         bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
                     ),
-                    protocol_dict["search_choices"],
+                    bitvmx_protocol_prover_dto.search_choices,
                 )
             ),
             2,

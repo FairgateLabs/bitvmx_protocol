@@ -48,7 +48,6 @@ class ExecutionChallengeTransactionService:
 
     def __call__(
         self,
-        protocol_dict,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
@@ -58,10 +57,6 @@ class ExecutionChallengeTransactionService:
         bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
     ):
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
-
-        bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
-            "bitvmx_prover_winternitz_public_keys_dto"
-        ]
 
         trigger_execution_challenge_published_transaction = transaction_info_service(
             bitvmx_transactions_dto.trigger_execution_challenge_tx.get_txid()

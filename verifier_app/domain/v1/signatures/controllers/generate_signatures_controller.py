@@ -63,7 +63,6 @@ class GenerateSignaturesController:
 
         # Transaction construction
         bitvmx_transactions_dto = self.transaction_generator_from_public_keys_service(
-            protocol_dict,
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,

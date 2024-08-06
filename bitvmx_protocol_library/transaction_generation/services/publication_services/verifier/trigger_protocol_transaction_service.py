@@ -35,7 +35,6 @@ class TriggerProtocolTransactionService:
 
     def __call__(
         self,
-        protocol_dict,
         hash_result_transaction,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
@@ -64,8 +63,9 @@ class TriggerProtocolTransactionService:
         )
 
         if not last_step_trace["step_hash"] == published_result_hash:
-            # protocol_dict["search_hashes"][len(execution_result) - 1] = published_result_hash
-            protocol_dict["search_hashes"][last_step_index] = published_result_hash
+            bitvmx_protocol_verifier_dto.published_hashes_dict[last_step_index] = (
+                published_result_hash
+            )
             trigger_protocol_signatures = bitvmx_protocol_verifier_dto.trigger_protocol_signatures
 
             trigger_protocol_script_generator = TriggerProtocolScriptGeneratorService()

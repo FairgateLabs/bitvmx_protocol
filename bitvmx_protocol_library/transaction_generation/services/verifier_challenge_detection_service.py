@@ -37,7 +37,6 @@ class VerifierChallengeDetectionService:
 
     def __call__(
         self,
-        protocol_dict,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
@@ -52,8 +51,23 @@ class VerifierChallengeDetectionService:
         # Ugly hardcoding here that should be computed somehow but it depends a lot on the structure of the
         # previous script
         # -> Make static call that gets checked when the script gets generated
-        prover_trace_witness = previous_trace_witness[10:246]
-        protocol_dict["prover_trace_witness"] = prover_trace_witness
+        amount_of_signatures = bitvmx_protocol_verifier_dto.amount_of_signatures
+        trace_witness_length = (
+            sum(
+                list(
+                    map(
+                        lambda x: len(x),
+                        bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
+                    )
+                )
+            )
+            * 2
+        )
+        # The 8 comes from publishing a nibble with its checksum twice (so it can be cross signed)
+        prover_trace_witness = previous_trace_witness[
+            amount_of_signatures + 8 : amount_of_signatures + 8 + trace_witness_length
+        ]
+        bitvmx_protocol_verifier_dto.prover_trace_witness = prover_trace_witness
 
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
 
@@ -77,8 +91,9 @@ class VerifierChallengeDetectionService:
             current_value = "".join(reversed(current_digits))
             trace_values.append(current_value)
 
-        execution_trace = ExecutionTraceDTO.from_trace_values_list(trace_values)
-        protocol_dict["published_execution_trace"] = execution_trace
+        bitvmx_protocol_verifier_dto.published_execution_trace = (
+            ExecutionTraceDTO.from_trace_values_list(trace_values)
+        )
 
         first_wrong_step = int(
             "".join(
@@ -86,18 +101,18 @@ class VerifierChallengeDetectionService:
                     lambda digit: bin(digit)[2:].zfill(
                         bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
                     ),
-                    protocol_dict["search_choices"],
+                    bitvmx_protocol_verifier_dto.search_choices,
                 )
             ),
             2,
         )
-        protocol_dict["first_wrong_step"] = first_wrong_step
+        bitvmx_protocol_verifier_dto.first_wrong_step = first_wrong_step
 
         for verifier_challenge_detection_service in self.verifier_challenge_detection_services:
             trigger_challenge_transaction_service, transaction_step_type = (
                 verifier_challenge_detection_service(
-                    protocol_dict,
                     setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid,
+                    bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
                 )
             )
             if (

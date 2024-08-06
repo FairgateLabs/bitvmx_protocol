@@ -73,11 +73,6 @@ class GeneratePublicKeysController:
             bitvmx_verifier_winternitz_public_keys_dto
         )
 
-        # protocol_dict["public_keys"] = [
-        #     bitvmx_protocol_setup_properties_dto.verifier_destroyed_public_key,
-        #     bitvmx_protocol_setup_properties_dto.prover_destroyed_public_key,
-        # ]
-
         with open(f"verifier_files/{setup_uuid}/file_database.pkl", "wb") as f:
             pickle.dump(protocol_dict, f)
 

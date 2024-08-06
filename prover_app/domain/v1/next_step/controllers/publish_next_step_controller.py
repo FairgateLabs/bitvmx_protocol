@@ -61,7 +61,6 @@ class PublishNextStepController:
         bitvmx_protocol_prover_private_dto = protocol_dict["bitvmx_protocol_prover_private_dto"]
         bitvmx_protocol_prover_dto = protocol_dict["bitvmx_protocol_prover_dto"]
 
-        # prover_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["prover_secret_key"]))
         wintertniz_private_key = PrivateKey(
             b=bytes.fromhex(bitvmx_protocol_prover_private_dto.winternitz_private_key)
         )
@@ -90,7 +89,6 @@ class PublishNextStepController:
                 self.publish_hash_search_transaction_service_class(wintertniz_private_key)
             )
             last_confirmed_step_tx = publish_hash_search_transaction_service(
-                protocol_dict=protocol_dict,
                 bitvmx_transactions_dto=bitvmx_transactions_dto,
                 iteration=0,
                 setup_uuid=setup_uuid,
@@ -118,7 +116,6 @@ class PublishNextStepController:
                     wintertniz_private_key
                 )
                 last_confirmed_step_tx = publish_trace_transaction_service(
-                    protocol_dict=protocol_dict,
                     setup_uuid=setup_uuid,
                     bitvmx_transactions_dto=bitvmx_transactions_dto,
                     bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
@@ -149,7 +146,6 @@ class PublishNextStepController:
                         self.publish_hash_search_transaction_service_class(wintertniz_private_key)
                     )
                     last_confirmed_step_tx = publish_hash_search_transaction_service(
-                        protocol_dict=protocol_dict,
                         bitvmx_transactions_dto=bitvmx_transactions_dto,
                         iteration=i,
                         setup_uuid=setup_uuid,
@@ -174,7 +170,6 @@ class PublishNextStepController:
                     self.execution_challenge_transaction_service_class()
                 )
                 last_confirmed_step_tx = execution_challenge_transaction_service(
-                    protocol_dict=protocol_dict,
                     bitvmx_transactions_dto=bitvmx_transactions_dto,
                     bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                     bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
