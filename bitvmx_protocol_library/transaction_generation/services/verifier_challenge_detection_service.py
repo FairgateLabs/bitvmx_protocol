@@ -2,6 +2,12 @@ from bitvmx_protocol_library.bitvmx_execution.entities.execution_trace_dto impor
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
+    BitVMXProtocolSetupPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
+    BitVMXProtocolVerifierDTO,
+)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
     BitVMXProverWinternitzPublicKeysDTO,
 )
@@ -34,8 +40,10 @@ class VerifierChallengeDetectionService:
         protocol_dict,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
+        bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
         trace_tx_id = bitvmx_transactions_dto.trace_tx.get_txid()
         trace_transaction_info = transaction_info_service(trace_tx_id)
@@ -87,7 +95,10 @@ class VerifierChallengeDetectionService:
 
         for verifier_challenge_detection_service in self.verifier_challenge_detection_services:
             trigger_challenge_transaction_service, transaction_step_type = (
-                verifier_challenge_detection_service(protocol_dict)
+                verifier_challenge_detection_service(
+                    protocol_dict,
+                    setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid,
+                )
             )
             if (
                 trigger_challenge_transaction_service is not None

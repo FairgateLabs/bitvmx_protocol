@@ -58,69 +58,85 @@ class PublishNextStepController:
             "bitvmx_verifier_winternitz_public_keys_dto"
         ]
         bitvmx_transactions_dto = protocol_dict["bitvmx_transactions_dto"]
+        bitvmx_protocol_prover_private_dto = protocol_dict["bitvmx_protocol_prover_private_dto"]
+        bitvmx_protocol_prover_dto = protocol_dict["bitvmx_protocol_prover_dto"]
 
-        prover_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["prover_secret_key"]))
-        last_confirmed_step = protocol_dict["last_confirmed_step"]
+        # prover_private_key = PrivateKey(b=bytes.fromhex(protocol_dict["prover_secret_key"]))
+        wintertniz_private_key = PrivateKey(
+            b=bytes.fromhex(bitvmx_protocol_prover_private_dto.winternitz_private_key)
+        )
 
-        if last_confirmed_step is None:
+        if bitvmx_protocol_prover_dto.last_confirmed_step is None:
             publish_hash_transaction_service = self.publish_hash_transaction_service_class(
-                prover_private_key
+                wintertniz_private_key
             )
             last_confirmed_step_tx = publish_hash_transaction_service(
-                protocol_dict=protocol_dict, bitvmx_transactions_dto=bitvmx_transactions_dto
+                setup_uuid=setup_uuid,
+                bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                bitvmx_transactions_dto=bitvmx_transactions_dto,
+                bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto,
+                bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
             )
-            last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-            last_confirmed_step = TransactionProverStepType.HASH_RESULT
-            protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-            protocol_dict["last_confirmed_step"] = last_confirmed_step
+            bitvmx_protocol_prover_dto.last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
+            bitvmx_protocol_prover_dto.last_confirmed_step = TransactionProverStepType.HASH_RESULT
         elif (
-            last_confirmed_step == TransactionProverStepType.HASH_RESULT
+            bitvmx_protocol_prover_dto.last_confirmed_step == TransactionProverStepType.HASH_RESULT
             and self.transaction_published_service(
                 bitvmx_transactions_dto.trigger_protocol_tx.get_txid()
             )
         ):
             publish_hash_search_transaction_service = (
-                self.publish_hash_search_transaction_service_class(prover_private_key)
+                self.publish_hash_search_transaction_service_class(wintertniz_private_key)
             )
             last_confirmed_step_tx = publish_hash_search_transaction_service(
                 protocol_dict=protocol_dict,
                 bitvmx_transactions_dto=bitvmx_transactions_dto,
                 iteration=0,
+                setup_uuid=setup_uuid,
                 bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                 bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
                 bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+                bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto,
             )
-            last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-            last_confirmed_step = TransactionProverStepType.SEARCH_STEP_HASH
-            protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-            protocol_dict["last_confirmed_step"] = last_confirmed_step
-        elif last_confirmed_step == TransactionProverStepType.SEARCH_STEP_HASH:
+            bitvmx_protocol_prover_dto.last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
+            bitvmx_protocol_prover_dto.last_confirmed_step = (
+                TransactionProverStepType.SEARCH_STEP_HASH
+            )
+        elif (
+            bitvmx_protocol_prover_dto.last_confirmed_step
+            == TransactionProverStepType.SEARCH_STEP_HASH
+        ):
             if (
                 bitvmx_transactions_dto.search_hash_tx_list[-1].get_txid()
-                == protocol_dict["last_confirmed_step_tx_id"]
+                == bitvmx_protocol_prover_dto.last_confirmed_step_tx_id
             ) and self.transaction_published_service(
                 bitvmx_transactions_dto.search_choice_tx_list[-1].get_txid()
             ):
                 publish_trace_transaction_service = self.publish_trace_transaction_service_class(
-                    prover_private_key
+                    wintertniz_private_key
                 )
                 last_confirmed_step_tx = publish_trace_transaction_service(
                     protocol_dict=protocol_dict,
+                    setup_uuid=setup_uuid,
                     bitvmx_transactions_dto=bitvmx_transactions_dto,
                     bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                    bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                     bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
                     bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+                    bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto,
                 )
-                last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-                last_confirmed_step = TransactionProverStepType.TRACE
-                protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-                protocol_dict["last_confirmed_step"] = last_confirmed_step
+                bitvmx_protocol_prover_dto.last_confirmed_step_tx_id = (
+                    last_confirmed_step_tx.get_txid()
+                )
+                bitvmx_protocol_prover_dto.last_confirmed_step = TransactionProverStepType.TRACE
             else:
                 i = None
                 for i in range(len(bitvmx_transactions_dto.search_hash_tx_list)):
                     if (
                         bitvmx_transactions_dto.search_hash_tx_list[i].get_txid()
-                        == protocol_dict["last_confirmed_step_tx_id"]
+                        == bitvmx_protocol_prover_dto.last_confirmed_step_tx_id
                     ):
                         break
                 i += 1
@@ -130,21 +146,26 @@ class PublishNextStepController:
                     bitvmx_transactions_dto.search_choice_tx_list[i - 1].get_txid()
                 ):
                     publish_hash_search_transaction_service = (
-                        self.publish_hash_search_transaction_service_class(prover_private_key)
+                        self.publish_hash_search_transaction_service_class(wintertniz_private_key)
                     )
                     last_confirmed_step_tx = publish_hash_search_transaction_service(
                         protocol_dict=protocol_dict,
                         bitvmx_transactions_dto=bitvmx_transactions_dto,
                         iteration=i,
+                        setup_uuid=setup_uuid,
                         bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+                        bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                         bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
                         bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+                        bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto,
                     )
-                    last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-                    last_confirmed_step = TransactionProverStepType.SEARCH_STEP_HASH
-                    protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-                    protocol_dict["last_confirmed_step"] = last_confirmed_step
-        elif last_confirmed_step == TransactionProverStepType.TRACE:
+                    bitvmx_protocol_prover_dto.last_confirmed_step_tx_id = (
+                        last_confirmed_step_tx.get_txid()
+                    )
+                    bitvmx_protocol_prover_dto.last_confirmed_step = (
+                        TransactionProverStepType.SEARCH_STEP_HASH
+                    )
+        elif bitvmx_protocol_prover_dto.last_confirmed_step == TransactionProverStepType.TRACE:
             # Here we should check which is the challenge that should be triggered
             if self.transaction_published_service(
                 bitvmx_transactions_dto.trigger_execution_challenge_tx.get_txid()
@@ -159,16 +180,20 @@ class PublishNextStepController:
                     bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
                     bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
                     bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
+                    bitvmx_protocol_prover_private_dto=bitvmx_protocol_prover_private_dto,
+                    bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto,
                 )
-                last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
-                last_confirmed_step = TransactionProverStepType.EXECUTION_CHALLENGE
-                protocol_dict["last_confirmed_step_tx_id"] = last_confirmed_step_tx_id
-                protocol_dict["last_confirmed_step"] = last_confirmed_step
+                bitvmx_protocol_prover_dto.last_confirmed_step_tx_id = (
+                    last_confirmed_step_tx.get_txid()
+                )
+                bitvmx_protocol_prover_dto.last_confirmed_step = (
+                    TransactionProverStepType.EXECUTION_CHALLENGE
+                )
 
         with open(f"prover_files/{setup_uuid}/file_database.pkl", "wb") as f:
             pickle.dump(protocol_dict, f)
 
-        if last_confirmed_step in [
+        if bitvmx_protocol_prover_dto.last_confirmed_step in [
             TransactionProverStepType.HASH_RESULT,
             TransactionProverStepType.SEARCH_STEP_HASH,
             TransactionProverStepType.TRACE,
@@ -176,8 +201,8 @@ class PublishNextStepController:
             asyncio.create_task(
                 _trigger_next_step_verifier(
                     setup_uuid=setup_uuid,
-                    verifier_list=bitvmx_protocol_setup_properties_dto.verifier_list,
+                    verifier_list=bitvmx_protocol_setup_properties_dto.verifier_dict.values(),
                 )
             )
 
-        return last_confirmed_step
+        return bitvmx_protocol_prover_dto.last_confirmed_step

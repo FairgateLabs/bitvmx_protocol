@@ -1,4 +1,3 @@
-from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
@@ -10,6 +9,12 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_ser
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
+    BitVMXProtocolSetupPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
+    BitVMXProtocolVerifierDTO,
 )
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
@@ -34,11 +39,15 @@ class TriggerProtocolTransactionService:
         hash_result_transaction,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
+        bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
         hash_result_witness = hash_result_transaction.inputs[0].witness
-        public_keys = protocol_dict["public_keys"]
+
         hash_witness_portion = hash_result_witness[
-            len(public_keys) : len(public_keys)
+            len(bitvmx_protocol_setup_properties_dto.signature_public_keys) : len(
+                bitvmx_protocol_setup_properties_dto.signature_public_keys
+            )
             + 2 * bitvmx_protocol_properties_dto.amount_of_nibbles_hash
         ]
         published_result_hash = "".join(
@@ -48,28 +57,29 @@ class TriggerProtocolTransactionService:
             ]
         )
 
-        self.execution_trace_generation_service(protocol_dict["setup_uuid"])
+        self.execution_trace_generation_service(bitvmx_protocol_setup_properties_dto.setup_uuid)
         last_step_index = bitvmx_protocol_properties_dto.amount_of_trace_steps - 1
         last_step_trace = self.execution_trace_query_service(
-            protocol_dict["setup_uuid"], last_step_index
+            setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid, index=last_step_index
         )
 
         if not last_step_trace["step_hash"] == published_result_hash:
             # protocol_dict["search_hashes"][len(execution_result) - 1] = published_result_hash
             protocol_dict["search_hashes"][last_step_index] = published_result_hash
-            destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
-            trigger_protocol_signatures = protocol_dict["trigger_protocol_signatures"]
+            trigger_protocol_signatures = bitvmx_protocol_verifier_dto.trigger_protocol_signatures
 
             trigger_protocol_script_generator = TriggerProtocolScriptGeneratorService()
             trigger_protocol_script = trigger_protocol_script_generator(
-                protocol_dict["public_keys"]
+                signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys
             )
-            trigger_protocol_script_address = destroyed_public_key.get_taproot_address(
-                [[trigger_protocol_script]]
+            trigger_protocol_script_address = (
+                bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
+                    [[trigger_protocol_script]]
+                )
             )
 
             trigger_protocol_control_block = ControlBlock(
-                destroyed_public_key,
+                bitvmx_protocol_setup_properties_dto.unspendable_public_key,
                 scripts=[[trigger_protocol_script]],
                 index=0,
                 is_odd=trigger_protocol_script_address.is_odd(),

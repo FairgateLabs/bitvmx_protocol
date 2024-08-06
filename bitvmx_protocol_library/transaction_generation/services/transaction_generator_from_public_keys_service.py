@@ -1,4 +1,4 @@
-from bitcoinutils.keys import P2wpkhAddress, PublicKey
+from bitcoinutils.keys import P2wpkhAddress
 from bitcoinutils.transactions import Transaction, TxInput, TxOutput
 
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
@@ -13,8 +13,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_w
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
     BitVMXVerifierWinternitzPublicKeysDTO,
 )
-from bitvmx_protocol_library.config import common_protocol_properties
-from bitvmx_protocol_library.enums import BitcoinNetwork
 from bitvmx_protocol_library.script_generation.services.bitvmx_bitcoin_scripts_generator_service import (
     BitVMXBitcoinScriptsGeneratorService,
 )
@@ -37,14 +35,15 @@ class TransactionGeneratorFromPublicKeysService:
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
     ) -> BitVMXTransactionsDTO:
 
-        destroyed_public_key = PublicKey(hex_str="02" + protocol_dict["destroyed_public_key"])
-
         bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
             bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
-            signature_public_keys=protocol_dict["public_keys"],
+            signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys,
         )
+
+        destroyed_public_key = bitvmx_protocol_setup_properties_dto.unspendable_public_key
 
         funding_txin = TxInput(
             bitvmx_protocol_setup_properties_dto.funding_tx_id,
@@ -52,7 +51,9 @@ class TransactionGeneratorFromPublicKeysService:
         )
 
         hash_result_script_address = (
-            bitvmx_bitcoin_scripts_dto.hash_result_script.get_taproot_address(destroyed_public_key)
+            bitvmx_bitcoin_scripts_dto.hash_result_script.get_taproot_address(
+                bitvmx_protocol_setup_properties_dto.unspendable_public_key
+            )
         )
 
         funding_txout = TxOutput(
@@ -166,18 +167,11 @@ class TransactionGeneratorFromPublicKeysService:
 
         #  Here we should put all the challenges
 
-        # TODO: cache in class
-        ## Execution challenge
-        if "execution_challenge_address" in protocol_dict:
-            execution_challenge_address = protocol_dict["execution_challenge_address"]
-        else:
-            execution_challenge_address = (
-                bitvmx_bitcoin_scripts_dto.execution_challenge_script_list.get_taproot_address(
-                    destroyed_public_key
-                )
+        execution_challenge_address = (
+            bitvmx_bitcoin_scripts_dto.execution_challenge_script_list.get_taproot_address(
+                destroyed_public_key
             )
-
-            protocol_dict["execution_challenge_address"] = execution_challenge_address
+        )
 
         trigger_execution_challenge_txin = TxInput(trace_tx.get_txid(), 0)
         trigger_execution_challenge_txout = TxOutput(
@@ -190,13 +184,9 @@ class TransactionGeneratorFromPublicKeysService:
 
         execution_challenge_txin = TxInput(trigger_execution_challenge_tx.get_txid(), 0)
 
-        if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-            faucet_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
-            execution_challenge_output_address = P2wpkhAddress.from_address(address=faucet_address)
-        else:
-            execution_challenge_output_address = P2wpkhAddress.from_address(
-                address=protocol_dict["controlled_prover_address"]
-            )
+        execution_challenge_output_address = P2wpkhAddress.from_address(
+            address=bitvmx_protocol_setup_properties_dto.prover_destination_address
+        )
 
         execution_challenge_txout = TxOutput(
             challenge_output_amount,
@@ -206,9 +196,6 @@ class TransactionGeneratorFromPublicKeysService:
         execution_challenge_tx = Transaction(
             [execution_challenge_txin], [execution_challenge_txout], has_segwit=True
         )
-
-        protocol_dict["last_confirmed_step"] = None
-        protocol_dict["last_confirmed_step_tx_id"] = None
 
         return BitVMXTransactionsDTO(
             funding_tx=funding_tx,

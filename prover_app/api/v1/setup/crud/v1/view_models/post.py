@@ -8,9 +8,13 @@ class SetupPostV1Input(BaseModel):
     amount_of_bits_wrong_step_search: conint(ge=1, le=3)
     funding_tx_id: str
     funding_index: int
+    secret_origin_of_funds: str
     verifier_list: Optional[List[str]] = None
     # Debug this field (not that important since the optimal is 4)
     amount_of_bits_per_digit_checksum: Optional[conint(ge=4, le=4)] = 4
+    prover_destination_address: str
+    prover_signature_private_key: str
+    prover_signature_public_key: str
 
     @field_validator("max_amount_of_steps")
     def check_positive_amount_of_steps(cls, max_amount_of_steps):

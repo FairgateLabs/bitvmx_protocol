@@ -18,7 +18,6 @@ class PublicKeysPostViewControllerV1:
             verifier_public_key_hex,
         ) = await self.generate_public_keys_controller(
             setup_uuid=setup_uuid,
-            unspendable_public_key_hex=public_keys_post_view_input.seed_destroyed_public_key_hex,
             public_keys_post_view_input=public_keys_post_view_input,
             bitvmx_protocol_properties_dto=public_keys_post_view_input.bitvmx_protocol_properties_dto,
             bitvmx_protocol_setup_properties_dto=public_keys_post_view_input.bitvmx_protocol_setup_properties_dto,

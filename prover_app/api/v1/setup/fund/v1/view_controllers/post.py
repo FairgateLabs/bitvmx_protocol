@@ -39,6 +39,10 @@ class SetupFundPostViewControllerV1:
                 b=bytes.fromhex(self.protocol_properties.prover_private_key)
             )
 
+        origin_of_funds_private_key = PrivateKey(
+            b=bytes.fromhex(setup_post_view_input.secret_origin_of_funds)
+        )
+
         setup_uuid = await self.create_setup_with_funding_controller(
             max_amount_of_steps=setup_post_view_input.max_amount_of_steps,
             amount_of_bits_wrong_step_search=setup_post_view_input.amount_of_bits_wrong_step_search,
@@ -47,5 +51,6 @@ class SetupFundPostViewControllerV1:
             controlled_prover_private_key=controlled_prover_private_key,
             initial_amount_of_satoshis=self.common_protocol_properties.initial_amount_satoshis,
             step_fees_satoshis=self.common_protocol_properties.step_fees_satoshis,
+            origin_of_funds_private_key=origin_of_funds_private_key,
         )
         return SetupFundPostV1Output(setup_uuid=setup_uuid)

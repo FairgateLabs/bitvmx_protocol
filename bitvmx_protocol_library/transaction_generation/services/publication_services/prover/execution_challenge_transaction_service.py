@@ -1,5 +1,5 @@
 from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
-from bitcoinutils.keys import PrivateKey, PublicKey
+from bitcoinutils.keys import PrivateKey
 from bitcoinutils.transactions import TxWitnessInput
 
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_commitment_generation_service import (
@@ -7,6 +7,12 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_commitmen
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_prover_dto import (
+    BitVMXProtocolProverDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_prover_private_dto import (
+    BitVMXProtocolProverPrivateDTO,
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
@@ -48,11 +54,10 @@ class ExecutionChallengeTransactionService:
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
+        bitvmx_protocol_prover_private_dto: BitVMXProtocolProverPrivateDTO,
+        bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
     ):
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
-        # execution_challenge_signatures = protocol_dict["execution_challenge_signatures"]
-        destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
-        signature_public_keys = protocol_dict["public_keys"]
 
         bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
             "bitvmx_prover_winternitz_public_keys_dto"
@@ -98,20 +103,16 @@ class ExecutionChallengeTransactionService:
             witness_real_values.append(real_values[i])
 
         execution_challenge_script_list = self.execution_challenge_script_generator_service(
-            signature_public_keys,
+            bitvmx_protocol_setup_properties_dto.signature_public_keys,
             bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
             trace_words_lengths,
             bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            prover_signature_public_key=bitvmx_protocol_setup_properties_dto.prover_signature_public_key,
         )
 
-        if "execution_challenge_address" in protocol_dict:
-            execution_challenge_script_address = protocol_dict["execution_challenge_address"]
-        else:
-            execution_challenge_script_address = (
-                execution_challenge_script_list.get_taproot_address(destroyed_public_key)
-            )
-
-            protocol_dict["execution_challenge_address"] = execution_challenge_script_address
+        execution_challenge_script_address = execution_challenge_script_list.get_taproot_address(
+            bitvmx_protocol_setup_properties_dto.unspendable_public_key
+        )
 
         key_list, instruction_dict = self.execution_trace_commitment_generation_service()
         pc_read_addr = real_values[6]
@@ -129,13 +130,15 @@ class ExecutionChallengeTransactionService:
         # execution_challenge_control_block_hex = execution_challenge_control_block.to_hex()
         execution_challenge_control_block_hex = (
             execution_challenge_script_list.get_control_block_hex(
-                destroyed_public_key,
+                bitvmx_protocol_setup_properties_dto.unspendable_public_key,
                 current_script_index,
                 execution_challenge_script_address.is_odd(),
             )
         )
 
-        private_key = PrivateKey(b=bytes.fromhex(protocol_dict["prover_secret_key"]))
+        private_key = PrivateKey(
+            b=bytes.fromhex(bitvmx_protocol_prover_private_dto.prover_signature_private_key)
+        )
         execution_challenge_signature = private_key.sign_taproot_input(
             bitvmx_transactions_dto.execution_challenge_tx,
             0,

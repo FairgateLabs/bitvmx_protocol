@@ -10,8 +10,8 @@ from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_verifie
 
 class SignaturesPostV1Input(BaseModel):
     setup_uuid: str
-    prover_signatures: BitVMXProverSignaturesDTO
+    prover_signatures_dto: BitVMXProverSignaturesDTO
 
 
 class SignaturesPostV1Output(BaseModel):
-    verifier_signatures: BitVMXVerifierSignaturesDTO
+    verifier_signatures_dto: BitVMXVerifierSignaturesDTO

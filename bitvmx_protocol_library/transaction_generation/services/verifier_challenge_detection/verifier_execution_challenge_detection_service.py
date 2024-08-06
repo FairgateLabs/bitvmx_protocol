@@ -13,11 +13,11 @@ class VerifierExecutionChallengeDetectionService:
         self.base_path = "verifier_files/"
         self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
 
-    def __call__(self, protocol_dict):
+    def __call__(self, protocol_dict, setup_uuid: str):
         execution_trace = protocol_dict["published_execution_trace"]
         first_wrong_step = protocol_dict["first_wrong_step"]
         first_wrong_step_trace = self.execution_trace_query_service(
-            protocol_dict["setup_uuid"], first_wrong_step
+            setup_uuid=setup_uuid, index=first_wrong_step
         )
         if (
             hex(int(first_wrong_step_trace["write_pc"]))[2:].zfill(8)

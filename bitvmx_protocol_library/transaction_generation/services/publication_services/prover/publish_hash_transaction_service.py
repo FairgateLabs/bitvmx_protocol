@@ -1,6 +1,5 @@
 from typing import List
 
-from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import Transaction, TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
@@ -9,6 +8,18 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_generatio
 )
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
     ExecutionTraceQueryService,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
+    BitVMXProtocolPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_prover_dto import (
+    BitVMXProtocolProverDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
+    BitVMXProtocolSetupPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
+    BitVMXProverWinternitzPublicKeysDTO,
 )
 from bitvmx_protocol_library.script_generation.services.script_generation.hash_result_script_generator_service import (
     HashResultScriptGeneratorService,
@@ -45,18 +56,19 @@ class PublishHashTransactionService:
 
     def __call__(
         self,
-        protocol_dict,
+        setup_uuid: str,
+        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
+        bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
+        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
     ) -> Transaction:
 
-        amount_of_bits_per_digit_checksum = protocol_dict["amount_of_bits_per_digit_checksum"]
-        amount_of_nibbles_hash = protocol_dict["amount_of_nibbles_hash"]
-        destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
-        hash_result_signatures = protocol_dict["hash_result_signatures"]
+        hash_result_signatures = bitvmx_protocol_prover_dto.hash_result_signatures
 
-        self.execution_trace_generation_service(protocol_dict["setup_uuid"])
+        self.execution_trace_generation_service(setup_uuid=setup_uuid)
         last_step_trace = self.execution_trace_query_service(
-            protocol_dict["setup_uuid"], protocol_dict["amount_of_trace_steps"] - 1
+            setup_uuid, bitvmx_protocol_properties_dto.amount_of_trace_steps - 1
         )
         hash_result_split_number = _get_result_hash_value(last_step_trace)
 
@@ -65,25 +77,23 @@ class PublishHashTransactionService:
             step=1,
             case=0,
             input_numbers=hash_result_split_number,
-            bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+            bits_per_digit_checksum=bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
-
-        bitvmx_prover_winternitz_public_keys_dto = protocol_dict[
-            "bitvmx_prover_winternitz_public_keys_dto"
-        ]
 
         hash_result_script = self.hash_result_script_generator(
-            protocol_dict["public_keys"],
+            bitvmx_protocol_setup_properties_dto.signature_public_keys,
             bitvmx_prover_winternitz_public_keys_dto.hash_result_public_keys,
-            amount_of_nibbles_hash,
-            amount_of_bits_per_digit_checksum,
+            bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+            bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
-        hash_result_script_address = destroyed_public_key.get_taproot_address(
-            [[hash_result_script]]
+        hash_result_script_address = (
+            bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
+                [[hash_result_script]]
+            )
         )
 
         hash_result_control_block = ControlBlock(
-            destroyed_public_key,
+            bitvmx_protocol_setup_properties_dto.unspendable_public_key,
             scripts=[[hash_result_script]],
             index=0,
             is_odd=hash_result_script_address.is_odd(),

@@ -1,5 +1,3 @@
-import hashlib
-import math
 import os
 import pickle
 import secrets
@@ -7,11 +5,17 @@ import uuid
 from typing import List
 
 import requests
-from bitcoinutils.keys import PrivateKey, PublicKey
+from bitcoinutils.keys import PrivateKey
 from bitcoinutils.transactions import TxWitnessInput
 
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_prover_dto import (
+    BitVMXProtocolProverDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_prover_private_dto import (
+    BitVMXProtocolProverPrivateDTO,
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
@@ -58,15 +62,13 @@ class CreateSetupController:
         funding_tx_id: str,
         funding_index: str,
         step_fees_satoshis: int,
-    ):
+        origin_of_funds_private_key: PrivateKey,
+        prover_destination_address: str,
+        prover_signature_private_key: str,
+        prover_signature_public_key: str,
+    ) -> str:
         setup_uuid = str(uuid.uuid4())
-        # This is hardcoded since it depends on the hashing function
-        amount_of_nibbles_hash = 64
-        # Computed parameters
-        amount_of_wrong_step_search_hashes_per_iteration = 2**amount_of_bits_wrong_step_search - 1
-        amount_of_wrong_step_search_iterations = math.ceil(
-            math.ceil(math.log2(max_amount_of_steps)) / amount_of_bits_wrong_step_search
-        )
+        prover_uuid = str(uuid.uuid4())
 
         funding_tx = self.transaction_info_service(tx_id=funding_tx_id)
         initial_amount_of_satoshis = funding_tx.outputs[funding_index].value - step_fees_satoshis
@@ -76,36 +78,19 @@ class CreateSetupController:
             amount_of_bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
         )
 
-        bitvmx_protocol_setup_properties_dto = BitVMXProtocolSetupPropertiesDTO(
-            setup_uuid=setup_uuid,
-            funding_amount_of_satoshis=initial_amount_of_satoshis,
-            step_fees_satoshis=step_fees_satoshis,
-            funding_tx_id=funding_tx_id,
-            funding_index=funding_index,
-            verifier_list=verifier_list,
-        )
-
         protocol_dict = {}
         protocol_dict["bitvmx_protocol_properties_dto"] = bitvmx_protocol_properties_dto
-        protocol_dict["bitvmx_protocol_setup_properties_dto"] = bitvmx_protocol_setup_properties_dto
-        protocol_dict["setup_uuid"] = setup_uuid
-        protocol_dict["amount_of_trace_steps"] = (
-            2**amount_of_bits_wrong_step_search
-        ) ** amount_of_wrong_step_search_iterations
-        protocol_dict["amount_of_bits_per_digit_checksum"] = amount_of_bits_per_digit_checksum
-        protocol_dict["amount_of_wrong_step_search_iterations"] = (
-            amount_of_wrong_step_search_iterations
-        )
-        protocol_dict["amount_of_bits_wrong_step_search"] = amount_of_bits_wrong_step_search
-        protocol_dict["amount_of_wrong_step_search_hashes_per_iteration"] = (
-            amount_of_wrong_step_search_hashes_per_iteration
-        )
-        protocol_dict["amount_of_nibbles_hash"] = amount_of_nibbles_hash
+
         protocol_dict["search_choices"] = []
         protocol_dict["published_hashes_dict"] = {}
 
         public_keys = []
+        verifier_destroyed_public_key_hex = None
+        verifier_dict = {}
+        signatures_public_keys_dict = {}
         for verifier in verifier_list:
+            current_uuid = str(uuid.uuid4())
+            verifier_dict[current_uuid] = verifier
             url = f"{verifier}/setup"
             headers = {"accept": "application/json", "Content-Type": "application/json"}
             data = {"setup_uuid": setup_uuid, "network": common_protocol_properties.network.value}
@@ -113,46 +98,38 @@ class CreateSetupController:
             response = requests.post(url, headers=headers, json=data)
             if response.status_code == 200:
                 response_json = response.json()
-                public_keys.append(response_json["public_key"])
+                verifier_destroyed_public_key_hex = response_json["public_key"]
+                public_keys.append(verifier_destroyed_public_key_hex)
+                signatures_public_keys_dict[current_uuid] = verifier_destroyed_public_key_hex
             else:
                 raise Exception("Some error ocurred with the setup call to the verifier")
 
         controlled_prover_public_key = controlled_prover_private_key.get_public_key()
         controlled_prover_address = controlled_prover_public_key.get_segwit_address().to_string()
 
-        protocol_dict["controlled_prover_secret_key"] = (
-            controlled_prover_private_key.to_bytes().hex()
-        )
-        protocol_dict["controlled_prover_public_key"] = controlled_prover_public_key.to_hex()
-        protocol_dict["controlled_prover_address"] = controlled_prover_address
+        winternitz_private_key = PrivateKey(b=secrets.token_bytes(32))
 
-        destroyed_public_key = None
-        seed_destroyed_public_key_hex = ""
-        prover_private_key = PrivateKey(b=secrets.token_bytes(32))
-        prover_public_key = prover_private_key.get_public_key()
-        public_keys.append(prover_public_key.to_hex())
-        while destroyed_public_key is None:
+        unspendable_public_key = None
+        seed_unspendable_public_key = ""
+        prover_destroyed_private_key = PrivateKey(b=secrets.token_bytes(32))
+        prover_destroyed_public_key = prover_destroyed_private_key.get_public_key()
+        public_keys.append(prover_destroyed_public_key.to_hex())
+        while unspendable_public_key is None:
             try:
-                seed_destroyed_public_key_hex = "".join(public_keys)
-                destroyed_public_key_hex = hashlib.sha256(
-                    bytes.fromhex(seed_destroyed_public_key_hex)
-                ).hexdigest()
-                destroyed_public_key = PublicKey(hex_str="02" + destroyed_public_key_hex)
+                seed_unspendable_public_key = "".join(public_keys)
+                unspendable_public_key = (
+                    BitVMXProtocolSetupPropertiesDTO.unspendable_public_key_from_seed(
+                        seed_unspendable_public_key=seed_unspendable_public_key
+                    )
+                )
                 continue
             except IndexError:
-                prover_private_key = PrivateKey(b=secrets.token_bytes(32))
-                prover_public_key = prover_private_key.get_public_key()
-                public_keys[-1] = prover_public_key.to_hex()
-
-        protocol_dict["seed_destroyed_public_key_hex"] = seed_destroyed_public_key_hex
-        protocol_dict["destroyed_public_key"] = destroyed_public_key.to_hex()
-        protocol_dict["prover_secret_key"] = prover_private_key.to_bytes().hex()
-        protocol_dict["prover_public_key"] = prover_public_key.to_hex()
-        protocol_dict["public_keys"] = public_keys
-        protocol_dict["network"] = common_protocol_properties.network
+                prover_destroyed_private_key = PrivateKey(b=secrets.token_bytes(32))
+                prover_destroyed_public_key = prover_destroyed_private_key.get_public_key()
+                public_keys[-1] = prover_destroyed_public_key.to_hex()
 
         generate_prover_public_keys_service = self.generate_prover_public_keys_service_class(
-            prover_private_key
+            winternitz_private_key
         )
 
         bitvmx_prover_winternitz_public_keys_dto = generate_prover_public_keys_service(
@@ -168,52 +145,73 @@ class CreateSetupController:
 
         print("Funding tx: " + funding_tx_id)
 
+        bitvmx_protocol_setup_properties_dto = BitVMXProtocolSetupPropertiesDTO(
+            setup_uuid=setup_uuid,
+            uuid=prover_uuid,
+            funding_amount_of_satoshis=initial_amount_of_satoshis,
+            step_fees_satoshis=step_fees_satoshis,
+            funding_tx_id=funding_tx_id,
+            funding_index=funding_index,
+            verifier_dict=verifier_dict,
+            prover_destination_address=prover_destination_address,
+            prover_signature_public_key=prover_signature_public_key,
+            seed_unspendable_public_key=seed_unspendable_public_key,
+            prover_destroyed_public_key=prover_destroyed_private_key.get_public_key().to_hex(),
+            verifier_destroyed_public_key=verifier_destroyed_public_key_hex,
+        )
+        protocol_dict["bitvmx_protocol_setup_properties_dto"] = bitvmx_protocol_setup_properties_dto
+
+        verifier_public_keys_dict = {}
+
         # Think how to iterate all verifiers here -> Make a call per verifier
         # All verifiers should sign all transactions so they are sure there is not any of them lying
-        url = f"{verifier_list[0]}/public_keys"
-        headers = {"accept": "application/json", "Content-Type": "application/json"}
-        data = {
-            "setup_uuid": setup_uuid,
-            "seed_destroyed_public_key_hex": seed_destroyed_public_key_hex,
-            "prover_public_key": prover_public_key.to_hex(),
-            "bitvmx_prover_winternitz_public_keys_dto": bitvmx_prover_winternitz_public_keys_dto.dict(),
-            "bitvmx_protocol_setup_properties_dto": bitvmx_protocol_setup_properties_dto.dict(),
-            "bitvmx_protocol_properties_dto": bitvmx_protocol_properties_dto.dict(),
-            "controlled_prover_address": controlled_prover_address,
-        }
+        for verifier_uuid, verifier_value in verifier_dict.items():
+            url = f"{verifier_value}/public_keys"
+            headers = {"accept": "application/json", "Content-Type": "application/json"}
+            data = {
+                "setup_uuid": setup_uuid,
+                "bitvmx_prover_winternitz_public_keys_dto": bitvmx_prover_winternitz_public_keys_dto.dict(),
+                "bitvmx_protocol_setup_properties_dto": bitvmx_protocol_setup_properties_dto.dict(),
+                "bitvmx_protocol_properties_dto": bitvmx_protocol_properties_dto.dict(),
+                "controlled_prover_address": controlled_prover_address,
+            }
 
-        public_keys_response = requests.post(url, headers=headers, json=data)
-        if public_keys_response.status_code != 200:
-            raise Exception("Some error with the public keys verifier call")
-        public_keys_response_json = public_keys_response.json()
+            public_keys_response = requests.post(url, headers=headers, json=data)
+            if public_keys_response.status_code != 200:
+                raise Exception("Some error with the public keys verifier call")
+            public_keys_response_json = public_keys_response.json()
 
-        bitvmx_verifier_winternitz_public_keys_dto = BitVMXVerifierWinternitzPublicKeysDTO(
-            **public_keys_response_json["bitvmx_verifier_winternitz_public_keys_dto"]
-        )
+            bitvmx_verifier_winternitz_public_keys_dto = BitVMXVerifierWinternitzPublicKeysDTO(
+                **public_keys_response_json["bitvmx_verifier_winternitz_public_keys_dto"]
+            )
 
-        protocol_dict["bitvmx_verifier_winternitz_public_keys_dto"] = (
-            bitvmx_verifier_winternitz_public_keys_dto
-        )
+            protocol_dict["bitvmx_verifier_winternitz_public_keys_dto"] = (
+                bitvmx_verifier_winternitz_public_keys_dto
+            )
 
-        verifier_public_key = public_keys_response_json["verifier_public_key"]
-        protocol_dict["verifier_public_key"] = verifier_public_key
+            verifier_public_keys_dict[verifier_uuid] = public_keys_response_json[
+                "verifier_public_key"
+            ]
+
+            verifier_public_key = public_keys_response_json["verifier_public_key"]
+            protocol_dict["verifier_public_key"] = verifier_public_key
 
         ## Scripts building ##
 
+        # One call per verifier should be done
         bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
             bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
-            signature_public_keys=protocol_dict["public_keys"],
+            signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys,
         )
 
         # We need to know the origin of the funds or change the signature to only sign the output (it's possible and gives more flexibility)
 
-        funding_result_output_amount = initial_amount_of_satoshis
-        protocol_dict["funding_amount_satoshis"] = funding_result_output_amount
-
         # Transaction construction
 
+        # One call per verifier should be done
         bitvmx_transactions_dto = self.transaction_generator_from_public_keys_service(
             protocol_dict=protocol_dict,
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
@@ -226,8 +224,9 @@ class CreateSetupController:
 
         # Signature computation
 
+        # One call per verifier should be done
         generate_signatures_service = self.generate_signatures_service_class(
-            prover_private_key, destroyed_public_key
+            private_key=prover_destroyed_private_key, destroyed_public_key=unspendable_public_key
         )
         bitvmx_signatures_dto = generate_signatures_service(
             bitvmx_transactions_dto=bitvmx_transactions_dto,
@@ -235,19 +234,20 @@ class CreateSetupController:
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
 
-        # Think how to iterate all verifiers here -> Maybe worth to make a call per verifier
         hash_result_signatures = [bitvmx_signatures_dto.hash_result_signature]
         search_hash_signatures = [
             [signature] for signature in bitvmx_signatures_dto.search_hash_signatures
         ]
         trace_signatures = [bitvmx_signatures_dto.trace_signature]
         # execution_challenge_signatures = [signatures_dict["execution_challenge_signature"]]
-        for verifier in verifier_list:
-            url = f"{verifier}/signatures"
+        # At this stage, we need to add a GET call to compute the verifiers signatures for the other ones protocols
+        verifier_signatures_dto_dict = {}
+        for verifier_uuid, verifier_value in verifier_dict.items():
+            url = f"{verifier_value}/signatures"
             headers = {"accept": "application/json", "Content-Type": "application/json"}
             data = {
                 "setup_uuid": setup_uuid,
-                "prover_signatures": bitvmx_signatures_dto.prover_signatures.model_dump(),
+                "prover_signatures_dto": bitvmx_signatures_dto.prover_signatures_dto.model_dump(),
             }
             signatures_response = requests.post(url, headers=headers, json=data)
             if signatures_response.status_code != 200:
@@ -255,7 +255,7 @@ class CreateSetupController:
 
             signatures_response_json = signatures_response.json()
             bitvmx_verifier_signatures_dto = BitVMXVerifierSignaturesDTO(
-                **signatures_response_json["verifier_signatures"]
+                **signatures_response_json["verifier_signatures_dto"]
             )
             protocol_dict["bitvmx_verifier_signatures_dto"] = bitvmx_verifier_signatures_dto
             for j in range(len(bitvmx_verifier_signatures_dto.search_hash_signatures)):
@@ -265,6 +265,7 @@ class CreateSetupController:
 
             hash_result_signatures.append(bitvmx_verifier_signatures_dto.hash_result_signature)
             trace_signatures.append(bitvmx_verifier_signatures_dto.trace_signature)
+            verifier_signatures_dto_dict[verifier_uuid] = bitvmx_verifier_signatures_dto
 
         hash_result_signatures.reverse()
         for signature_list in search_hash_signatures:
@@ -272,34 +273,33 @@ class CreateSetupController:
         trace_signatures.reverse()
         # execution_challenge_signatures.reverse()
 
-        protocol_dict["hash_result_signatures"] = hash_result_signatures
-        protocol_dict["search_hash_signatures"] = search_hash_signatures
-        protocol_dict["trace_signatures"] = trace_signatures
-        # protocol_dict["execution_challenge_signatures"] = execution_challenge_signatures
+        prover_signatures_dto = bitvmx_signatures_dto.verifier_signatures_dto
+        bitvmx_protocol_prover_dto = BitVMXProtocolProverDTO(
+            prover_public_key=prover_destroyed_public_key.to_hex(),
+            verifier_public_keys=verifier_public_keys_dict,
+            prover_signatures_dto=prover_signatures_dto,
+            verifier_signatures_dtos=verifier_signatures_dto_dict,
+        )
+        protocol_dict["bitvmx_protocol_prover_dto"] = bitvmx_protocol_prover_dto
 
         verify_verifier_signatures_service = self.verify_verifier_signatures_service_class(
-            destroyed_public_key
+            unspendable_public_key=unspendable_public_key
         )
-        for i in range(len(protocol_dict["public_keys"]) - 1):
+        for i in range(len(bitvmx_protocol_setup_properties_dto.signature_public_keys) - 1):
             verify_verifier_signatures_service(
-                public_key=protocol_dict["public_keys"][i],
-                hash_result_signature=protocol_dict["hash_result_signatures"][
-                    len(protocol_dict["public_keys"]) - i - 2
-                ],
-                search_hash_signatures=[
-                    signatures_list[len(protocol_dict["public_keys"]) - i - 2]
-                    for signatures_list in protocol_dict["search_hash_signatures"]
-                ],
-                trace_signature=protocol_dict["trace_signatures"][
-                    len(protocol_dict["public_keys"]) - i - 2
-                ],
+                public_key=bitvmx_protocol_setup_properties_dto.signature_public_keys[i],
+                hash_result_signature=bitvmx_verifier_signatures_dto.hash_result_signature,
+                search_hash_signatures=bitvmx_verifier_signatures_dto.search_hash_signatures,
+                trace_signature=bitvmx_verifier_signatures_dto.trace_signature,
                 bitvmx_transactions_dto=bitvmx_transactions_dto,
                 bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
                 bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-                # execution_challenge_signature=protocol_dict["execution_challenge_signatures"][
-                #     len(protocol_dict["public_keys"]) - i - 2
-                # ],
             )
+
+        protocol_dict["bitvmx_protocol_prover_private_dto"] = BitVMXProtocolProverPrivateDTO(
+            winternitz_private_key=winternitz_private_key.to_bytes().hex(),
+            prover_signature_private_key=prover_signature_private_key,
+        )
 
         os.makedirs(f"prover_files/{setup_uuid}")
 
@@ -308,15 +308,17 @@ class CreateSetupController:
 
         #################################################################
 
-        funding_sig = controlled_prover_private_key.sign_segwit_input(
+        origin_of_funds_public_key = origin_of_funds_private_key.get_public_key()
+
+        funding_sig = origin_of_funds_private_key.sign_segwit_input(
             bitvmx_transactions_dto.funding_tx,
             0,
-            controlled_prover_public_key.get_address().to_script_pub_key(),
+            origin_of_funds_public_key.get_address().to_script_pub_key(),
             initial_amount_of_satoshis + step_fees_satoshis,
         )
 
         bitvmx_transactions_dto.funding_tx.witnesses.append(
-            TxWitnessInput([funding_sig, controlled_prover_public_key.to_hex()])
+            TxWitnessInput([funding_sig, origin_of_funds_public_key.to_hex()])
         )
 
         self.broadcast_transaction_service(

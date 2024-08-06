@@ -1,3 +1,5 @@
+from bitcoinutils.keys import PublicKey
+
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
@@ -14,9 +16,11 @@ from bitvmx_protocol_library.transaction_generation.services.signature_verificat
 
 class VerifyVerifierSignaturesService:
 
-    def __init__(self, destroyed_public_key):
-        self.destroyed_public_key = destroyed_public_key
-        self.verify_signature_service = VerifySignatureService(destroyed_public_key)
+    def __init__(self, unspendable_public_key: PublicKey):
+        self.unspendable_public_key = unspendable_public_key
+        self.verify_signature_service = VerifySignatureService(
+            unspendable_public_key=unspendable_public_key
+        )
 
     def __call__(
         self,

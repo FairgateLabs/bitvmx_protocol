@@ -12,7 +12,7 @@ class VerifierWrongHashChallengeDetectionService:
     def __init__(self):
         self.base_path = "verifier_files/"
 
-    def __call__(self, protocol_dict):
+    def __call__(self, protocol_dict, setup_uuid: str):
         execution_trace = protocol_dict["published_execution_trace"]
         first_wrong_hash = protocol_dict["first_wrong_step"]
         previous_step_hash = protocol_dict["search_hashes"][first_wrong_hash - 1]

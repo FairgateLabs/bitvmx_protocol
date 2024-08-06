@@ -1,9 +1,14 @@
-from bitcoinutils.keys import PublicKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
+    BitVMXProtocolSetupPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
+    BitVMXProtocolVerifierDTO,
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
     BitVMXProverWinternitzPublicKeysDTO,
@@ -39,10 +44,11 @@ class TriggerExecutionChallengeTransactionService:
         protocol_dict,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
         bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
+        bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
-        destroyed_public_key = PublicKey(hex_str=protocol_dict["destroyed_public_key"])
 
         trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
 
@@ -52,9 +58,9 @@ class TriggerExecutionChallengeTransactionService:
         # prover_trigger_challenge_witness = previous_trace_witness[10:246]
 
         prover_trace_witness = protocol_dict["prover_trace_witness"]
-
-        signature_public_keys = protocol_dict["public_keys"]
-        trigger_execution_signatures = protocol_dict["trigger_execution_signatures"]
+        trigger_execution_challenge_signature = (
+            bitvmx_protocol_verifier_dto.trigger_execution_challenge_signatures
+        )
 
         consumed_items = 0
         trace_values = []
@@ -94,19 +100,21 @@ class TriggerExecutionChallengeTransactionService:
         trigger_execution_script = self.verifier_challenge_execution_script_generator_service(
             bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
             bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
-            signature_public_keys,
+            bitvmx_protocol_setup_properties_dto.signature_public_keys,
             trace_words_lengths,
             bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
         # TODO: we should load this address from protocol dict as we add more challenges
         trigger_challenge_taptree = [[trigger_execution_script]]
-        challenge_scripts_address = destroyed_public_key.get_taproot_address(
-            trigger_challenge_taptree
+        challenge_scripts_address = (
+            bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
+                trigger_challenge_taptree
+            )
         )
 
         challenge_scripts_control_block = ControlBlock(
-            destroyed_public_key,
+            bitvmx_protocol_setup_properties_dto.unspendable_public_key,
             scripts=trigger_challenge_taptree,
             index=0,
             is_odd=challenge_scripts_address.is_odd(),
@@ -130,7 +138,7 @@ class TriggerExecutionChallengeTransactionService:
 
         bitvmx_transactions_dto.trigger_execution_challenge_tx.witnesses.append(
             TxWitnessInput(
-                trigger_execution_signatures
+                trigger_execution_challenge_signature
                 + trigger_challenge_witness
                 + [
                     trigger_execution_script.to_hex(),

@@ -1,7 +1,7 @@
 from multiprocessing import Manager, Process
 from multiprocessing.managers import ListProxy
 from time import time
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from bitcoinutils.constants import LEAF_VERSION_TAPSCRIPT
 from bitcoinutils.keys import P2trAddress, PublicKey
@@ -327,7 +327,8 @@ class BitVMXExecutionScriptList(BaseModel):
     public_keys: List[List[str]]
     trace_words_lengths: List[int]
     bits_per_digit_checksum: int
-    taproot_address: Optional[Any] = None
+    taproot_address_pubkey: Optional[str] = None
+    taproot_address_is_odd: Optional[bool] = None
 
     @staticmethod
     def get_tree_depth(splitted_key_list: Union[List, str]):
@@ -344,8 +345,10 @@ class BitVMXExecutionScriptList(BaseModel):
         # return [9, 10, 11, 12, 3, 4, 0, 1, 6, 7, 8]
 
     def get_taproot_address(self, public_key: PublicKey):
-        if self.taproot_address:
-            return self.taproot_address
+        if (self.taproot_address_pubkey is not None) and (self.taproot_address_is_odd is not None):
+            return P2trAddress(
+                witness_program=self.taproot_address_pubkey, is_odd=self.taproot_address_is_odd
+            )
         key_x = public_key.to_bytes()[:32]
         if len(self.key_list) == 0:
             tweak = tagged_hash(key_x, "TapTweak")
@@ -383,8 +386,9 @@ class BitVMXExecutionScriptList(BaseModel):
         tweak_and_odd = tweak_taproot_pubkey(public_key.key.to_string(), tweak_int)
         pubkey = tweak_and_odd[0][:32]
         is_odd = tweak_and_odd[1]
-        self.taproot_address = P2trAddress(witness_program=pubkey.hex(), is_odd=is_odd)
-        return self.taproot_address
+        self.taproot_address_pubkey = pubkey.hex()
+        self.taproot_address_is_odd = is_odd
+        return P2trAddress(witness_program=pubkey.hex(), is_odd=is_odd)
 
     def get_control_block_hex(self, public_key: PublicKey, index: int, is_odd: bool):
 
