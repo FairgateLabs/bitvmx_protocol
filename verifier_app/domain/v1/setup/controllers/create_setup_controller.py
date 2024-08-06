@@ -29,7 +29,6 @@ class CreateSetupController:
         )
         protocol_dict = {
             "setup_uuid": setup_uuid,
-            "search_choices": [],
             "search_hashes": {},
             "network": network,
             "bitvmx_protocol_verifier_private_dto": bitvmx_protocol_verifier_private_dto,

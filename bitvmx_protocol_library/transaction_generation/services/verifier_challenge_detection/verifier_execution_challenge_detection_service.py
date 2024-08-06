@@ -1,6 +1,9 @@
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
     ExecutionTraceQueryService,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
+    BitVMXProtocolVerifierDTO,
+)
 from bitvmx_protocol_library.transaction_generation.enums import TransactionVerifierStepType
 from bitvmx_protocol_library.transaction_generation.services.publication_services.verifier.trigger_execution_challenge_transaction_service import (
     TriggerExecutionChallengeTransactionService,
@@ -13,11 +16,15 @@ class VerifierExecutionChallengeDetectionService:
         self.base_path = "verifier_files/"
         self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
 
-    def __call__(self, protocol_dict, setup_uuid: str):
-        execution_trace = protocol_dict["published_execution_trace"]
-        first_wrong_step = protocol_dict["first_wrong_step"]
+    def __call__(
+        self,
+        protocol_dict,
+        setup_uuid: str,
+        bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
+    ):
+        execution_trace = bitvmx_protocol_verifier_dto.published_execution_trace
         first_wrong_step_trace = self.execution_trace_query_service(
-            setup_uuid=setup_uuid, index=first_wrong_step
+            setup_uuid=setup_uuid, index=bitvmx_protocol_verifier_dto.first_wrong_step
         )
         if (
             hex(int(first_wrong_step_trace["write_pc"]))[2:].zfill(8)

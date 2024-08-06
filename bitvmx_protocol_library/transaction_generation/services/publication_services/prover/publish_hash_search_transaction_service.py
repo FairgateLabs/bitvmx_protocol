@@ -1,3 +1,5 @@
+from typing import Dict
+
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
@@ -122,7 +124,7 @@ class PublishHashSearchTransactionService:
                 > 0
                 else 0
             )
-            protocol_dict["search_choices"].append(current_choice)
+            bitvmx_protocol_prover_dto.search_choices.append(current_choice)
             hash_search_witness += self.generate_prover_witness_from_input_single_word_service(
                 step=(3 + (iteration - 1) * 2 + 1),
                 case=0,
@@ -138,12 +140,16 @@ class PublishHashSearchTransactionService:
                 bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             )
 
-        iteration_hashes = self._get_hashes(
+        iteration_hashes_dict = self._get_hashes(
             setup_uuid=setup_uuid,
             iteration=iteration,
-            protocol_dict=protocol_dict,
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+            bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto,
         )
+        iteration_hashes_keys = sorted(list(iteration_hashes_dict.keys()))
+        iteration_hashes = []
+        for key in iteration_hashes_keys:
+            iteration_hashes.append(iteration_hashes_dict[key])
 
         for word_count in range(
             bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
@@ -188,6 +194,7 @@ class PublishHashSearchTransactionService:
         broadcast_transaction_service(
             transaction=bitvmx_transactions_dto.search_hash_tx_list[iteration].serialize()
         )
+        bitvmx_protocol_prover_dto.published_hashes_dict.update(iteration_hashes_dict)
         print(
             "Search hash iteration transaction "
             + str(iteration)
@@ -200,11 +207,11 @@ class PublishHashSearchTransactionService:
         self,
         setup_uuid: str,
         iteration: int,
-        protocol_dict,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
-    ):
+        bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
+    ) -> Dict[int, str]:
         prefix = ""
-        for search_choice in protocol_dict["search_choices"]:
+        for search_choice in bitvmx_protocol_prover_dto.search_choices:
             prefix += bin(search_choice)[2:].zfill(
                 bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
             )
@@ -230,10 +237,10 @@ class PublishHashSearchTransactionService:
                 )
             )
         hash_list = []
+        hash_dict = {}
         for index in index_list:
             hash_list.append(
                 self.execution_trace_query_service(setup_uuid=setup_uuid, index=index)["step_hash"]
             )
-        for j in range(len(index_list)):
-            protocol_dict["published_hashes_dict"][index_list[j]] = hash_list[j]
-        return hash_list
+            hash_dict[index] = hash_list[-1]
+        return hash_dict

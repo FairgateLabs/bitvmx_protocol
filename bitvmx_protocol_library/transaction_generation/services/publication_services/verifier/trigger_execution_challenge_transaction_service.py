@@ -57,7 +57,6 @@ class TriggerExecutionChallengeTransactionService:
         # -> Make static call that gets checked when the script gets generated
         # prover_trigger_challenge_witness = previous_trace_witness[10:246]
 
-        prover_trace_witness = protocol_dict["prover_trace_witness"]
         trigger_execution_challenge_signature = (
             bitvmx_protocol_verifier_dto.trigger_execution_challenge_signatures
         )
@@ -69,9 +68,11 @@ class TriggerExecutionChallengeTransactionService:
                 bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[i]
             )
             current_length = trace_words_lengths[i]
-            current_witness = prover_trace_witness[
-                len(prover_trace_witness)
-                - (len(current_public_keys) * 2 + consumed_items) : len(prover_trace_witness)
+            current_witness = bitvmx_protocol_verifier_dto.prover_trace_witness[
+                len(bitvmx_protocol_verifier_dto.prover_trace_witness)
+                - (len(current_public_keys) * 2 + consumed_items) : len(
+                    bitvmx_protocol_verifier_dto.prover_trace_witness
+                )
                 - consumed_items
             ]
             consumed_items += len(current_public_keys) * 2
@@ -124,7 +125,7 @@ class TriggerExecutionChallengeTransactionService:
 
         processed_values = 0
         for i in reversed(range(len(trace_words_lengths))):
-            trigger_challenge_witness += prover_trace_witness[
+            trigger_challenge_witness += bitvmx_protocol_verifier_dto.prover_trace_witness[
                 processed_values : processed_values
                 + len(bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[i]) * 2
             ]

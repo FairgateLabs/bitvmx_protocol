@@ -1,6 +1,6 @@
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_verifier_signatures_dto import (
     BitVMXVerifierSignaturesDTO,
@@ -15,6 +15,8 @@ class BitVMXProtocolProverDTO(BaseModel):
     verifier_signatures_dtos: Dict[str, BitVMXVerifierSignaturesDTO]
     last_confirmed_step: Optional[TransactionProverStepType] = None
     last_confirmed_step_tx_id: Optional[str] = None
+    search_choices: List[int] = Field(default_factory=list)
+    published_hashes_dict: Dict[int, str] = Field(default_factory=dict)
 
     @property
     def hash_result_signatures(self):

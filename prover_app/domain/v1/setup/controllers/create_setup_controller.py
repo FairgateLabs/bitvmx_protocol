@@ -81,9 +81,6 @@ class CreateSetupController:
         protocol_dict = {}
         protocol_dict["bitvmx_protocol_properties_dto"] = bitvmx_protocol_properties_dto
 
-        protocol_dict["search_choices"] = []
-        protocol_dict["published_hashes_dict"] = {}
-
         public_keys = []
         verifier_destroyed_public_key_hex = None
         verifier_dict = {}
@@ -139,9 +136,6 @@ class CreateSetupController:
         protocol_dict["bitvmx_prover_winternitz_public_keys_dto"] = (
             bitvmx_prover_winternitz_public_keys_dto
         )
-
-        protocol_dict["funds_tx_id"] = funding_tx_id
-        protocol_dict["funds_index"] = funding_index
 
         print("Funding tx: " + funding_tx_id)
 
