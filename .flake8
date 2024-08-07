@@ -1,0 +1,27 @@
+[flake8]
+ignore =
+    # E402: module level import not at top of file (to allow dunders before import as per PEP8)
+    E402,
+    # W503: line break before binary operator (rule outdated)
+    W503,
+    # E226 missing whitespace around arithmetic operator (to allow doc[2*i])
+    E226
+    # E501 line length -> We already forced to pass black so it only add innecesary noqa
+    E501
+    # We need this to pass the flake on tests since imported fixtures are not detected by Flake
+    F811
+    # Unstable with RUFF
+    E203
+
+max-line-length = 100
+exclude =
+    .git,
+    scripts,
+    docs,
+    .venv,
+    prover_files,
+    verifier_files,
+
+import-order-style = edited
+application-import-names = bitvmx_protocol_library, blockchain_query_services, prover_app, verifier_app
+#application-package-names = django

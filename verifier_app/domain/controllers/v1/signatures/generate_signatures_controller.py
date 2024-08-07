@@ -13,6 +13,9 @@ from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_prover_
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_verifier_signatures_dto import (
     BitVMXVerifierSignaturesDTO,
 )
+from verifier_app.domain.persistence.interfaces.bitvmx_protocol_verifier_private_dto_persistence_interface import (
+    BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
+)
 
 
 class GenerateSignaturesController:
@@ -23,6 +26,7 @@ class GenerateSignaturesController:
         generate_signatures_service_class,
         verify_prover_signatures_service_class,
         common_protocol_properties,
+        bitvmx_protocol_verifier_private_dto_persistence: BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
     ):
         self.bitvmx_bitcoin_scripts_generator_service = bitvmx_bitcoin_scripts_generator_service
         self.transaction_generator_from_public_keys_service = (
@@ -31,6 +35,9 @@ class GenerateSignaturesController:
         self.generate_signatures_service_class = generate_signatures_service_class
         self.verify_prover_signatures_service_class = verify_prover_signatures_service_class
         self.common_protocol_properties = common_protocol_properties
+        self.bitvmx_protocol_verifier_private_dto_persistence = (
+            bitvmx_protocol_verifier_private_dto_persistence
+        )
 
     def __call__(
         self,
@@ -45,7 +52,9 @@ class GenerateSignaturesController:
         else:
             assert NETWORK == self.common_protocol_properties.network.value
 
-        bitvmx_protocol_verifier_private_dto = protocol_dict["bitvmx_protocol_verifier_private_dto"]
+        bitvmx_protocol_verifier_private_dto = (
+            self.bitvmx_protocol_verifier_private_dto_persistence.get(setup_uuid=setup_uuid)
+        )
         destroyed_private_key = PrivateKey(
             b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.destroyed_private_key)
         )
@@ -132,5 +141,9 @@ class GenerateSignaturesController:
 
         with open(f"verifier_files/{setup_uuid}/file_database.pkl", "wb") as f:
             pickle.dump(protocol_dict, f)
+
+        self.bitvmx_protocol_verifier_private_dto_persistence.delete_private_key(
+            setup_uuid=setup_uuid
+        )
 
         return bitvmx_signatures_dto.verifier_signatures_dto

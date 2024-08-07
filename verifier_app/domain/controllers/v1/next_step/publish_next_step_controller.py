@@ -10,6 +10,9 @@ from bitvmx_protocol_library.transaction_generation.enums import TransactionVeri
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     transaction_info_service,
 )
+from verifier_app.domain.persistence.interfaces.bitvmx_protocol_verifier_private_dto_persistence_interface import (
+    BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
+)
 
 
 async def _trigger_next_step_prover(setup_uuid: str, prover_host: str):
@@ -32,6 +35,7 @@ class PublishNextStepController:
         publish_choice_search_transaction_service_class,
         protocol_properties,
         common_protocol_properties,
+        bitvmx_protocol_verifier_private_dto_persistence: BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
     ):
         self.trigger_protocol_transaction_service = trigger_protocol_transaction_service
         self.verifier_challenge_detection_service = verifier_challenge_detection_service
@@ -40,6 +44,9 @@ class PublishNextStepController:
         )
         self.protocol_properties = protocol_properties
         self.common_protocol_properties = common_protocol_properties
+        self.bitvmx_protocol_verifier_private_dto_persistence = (
+            bitvmx_protocol_verifier_private_dto_persistence
+        )
 
     async def __call__(self, setup_uuid: str):
         with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
@@ -59,7 +66,9 @@ class PublishNextStepController:
         ]
         bitvmx_transactions_dto = protocol_dict["bitvmx_transactions_dto"]
         bitvmx_protocol_verifier_dto = protocol_dict["bitvmx_protocol_verifier_dto"]
-        bitvmx_protocol_verifier_private_dto = protocol_dict["bitvmx_protocol_verifier_private_dto"]
+        bitvmx_protocol_verifier_private_dto = (
+            self.bitvmx_protocol_verifier_private_dto_persistence.get(setup_uuid=setup_uuid)
+        )
 
         if bitvmx_protocol_verifier_dto.last_confirmed_step is None and (
             hash_result_transaction := transaction_info_service(
@@ -83,7 +92,7 @@ class PublishNextStepController:
             bitvmx_protocol_verifier_dto.last_confirmed_step
             is TransactionVerifierStepType.TRIGGER_PROTOCOL
         ):
-            ## VERIFY THE PREVIOUS STEP ##
+            # VERIFY THE PREVIOUS STEP #
             winternitz_verifier_private_key = PrivateKey(
                 b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.winternitz_private_key)
             )
@@ -148,7 +157,7 @@ class PublishNextStepController:
             bitvmx_protocol_verifier_dto.last_confirmed_step
             is TransactionVerifierStepType.SEARCH_STEP_CHOICE
         ):
-            ## VERIFY THE PREVIOUS STEP ##
+            # VERIFY THE PREVIOUS STEP #
             winternitz_verifier_private_key = PrivateKey(
                 b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.winternitz_private_key)
             )

@@ -13,7 +13,10 @@ from bitvmx_protocol_library.transaction_generation.services.signature_verificat
 from bitvmx_protocol_library.transaction_generation.services.transaction_generator_from_public_keys_service import (
     TransactionGeneratorFromPublicKeysService,
 )
-from verifier_app.domain.v1.signatures.controllers.generate_signatures_controller import (
+from verifier_app.dependency_injection.persistence.bitvmx_protocol_verifier_private_dto_persistences import (
+    BitVMXProtocolVerifierPrivateDTOPersistences,
+)
+from verifier_app.domain.controllers.v1.signatures.generate_signatures_controller import (
     GenerateSignaturesController,
 )
 
@@ -26,4 +29,5 @@ class GenerateSignaturesControllers(containers.DeclarativeContainer):
         generate_signatures_service_class=GenerateSignaturesService,
         verify_prover_signatures_service_class=VerifyProverSignaturesService,
         common_protocol_properties=common_protocol_properties,
+        bitvmx_protocol_verifier_private_dto_persistence=BitVMXProtocolVerifierPrivateDTOPersistences.bitvmx,
     )

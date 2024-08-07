@@ -187,7 +187,7 @@ class CreateSetupController:
                 "verifier_public_key"
             ]
 
-        ## Scripts building ##
+        # Scripts building #
 
         # One call per verifier should be done
         bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
