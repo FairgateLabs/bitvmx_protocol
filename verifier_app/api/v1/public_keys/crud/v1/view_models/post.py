@@ -6,16 +6,12 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
-    BitVMXProverWinternitzPublicKeysDTO,
-)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
     BitVMXVerifierWinternitzPublicKeysDTO,
 )
 
 
 class PublicKeysPostV1Input(BaseModel):
-    bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO
     bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO
     bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO
 

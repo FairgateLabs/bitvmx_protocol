@@ -8,12 +8,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
     BitVMXProtocolVerifierDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
-    BitVMXProverWinternitzPublicKeysDTO,
-)
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
-    BitVMXVerifierWinternitzPublicKeysDTO,
-)
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
     BitVMXTransactionsDTO,
 )
@@ -40,8 +34,6 @@ class VerifierChallengeDetectionService:
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
-        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
-        bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
         trace_tx_id = bitvmx_transactions_dto.trace_tx.get_txid()
@@ -57,7 +49,7 @@ class VerifierChallengeDetectionService:
                 list(
                     map(
                         lambda x: len(x),
-                        bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
+                        bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
                     )
                 )
             )
@@ -73,10 +65,14 @@ class VerifierChallengeDetectionService:
 
         consumed_items = 0
         trace_values = []
-        for i in range(len(bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys)):
-            current_public_keys = (
-                bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[i]
+        for i in range(
+            len(
+                bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys
             )
+        ):
+            current_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[
+                i
+            ]
             current_length = trace_words_lengths[i]
             current_witness = prover_trace_witness[
                 len(prover_trace_witness)

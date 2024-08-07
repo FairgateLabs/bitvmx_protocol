@@ -11,9 +11,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
-    BitVMXProverWinternitzPublicKeysDTO,
-)
 from bitvmx_protocol_library.enums import BitcoinNetwork
 from verifier_app.domain.persistence.interfaces.bitvmx_protocol_verifier_private_dto_persistence_interface import (
     BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
@@ -40,7 +37,6 @@ class GeneratePublicKeysController:
         self,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
-        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
     ):
         protocol_dict = {}
         if self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
@@ -67,26 +63,22 @@ class GeneratePublicKeysController:
                 status_code=HTTPStatus.EXPECTATION_FAILED, detail="Seed does not contain public key"
             )
 
-        protocol_dict["bitvmx_prover_winternitz_public_keys_dto"] = (
-            bitvmx_prover_winternitz_public_keys_dto
-        )
-        protocol_dict["bitvmx_protocol_setup_properties_dto"] = bitvmx_protocol_setup_properties_dto
-        protocol_dict["bitvmx_protocol_properties_dto"] = bitvmx_protocol_properties_dto
-
         generate_verifier_public_keys_service = self.generate_verifier_public_keys_service_class(
             private_key=winternitz_private_key
         )
-        bitvmx_verifier_winternitz_public_keys_dto = generate_verifier_public_keys_service(
-            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto
+        bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto = (
+            generate_verifier_public_keys_service(
+                bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto
+            )
         )
-        protocol_dict["bitvmx_verifier_winternitz_public_keys_dto"] = (
-            bitvmx_verifier_winternitz_public_keys_dto
-        )
+
+        protocol_dict["bitvmx_protocol_setup_properties_dto"] = bitvmx_protocol_setup_properties_dto
+        protocol_dict["bitvmx_protocol_properties_dto"] = bitvmx_protocol_properties_dto
 
         with open(f"verifier_files/{setup_uuid}/file_database.pkl", "wb") as f:
             pickle.dump(protocol_dict, f)
 
         return (
-            bitvmx_verifier_winternitz_public_keys_dto,
+            bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto,
             winternitz_private_key.get_public_key().to_hex(),
         )

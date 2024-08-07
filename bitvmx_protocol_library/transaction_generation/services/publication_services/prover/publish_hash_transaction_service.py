@@ -18,9 +18,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
-    BitVMXProverWinternitzPublicKeysDTO,
-)
 from bitvmx_protocol_library.script_generation.services.script_generation.hash_result_script_generator_service import (
     HashResultScriptGeneratorService,
 )
@@ -61,7 +58,6 @@ class PublishHashTransactionService:
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
-        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
     ) -> Transaction:
 
         hash_result_signatures = bitvmx_protocol_prover_dto.hash_result_signatures
@@ -82,7 +78,7 @@ class PublishHashTransactionService:
 
         hash_result_script = self.hash_result_script_generator(
             bitvmx_protocol_setup_properties_dto.signature_public_keys,
-            bitvmx_prover_winternitz_public_keys_dto.hash_result_public_keys,
+            bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.hash_result_public_keys,
             bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
             bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )

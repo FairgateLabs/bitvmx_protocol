@@ -15,12 +15,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
-    BitVMXProverWinternitzPublicKeysDTO,
-)
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
-    BitVMXVerifierWinternitzPublicKeysDTO,
-)
 from bitvmx_protocol_library.script_generation.services.script_generation.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
 )
@@ -66,17 +60,15 @@ class PublishHashSearchTransactionService:
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
-        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
-        bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
         bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
     ):
 
         search_hash_signatures = bitvmx_protocol_prover_dto.search_hash_signatures
 
         hash_search_witness = []
-        current_hash_public_keys = (
-            bitvmx_prover_winternitz_public_keys_dto.hash_search_public_keys_list[iteration]
-        )
+        current_hash_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.hash_search_public_keys_list[
+            iteration
+        ]
 
         if iteration > 0:
             previous_choice_tx = bitvmx_transactions_dto.search_choice_tx_list[
@@ -84,16 +76,12 @@ class PublishHashSearchTransactionService:
             ].get_txid()
             previous_choice_transaction_info = transaction_info_service(previous_choice_tx)
             previous_witness = previous_choice_transaction_info.inputs[0].witness
-            previous_choice_verifier_public_keys = (
-                bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list[
-                    iteration - 1
-                ]
-            )
-            current_choice_prover_public_keys = (
-                bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list[
-                    iteration - 1
-                ]
-            )
+            previous_choice_verifier_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list[
+                iteration - 1
+            ]
+            current_choice_prover_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list[
+                iteration - 1
+            ]
             current_hash_search_script = self.commit_search_hashes_script_generator_service(
                 bitvmx_protocol_setup_properties_dto.signature_public_keys,
                 current_hash_public_keys,

@@ -10,12 +10,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
     BitVMXProtocolVerifierDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
-    BitVMXProverWinternitzPublicKeysDTO,
-)
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
-    BitVMXVerifierWinternitzPublicKeysDTO,
-)
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_generic_challenge_script_generator_service import (
     TriggerGenericChallengeScriptGeneratorService,
 )
@@ -44,8 +38,6 @@ class TriggerExecutionChallengeTransactionService:
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
-        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
-        bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
 
@@ -62,10 +54,14 @@ class TriggerExecutionChallengeTransactionService:
 
         consumed_items = 0
         trace_values = []
-        for i in range(len(bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys)):
-            current_public_keys = (
-                bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[i]
+        for i in range(
+            len(
+                bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys
             )
+        ):
+            current_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[
+                i
+            ]
             current_length = trace_words_lengths[i]
             current_witness = bitvmx_protocol_verifier_dto.prover_trace_witness[
                 len(bitvmx_protocol_verifier_dto.prover_trace_witness)
@@ -98,8 +94,8 @@ class TriggerExecutionChallengeTransactionService:
             )
 
         trigger_execution_script = self.verifier_challenge_execution_script_generator_service(
-            bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
-            bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
+            bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
+            bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
             bitvmx_protocol_setup_properties_dto.signature_public_keys,
             trace_words_lengths,
             bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
@@ -126,14 +122,29 @@ class TriggerExecutionChallengeTransactionService:
         for i in reversed(range(len(trace_words_lengths))):
             trigger_challenge_witness += bitvmx_protocol_verifier_dto.prover_trace_witness[
                 processed_values : processed_values
-                + len(bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[i]) * 2
+                + len(
+                    bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[
+                        i
+                    ]
+                )
+                * 2
             ]
             trigger_challenge_witness += verifier_trigger_challenge_witness[
                 processed_values : processed_values
-                + len(bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[i]) * 2
+                + len(
+                    bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[
+                        i
+                    ]
+                )
+                * 2
             ]
             processed_values += (
-                len(bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[i]) * 2
+                len(
+                    bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[
+                        i
+                    ]
+                )
+                * 2
             )
 
         bitvmx_transactions_dto.trigger_execution_challenge_tx.witnesses.append(

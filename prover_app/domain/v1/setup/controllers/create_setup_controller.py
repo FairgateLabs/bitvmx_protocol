@@ -130,10 +130,6 @@ class CreateSetupController:
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
         )
 
-        protocol_dict["bitvmx_prover_winternitz_public_keys_dto"] = (
-            bitvmx_prover_winternitz_public_keys_dto
-        )
-
         print("Funding tx: " + funding_tx_id)
 
         bitvmx_protocol_setup_properties_dto = BitVMXProtocolSetupPropertiesDTO(
@@ -143,14 +139,14 @@ class CreateSetupController:
             step_fees_satoshis=step_fees_satoshis,
             funding_tx_id=funding_tx_id,
             funding_index=funding_index,
-            verifier_dict=verifier_address_dict,
+            verifier_address_dict=verifier_address_dict,
             prover_destination_address=prover_destination_address,
             prover_signature_public_key=prover_signature_public_key,
             seed_unspendable_public_key=seed_unspendable_public_key,
             prover_destroyed_public_key=prover_destroyed_private_key.get_public_key().to_hex(),
             verifier_destroyed_public_key=verifier_destroyed_public_key_hex,
+            bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
         )
-        protocol_dict["bitvmx_protocol_setup_properties_dto"] = bitvmx_protocol_setup_properties_dto
 
         verifier_public_keys_dict = {}
 
@@ -160,7 +156,6 @@ class CreateSetupController:
             url = f"{verifier_value}/public_keys"
             headers = {"accept": "application/json", "Content-Type": "application/json"}
             data = {
-                "bitvmx_prover_winternitz_public_keys_dto": bitvmx_prover_winternitz_public_keys_dto.dict(),
                 "bitvmx_protocol_setup_properties_dto": bitvmx_protocol_setup_properties_dto.dict(),
                 "bitvmx_protocol_properties_dto": bitvmx_protocol_properties_dto.dict(),
             }
@@ -170,17 +165,15 @@ class CreateSetupController:
                 raise Exception("Some error with the public keys verifier call")
             public_keys_response_json = public_keys_response.json()
 
-            bitvmx_verifier_winternitz_public_keys_dto = BitVMXVerifierWinternitzPublicKeysDTO(
-                **public_keys_response_json["bitvmx_verifier_winternitz_public_keys_dto"]
-            )
-
-            protocol_dict["bitvmx_verifier_winternitz_public_keys_dto"] = (
-                bitvmx_verifier_winternitz_public_keys_dto
-            )
-
             verifier_public_keys_dict[verifier_uuid] = public_keys_response_json[
                 "verifier_public_key"
             ]
+            # We need to put a dict here
+            bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto = (
+                BitVMXVerifierWinternitzPublicKeysDTO(
+                    **public_keys_response_json["bitvmx_verifier_winternitz_public_keys_dto"]
+                )
+            )
 
         # Scripts building #
 
@@ -188,8 +181,6 @@ class CreateSetupController:
         bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-            bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
-            bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
             signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys,
         )
 
@@ -201,8 +192,6 @@ class CreateSetupController:
         bitvmx_transactions_dto = self.transaction_generator_from_public_keys_service(
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-            bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
-            bitvmx_verifier_winternitz_public_keys_dto=bitvmx_verifier_winternitz_public_keys_dto,
         )
 
         protocol_dict["bitvmx_transactions_dto"] = bitvmx_transactions_dto
@@ -285,6 +274,8 @@ class CreateSetupController:
             winternitz_private_key=winternitz_private_key.to_bytes().hex(),
             prover_signature_private_key=prover_signature_private_key,
         )
+
+        protocol_dict["bitvmx_protocol_setup_properties_dto"] = bitvmx_protocol_setup_properties_dto
 
         os.makedirs(f"prover_files/{setup_uuid}")
 

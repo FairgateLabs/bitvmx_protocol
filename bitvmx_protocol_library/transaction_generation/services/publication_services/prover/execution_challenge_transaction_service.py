@@ -17,12 +17,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
-    BitVMXProverWinternitzPublicKeysDTO,
-)
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
-    BitVMXVerifierWinternitzPublicKeysDTO,
-)
 from bitvmx_protocol_library.script_generation.services.execution_challenge_script_list_generator_service import (
     ExecutionChallengeScriptListGeneratorService,
 )
@@ -51,8 +45,6 @@ class ExecutionChallengeTransactionService:
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
-        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
-        bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
         bitvmx_protocol_prover_private_dto: BitVMXProtocolProverPrivateDTO,
         bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
     ):
@@ -70,7 +62,9 @@ class ExecutionChallengeTransactionService:
         real_values = []
         for i in reversed(range(len(trace_words_lengths))):
             current_keys_length = len(
-                bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[i]
+                bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[
+                    i
+                ]
             )
             current_verifier_witness = trigger_execution_challenge_witness[
                 processed_values
@@ -99,7 +93,7 @@ class ExecutionChallengeTransactionService:
 
         execution_challenge_script_list = self.execution_challenge_script_generator_service(
             bitvmx_protocol_setup_properties_dto.signature_public_keys,
-            bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
+            bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
             trace_words_lengths,
             bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             prover_signature_public_key=bitvmx_protocol_setup_properties_dto.prover_signature_public_key,
