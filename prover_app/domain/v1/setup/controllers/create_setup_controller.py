@@ -79,7 +79,6 @@ class CreateSetupController:
         )
 
         protocol_dict = {}
-        protocol_dict["bitvmx_protocol_properties_dto"] = bitvmx_protocol_properties_dto
 
         public_keys = []
         verifier_destroyed_public_key_hex = None
@@ -145,6 +144,7 @@ class CreateSetupController:
             seed_unspendable_public_key=seed_unspendable_public_key,
             prover_destroyed_public_key=prover_destroyed_private_key.get_public_key().to_hex(),
             verifier_destroyed_public_key=verifier_destroyed_public_key_hex,
+            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_prover_winternitz_public_keys_dto=bitvmx_prover_winternitz_public_keys_dto,
         )
 
@@ -157,7 +157,6 @@ class CreateSetupController:
             headers = {"accept": "application/json", "Content-Type": "application/json"}
             data = {
                 "bitvmx_protocol_setup_properties_dto": bitvmx_protocol_setup_properties_dto.dict(),
-                "bitvmx_protocol_properties_dto": bitvmx_protocol_properties_dto.dict(),
             }
 
             public_keys_response = requests.post(url, headers=headers, json=data)
@@ -179,7 +178,6 @@ class CreateSetupController:
 
         # One call per verifier should be done
         bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
-            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys,
         )
@@ -190,7 +188,6 @@ class CreateSetupController:
 
         # One call per verifier should be done
         bitvmx_transactions_dto = self.transaction_generator_from_public_keys_service(
-            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
 

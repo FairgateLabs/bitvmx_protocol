@@ -5,9 +5,6 @@ from bitcoinutils.transactions import TxWitnessInput
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_commitment_generation_service import (
     ExecutionTraceCommitmentGenerationService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
-    BitVMXProtocolPropertiesDTO,
-)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_prover_dto import (
     BitVMXProtocolProverDTO,
 )
@@ -44,11 +41,14 @@ class ExecutionChallengeTransactionService:
         self,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
-        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_prover_private_dto: BitVMXProtocolProverPrivateDTO,
         bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
     ):
-        trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
+        trace_words_lengths = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
+                ::-1
+            ]
+        )
 
         trigger_execution_challenge_published_transaction = transaction_info_service(
             bitvmx_transactions_dto.trigger_execution_challenge_tx.get_txid()
@@ -95,7 +95,7 @@ class ExecutionChallengeTransactionService:
             bitvmx_protocol_setup_properties_dto.signature_public_keys,
             bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
             trace_words_lengths,
-            bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             prover_signature_public_key=bitvmx_protocol_setup_properties_dto.prover_signature_public_key,
         )
 

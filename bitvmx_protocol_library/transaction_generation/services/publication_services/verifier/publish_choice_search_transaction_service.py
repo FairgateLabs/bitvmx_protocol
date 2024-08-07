@@ -6,9 +6,6 @@ from bitcoinutils.utils import ControlBlock
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
     ExecutionTraceQueryService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
-    BitVMXProtocolPropertiesDTO,
-)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
@@ -45,7 +42,6 @@ class PublishChoiceSearchTransactionService:
         self,
         iteration: int,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
-        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
@@ -57,14 +53,13 @@ class PublishChoiceSearchTransactionService:
         current_choice_search_script = self.commit_search_choice_script_generator_service(
             bitvmx_protocol_setup_properties_dto.signature_public_keys,
             current_choice_public_keys[0],
-            bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
         )
 
         choice_search_witness = []
         current_choice, new_published_hashes_dict = self._get_choice(
             iteration=iteration,
             bitvmx_transactions_dto=bitvmx_transactions_dto,
-            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
         )
@@ -73,7 +68,7 @@ class PublishChoiceSearchTransactionService:
             step=(3 + iteration * 2 + 1),
             case=0,
             input_number=current_choice,
-            amount_of_bits=bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            amount_of_bits=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
         )
         current_choice_search_scripts_address = (
             bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
@@ -115,7 +110,6 @@ class PublishChoiceSearchTransactionService:
         self,
         iteration,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
-        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ) -> Tuple[int, Dict[int, str]]:
@@ -131,13 +125,24 @@ class PublishChoiceSearchTransactionService:
             choice_offset = 0
         else:
             choice_offset = 8
-        for j in range(2**bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search - 1):
+        for j in range(
+            2
+            ** bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+            - 1
+        ):
             hash_witness_portion = previous_hash_search_witness[
                 len(bitvmx_protocol_setup_properties_dto.signature_public_keys)
-                + (bitvmx_protocol_properties_dto.amount_of_nibbles_hash_with_checksum * j * 2)
+                + (
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash_with_checksum
+                    * j
+                    * 2
+                )
                 + choice_offset : len(bitvmx_protocol_setup_properties_dto.signature_public_keys)
-                + 2 * bitvmx_protocol_properties_dto.amount_of_nibbles_hash
-                + bitvmx_protocol_properties_dto.amount_of_nibbles_hash_with_checksum * j * 2
+                + 2
+                * bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash
+                + bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash_with_checksum
+                * j
+                * 2
                 + choice_offset
             ]
             published_hashes.append(
@@ -152,24 +157,28 @@ class PublishChoiceSearchTransactionService:
         prefix = ""
         for search_choice in bitvmx_protocol_verifier_dto.search_choices:
             prefix += bin(search_choice)[2:].zfill(
-                bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
             )
         suffix = (
             "1"
-            * bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+            * bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
             * (
-                bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
                 - iteration
                 - 1
             )
         )
         index_list = []
-        for j in range(2**bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search - 1):
+        for j in range(
+            2
+            ** bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+            - 1
+        ):
             index_list.append(
                 int(
                     prefix
                     + bin(j)[2:].zfill(
-                        bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                        bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
                     )
                     + suffix,
                     2,
@@ -184,9 +193,13 @@ class PublishChoiceSearchTransactionService:
         index_list.append(
             int(
                 prefix
-                + bin(2**bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search - 1)[
-                    2:
-                ].zfill(bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search)
+                + bin(
+                    2
+                    ** bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                    - 1
+                )[2:].zfill(
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                )
                 + suffix,
                 2,
             )

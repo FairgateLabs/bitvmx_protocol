@@ -1,7 +1,4 @@
 from bitvmx_protocol_library.bitvmx_execution.entities.execution_trace_dto import ExecutionTraceDTO
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
-    BitVMXProtocolPropertiesDTO,
-)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
@@ -32,7 +29,6 @@ class VerifierChallengeDetectionService:
     def __call__(
         self,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
-        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
@@ -61,7 +57,11 @@ class VerifierChallengeDetectionService:
         ]
         bitvmx_protocol_verifier_dto.prover_trace_witness = prover_trace_witness
 
-        trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
+        trace_words_lengths = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
+                ::-1
+            ]
+        )
 
         consumed_items = 0
         trace_values = []
@@ -95,7 +95,7 @@ class VerifierChallengeDetectionService:
             "".join(
                 map(
                     lambda digit: bin(digit)[2:].zfill(
-                        bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                        bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
                     ),
                     bitvmx_protocol_verifier_dto.search_choices,
                 )

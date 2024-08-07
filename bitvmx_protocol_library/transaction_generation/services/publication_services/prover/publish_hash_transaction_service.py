@@ -9,9 +9,6 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_generatio
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
     ExecutionTraceQueryService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
-    BitVMXProtocolPropertiesDTO,
-)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_prover_dto import (
     BitVMXProtocolProverDTO,
 )
@@ -54,7 +51,6 @@ class PublishHashTransactionService:
     def __call__(
         self,
         setup_uuid: str,
-        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
@@ -64,7 +60,9 @@ class PublishHashTransactionService:
 
         self.execution_trace_generation_service(setup_uuid=setup_uuid)
         last_step_trace = self.execution_trace_query_service(
-            setup_uuid, bitvmx_protocol_properties_dto.amount_of_trace_steps - 1
+            setup_uuid,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_trace_steps
+            - 1,
         )
         hash_result_split_number = _get_result_hash_value(last_step_trace)
 
@@ -73,14 +71,14 @@ class PublishHashTransactionService:
             step=1,
             case=0,
             input_numbers=hash_result_split_number,
-            bits_per_digit_checksum=bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
         hash_result_script = self.hash_result_script_generator(
             bitvmx_protocol_setup_properties_dto.signature_public_keys,
             bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.hash_result_public_keys,
-            bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
-            bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
         hash_result_script_address = (
             bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(

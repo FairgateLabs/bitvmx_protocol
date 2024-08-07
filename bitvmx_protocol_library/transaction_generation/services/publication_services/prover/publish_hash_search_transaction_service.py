@@ -58,7 +58,6 @@ class PublishHashSearchTransactionService:
         iteration: int,
         setup_uuid: str,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
-        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
     ):
@@ -85,9 +84,9 @@ class PublishHashSearchTransactionService:
             current_hash_search_script = self.commit_search_hashes_script_generator_service(
                 bitvmx_protocol_setup_properties_dto.signature_public_keys,
                 current_hash_public_keys,
-                bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
-                bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
-                bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
                 current_choice_prover_public_keys[0],
                 previous_choice_verifier_public_keys[0],
             )
@@ -116,21 +115,21 @@ class PublishHashSearchTransactionService:
                 step=(3 + (iteration - 1) * 2 + 1),
                 case=0,
                 input_number=current_choice,
-                amount_of_bits=bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+                amount_of_bits=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
             )
 
         else:
             current_hash_search_script = self.commit_search_hashes_script_generator_service(
                 bitvmx_protocol_setup_properties_dto.signature_public_keys,
                 current_hash_public_keys,
-                bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
-                bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             )
 
         iteration_hashes_dict = self._get_hashes(
             setup_uuid=setup_uuid,
             iteration=iteration,
-            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
+            bitvmx_protocol_properties_dto=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto,
             bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto,
         )
         iteration_hashes_keys = sorted(list(iteration_hashes_dict.keys()))
@@ -139,7 +138,7 @@ class PublishHashSearchTransactionService:
             iteration_hashes.append(iteration_hashes_dict[key])
 
         for word_count in range(
-            bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
         ):
 
             input_number = []
@@ -148,11 +147,11 @@ class PublishHashSearchTransactionService:
 
             hash_search_witness += self.generate_witness_from_input_nibbles_service(
                 step=(3 + iteration * 2),
-                case=bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
+                case=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
                 - word_count
                 - 1,
                 input_numbers=input_number,
-                bits_per_digit_checksum=bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+                bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             )
 
         current_hash_search_scripts_address = (

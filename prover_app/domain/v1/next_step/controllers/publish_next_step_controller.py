@@ -49,7 +49,6 @@ class PublishNextStepController:
         with open(f"prover_files/{setup_uuid}/file_database.pkl", "rb") as f:
             protocol_dict = pickle.load(f)
 
-        bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
         bitvmx_protocol_setup_properties_dto = protocol_dict["bitvmx_protocol_setup_properties_dto"]
         bitvmx_transactions_dto = protocol_dict["bitvmx_transactions_dto"]
         bitvmx_protocol_prover_private_dto = protocol_dict["bitvmx_protocol_prover_private_dto"]
@@ -65,7 +64,6 @@ class PublishNextStepController:
             )
             last_confirmed_step_tx = publish_hash_transaction_service(
                 setup_uuid=setup_uuid,
-                bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
                 bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                 bitvmx_transactions_dto=bitvmx_transactions_dto,
                 bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto,
@@ -85,7 +83,6 @@ class PublishNextStepController:
                 bitvmx_transactions_dto=bitvmx_transactions_dto,
                 iteration=0,
                 setup_uuid=setup_uuid,
-                bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
                 bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                 bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto,
             )
@@ -109,7 +106,6 @@ class PublishNextStepController:
                 last_confirmed_step_tx = publish_trace_transaction_service(
                     setup_uuid=setup_uuid,
                     bitvmx_transactions_dto=bitvmx_transactions_dto,
-                    bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
                     bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                     bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto,
                 )
@@ -138,7 +134,6 @@ class PublishNextStepController:
                         bitvmx_transactions_dto=bitvmx_transactions_dto,
                         iteration=i,
                         setup_uuid=setup_uuid,
-                        bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
                         bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                         bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto,
                     )
@@ -159,7 +154,6 @@ class PublishNextStepController:
                 last_confirmed_step_tx = execution_challenge_transaction_service(
                     bitvmx_transactions_dto=bitvmx_transactions_dto,
                     bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-                    bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
                     bitvmx_protocol_prover_private_dto=bitvmx_protocol_prover_private_dto,
                     bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto,
                 )

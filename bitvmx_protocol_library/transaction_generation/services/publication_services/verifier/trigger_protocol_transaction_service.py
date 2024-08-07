@@ -7,9 +7,6 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_generatio
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
     ExecutionTraceQueryService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
-    BitVMXProtocolPropertiesDTO,
-)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
@@ -37,7 +34,6 @@ class TriggerProtocolTransactionService:
         self,
         hash_result_transaction,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
-        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
@@ -47,7 +43,8 @@ class TriggerProtocolTransactionService:
             len(bitvmx_protocol_setup_properties_dto.signature_public_keys) : len(
                 bitvmx_protocol_setup_properties_dto.signature_public_keys
             )
-            + 2 * bitvmx_protocol_properties_dto.amount_of_nibbles_hash
+            + 2
+            * bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash
         ]
         published_result_hash = "".join(
             [
@@ -57,7 +54,10 @@ class TriggerProtocolTransactionService:
         )
 
         self.execution_trace_generation_service(bitvmx_protocol_setup_properties_dto.setup_uuid)
-        last_step_index = bitvmx_protocol_properties_dto.amount_of_trace_steps - 1
+        last_step_index = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_trace_steps
+            - 1
+        )
         last_step_trace = self.execution_trace_query_service(
             setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid, index=last_step_index
         )

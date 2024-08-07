@@ -1,9 +1,6 @@
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
-    BitVMXProtocolPropertiesDTO,
-)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
@@ -36,12 +33,15 @@ class TriggerExecutionChallengeTransactionService:
     def __call__(
         self,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
-        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
 
-        trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
+        trace_words_lengths = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
+                ::-1
+            ]
+        )
 
         # Ugly hardcoding here that should be computed somehow but it depends a lot on the structure of the
         # previous script
@@ -87,10 +87,12 @@ class TriggerExecutionChallengeTransactionService:
                 input_number.append(int(letter, 16))
 
             verifier_trigger_challenge_witness += self.generate_witness_from_input_nibbles_service(
-                step=3 + bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations * 2,
+                step=3
+                + bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+                * 2,
                 case=len(trace_words_lengths) - word_count - 1,
                 input_numbers=input_number,
-                bits_per_digit_checksum=bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+                bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             )
 
         trigger_execution_script = self.verifier_challenge_execution_script_generator_service(
@@ -98,7 +100,7 @@ class TriggerExecutionChallengeTransactionService:
             bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
             bitvmx_protocol_setup_properties_dto.signature_public_keys,
             trace_words_lengths,
-            bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
         # TODO: we should load this address from protocol dict as we add more challenges

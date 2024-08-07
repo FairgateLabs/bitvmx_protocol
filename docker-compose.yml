@@ -51,5 +51,14 @@ services:
         read_only: true
     entrypoint: flake8
 
+  black:
+    image: bitvmx-base
+    volumes:
+      - type: bind
+        source: ./
+        target: /bitvmx-backend
+        read_only: true
+    entrypoint: black --config .black --check --diff .
+
 networks:
   bitvmx-net:

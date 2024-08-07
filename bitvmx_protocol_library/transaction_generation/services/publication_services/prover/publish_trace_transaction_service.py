@@ -4,9 +4,6 @@ from bitcoinutils.utils import ControlBlock
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
     ExecutionTraceQueryService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
-    BitVMXProtocolPropertiesDTO,
-)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_prover_dto import (
     BitVMXProtocolProverDTO,
 )
@@ -47,13 +44,16 @@ class PublishTraceTransactionService:
         self,
         setup_uuid: str,
         bitvmx_transactions_dto: BitVMXTransactionsDTO,
-        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
     ):
 
         trace_signatures = bitvmx_protocol_prover_dto.trace_signatures
-        trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
+        trace_words_lengths = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
+                ::-1
+            ]
+        )
 
         trace_witness = []
 
@@ -72,7 +72,7 @@ class PublishTraceTransactionService:
             "".join(
                 map(
                     lambda digit: bin(digit)[2:].zfill(
-                        bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                        bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
                     ),
                     bitvmx_protocol_prover_dto.search_choices,
                 )
@@ -94,12 +94,16 @@ class PublishTraceTransactionService:
         trace_witness += self.generate_prover_witness_from_input_single_word_service(
             step=(
                 3
-                + (bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations - 1) * 2
+                + (
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+                    - 1
+                )
+                * 2
                 + 1
             ),
             case=0,
             input_number=current_choice,
-            amount_of_bits=bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            amount_of_bits=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
         )
 
         for word_count in range(len(trace_words_lengths)):
@@ -109,18 +113,20 @@ class PublishTraceTransactionService:
                 input_number.append(int(letter, 16))
 
             trace_witness += self.generate_witness_from_input_nibbles_service(
-                step=3 + bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations * 2,
+                step=3
+                + bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+                * 2,
                 case=len(trace_words_lengths) - word_count - 1,
                 input_numbers=input_number,
-                bits_per_digit_checksum=bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+                bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             )
 
         trace_script = self.execution_trace_script_generator_service(
             bitvmx_protocol_setup_properties_dto.signature_public_keys,
             bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
             trace_words_lengths,
-            bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
-            bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
             bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list[
                 -1
             ][

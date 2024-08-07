@@ -60,13 +60,10 @@ class GenerateSignaturesController:
         )
 
         protocol_dict["bitvmx_prover_signatures_dto"] = bitvmx_prover_signatures_dto
-
-        bitvmx_protocol_properties_dto = protocol_dict["bitvmx_protocol_properties_dto"]
         bitvmx_protocol_setup_properties_dto = protocol_dict["bitvmx_protocol_setup_properties_dto"]
 
         # Transaction construction
         bitvmx_transactions_dto = self.transaction_generator_from_public_keys_service(
-            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
 
@@ -74,7 +71,6 @@ class GenerateSignaturesController:
 
         # Scripts construction
         bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
-            bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys,
         )

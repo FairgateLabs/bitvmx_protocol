@@ -1,8 +1,5 @@
 from typing import List
 
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
-    BitVMXProtocolPropertiesDTO,
-)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
@@ -56,18 +53,21 @@ class BitVMXBitcoinScriptsGeneratorService:
 
     def __call__(
         self,
-        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         signature_public_keys: List[str],
     ) -> BitVMXBitcoinScriptsDTO:
         assert signature_public_keys == bitvmx_protocol_setup_properties_dto.signature_public_keys
-        trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
+        trace_words_lengths = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
+                ::-1
+            ]
+        )
 
         hash_result_script = self.hash_result_script_generator(
             signature_public_keys,
             bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.hash_result_public_keys,
-            bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
-            bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
         trigger_protocol_script = self.trigger_protocol_script_generator(signature_public_keys)
@@ -75,7 +75,7 @@ class BitVMXBitcoinScriptsGeneratorService:
         hash_search_scripts = []
         choice_search_scripts = []
         for iter_count in range(
-            bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
         ):
             # Hash
             current_hash_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.hash_search_public_keys_list[
@@ -91,9 +91,9 @@ class BitVMXBitcoinScriptsGeneratorService:
                 current_search_script = self.commit_search_hashes_script_generator_service(
                     signature_public_keys,
                     current_hash_public_keys,
-                    bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
-                    bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
-                    bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
                     current_choice_prover_public_keys[0],
                     previous_choice_verifier_public_keys[0],
                 )
@@ -101,8 +101,8 @@ class BitVMXBitcoinScriptsGeneratorService:
                 current_search_script = self.commit_search_hashes_script_generator_service(
                     signature_public_keys,
                     current_hash_public_keys,
-                    bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
-                    bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
                 )
 
             hash_search_scripts.append(current_search_script)
@@ -114,7 +114,7 @@ class BitVMXBitcoinScriptsGeneratorService:
             current_choice_script = self.commit_search_choice_script_generator_service(
                 signature_public_keys,
                 current_choice_public_keys[0],
-                bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
             )
             choice_search_scripts.append(current_choice_script)
 
@@ -125,8 +125,8 @@ class BitVMXBitcoinScriptsGeneratorService:
             signature_public_keys,
             bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
             trace_words_lengths,
-            bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
-            bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
             bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list[
                 -1
             ][
@@ -144,7 +144,7 @@ class BitVMXBitcoinScriptsGeneratorService:
             bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
             signature_public_keys,
             trace_words_lengths,
-            bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
         trigger_challenge_scripts = BitcoinScriptList(trigger_execution_script)
@@ -153,7 +153,7 @@ class BitVMXBitcoinScriptsGeneratorService:
             signature_public_keys=signature_public_keys,
             public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
             trace_words_lengths=trace_words_lengths,
-            bits_per_digit_checksum=bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             prover_signature_public_key=bitvmx_protocol_setup_properties_dto.prover_signature_public_key,
         )
 

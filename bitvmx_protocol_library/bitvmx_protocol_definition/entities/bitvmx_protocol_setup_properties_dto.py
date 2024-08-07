@@ -4,6 +4,9 @@ from typing import Dict, Optional
 from bitcoinutils.keys import PublicKey
 from pydantic import BaseModel
 
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
+    BitVMXProtocolPropertiesDTO,
+)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
     BitVMXProverWinternitzPublicKeysDTO,
 )
@@ -25,6 +28,7 @@ class BitVMXProtocolSetupPropertiesDTO(BaseModel):
     seed_unspendable_public_key: str
     prover_destroyed_public_key: str
     verifier_destroyed_public_key: str
+    bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO
     bitvmx_prover_winternitz_public_keys_dto: Optional[BitVMXProverWinternitzPublicKeysDTO] = None
     bitvmx_verifier_winternitz_public_keys_dto: Optional[BitVMXVerifierWinternitzPublicKeysDTO] = (
         None

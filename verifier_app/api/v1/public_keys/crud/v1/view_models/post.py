@@ -1,8 +1,5 @@
 from pydantic import BaseModel
 
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
-    BitVMXProtocolPropertiesDTO,
-)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
@@ -13,7 +10,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier
 
 class PublicKeysPostV1Input(BaseModel):
     bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO
-    bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO
 
 
 class PublicKeysPostV1Output(BaseModel):

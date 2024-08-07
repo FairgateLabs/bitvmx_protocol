@@ -5,9 +5,6 @@ from bitcoinutils.keys import PrivateKey
 from bitcoinutils.setup import NETWORK
 from fastapi import HTTPException
 
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
-    BitVMXProtocolPropertiesDTO,
-)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
@@ -35,7 +32,6 @@ class GeneratePublicKeysController:
 
     async def __call__(
         self,
-        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
     ):
         protocol_dict = {}
@@ -66,14 +62,11 @@ class GeneratePublicKeysController:
         generate_verifier_public_keys_service = self.generate_verifier_public_keys_service_class(
             private_key=winternitz_private_key
         )
-        bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto = (
-            generate_verifier_public_keys_service(
-                bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto
-            )
+        bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto = generate_verifier_public_keys_service(
+            bitvmx_protocol_properties_dto=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto
         )
 
         protocol_dict["bitvmx_protocol_setup_properties_dto"] = bitvmx_protocol_setup_properties_dto
-        protocol_dict["bitvmx_protocol_properties_dto"] = bitvmx_protocol_properties_dto
 
         with open(f"verifier_files/{setup_uuid}/file_database.pkl", "wb") as f:
             pickle.dump(protocol_dict, f)
