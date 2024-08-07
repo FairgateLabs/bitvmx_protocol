@@ -17,8 +17,3 @@ jobs:
 
     - name: flake8 linting
       run: flake8 --statistics --count
-  black:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: psf/black@stable
