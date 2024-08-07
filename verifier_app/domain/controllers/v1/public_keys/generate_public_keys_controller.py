@@ -38,8 +38,6 @@ class GeneratePublicKeysController:
 
     async def __call__(
         self,
-        setup_uuid: str,
-        public_keys_post_view_input,
         bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
@@ -49,7 +47,7 @@ class GeneratePublicKeysController:
             assert NETWORK == "testnet"
         else:
             assert NETWORK == self.common_protocol_properties.network.value
-
+        setup_uuid = bitvmx_protocol_setup_properties_dto.setup_uuid
         bitvmx_protocol_verifier_private_dto = (
             self.bitvmx_protocol_verifier_private_dto_persistence.get(setup_uuid=setup_uuid)
         )

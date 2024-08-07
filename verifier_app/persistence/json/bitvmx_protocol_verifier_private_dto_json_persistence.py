@@ -39,7 +39,9 @@ class BitVMXProtocolVerifierPrivateDTOJsonPersistence(
             json_data = json.load(file)
         return BitVMXProtocolVerifierPrivateDTO(
             winternitz_private_key=json_data["winternitz_private_key"],
-            destroyed_private_key=self.private_keys_dict.pop(setup_uuid, None),
+            destroyed_private_key=(
+                self.private_keys_dict[setup_uuid] if setup_uuid in self.private_keys_dict else None
+            ),
         )
 
     def delete_private_key(self, setup_uuid: str) -> bool:

@@ -4,6 +4,13 @@ from typing import Dict, Optional
 from bitcoinutils.keys import PublicKey
 from pydantic import BaseModel
 
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
+    BitVMXProverWinternitzPublicKeysDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
+    BitVMXVerifierWinternitzPublicKeysDTO,
+)
+
 
 class BitVMXProtocolSetupPropertiesDTO(BaseModel):
     setup_uuid: str
@@ -12,12 +19,16 @@ class BitVMXProtocolSetupPropertiesDTO(BaseModel):
     step_fees_satoshis: int
     funding_tx_id: str
     funding_index: int
-    verifier_dict: Dict[str, str]
+    verifier_address_dict: Dict[str, str]
     prover_destination_address: str
     prover_signature_public_key: str
     seed_unspendable_public_key: str
     prover_destroyed_public_key: str
     verifier_destroyed_public_key: str
+    bitvmx_prover_winternitz_public_keys_dto: Optional[BitVMXProverWinternitzPublicKeysDTO] = None
+    bitvmx_verifier_winternitz_public_keys_dto: Optional[BitVMXVerifierWinternitzPublicKeysDTO] = (
+        None
+    )
 
     @staticmethod
     def unspendable_public_key_from_seed(seed_unspendable_public_key: str):

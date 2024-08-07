@@ -83,11 +83,11 @@ class CreateSetupController:
 
         public_keys = []
         verifier_destroyed_public_key_hex = None
-        verifier_dict = {}
+        verifier_address_dict = {}
         signatures_public_keys_dict = {}
         for verifier in verifier_list:
             current_uuid = str(uuid.uuid4())
-            verifier_dict[current_uuid] = verifier
+            verifier_address_dict[current_uuid] = verifier
             url = f"{verifier}/setup"
             headers = {"accept": "application/json", "Content-Type": "application/json"}
             data = {"setup_uuid": setup_uuid, "network": common_protocol_properties.network.value}
@@ -100,9 +100,6 @@ class CreateSetupController:
                 signatures_public_keys_dict[current_uuid] = verifier_destroyed_public_key_hex
             else:
                 raise Exception("Some error ocurred with the setup call to the verifier")
-
-        controlled_prover_public_key = controlled_prover_private_key.get_public_key()
-        controlled_prover_address = controlled_prover_public_key.get_segwit_address().to_string()
 
         winternitz_private_key = PrivateKey(b=secrets.token_bytes(32))
 
@@ -146,7 +143,7 @@ class CreateSetupController:
             step_fees_satoshis=step_fees_satoshis,
             funding_tx_id=funding_tx_id,
             funding_index=funding_index,
-            verifier_dict=verifier_dict,
+            verifier_dict=verifier_address_dict,
             prover_destination_address=prover_destination_address,
             prover_signature_public_key=prover_signature_public_key,
             seed_unspendable_public_key=seed_unspendable_public_key,
@@ -159,15 +156,13 @@ class CreateSetupController:
 
         # Think how to iterate all verifiers here -> Make a call per verifier
         # All verifiers should sign all transactions so they are sure there is not any of them lying
-        for verifier_uuid, verifier_value in verifier_dict.items():
+        for verifier_uuid, verifier_value in verifier_address_dict.items():
             url = f"{verifier_value}/public_keys"
             headers = {"accept": "application/json", "Content-Type": "application/json"}
             data = {
-                "setup_uuid": setup_uuid,
                 "bitvmx_prover_winternitz_public_keys_dto": bitvmx_prover_winternitz_public_keys_dto.dict(),
                 "bitvmx_protocol_setup_properties_dto": bitvmx_protocol_setup_properties_dto.dict(),
                 "bitvmx_protocol_properties_dto": bitvmx_protocol_properties_dto.dict(),
-                "controlled_prover_address": controlled_prover_address,
             }
 
             public_keys_response = requests.post(url, headers=headers, json=data)
@@ -232,7 +227,7 @@ class CreateSetupController:
         # execution_challenge_signatures = [signatures_dict["execution_challenge_signature"]]
         # At this stage, we need to add a GET call to compute the verifiers signatures for the other ones protocols
         verifier_signatures_dto_dict = {}
-        for verifier_uuid, verifier_value in verifier_dict.items():
+        for verifier_uuid, verifier_value in verifier_address_dict.items():
             url = f"{verifier_value}/signatures"
             headers = {"accept": "application/json", "Content-Type": "application/json"}
             data = {
