@@ -10,6 +10,9 @@ from bitvmx_protocol_library.transaction_generation.enums import TransactionVeri
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     transaction_info_service,
 )
+from verifier_app.domain.persistence.interfaces.bitvmx_protocol_setup_properties_dto_persistence_interface import (
+    BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
+)
 from verifier_app.domain.persistence.interfaces.bitvmx_protocol_verifier_private_dto_persistence_interface import (
     BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
 )
@@ -36,6 +39,7 @@ class PublishNextStepController:
         protocol_properties,
         common_protocol_properties,
         bitvmx_protocol_verifier_private_dto_persistence: BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
+        bitvmx_protocol_setup_properties_dto_persistence: BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
     ):
         self.trigger_protocol_transaction_service = trigger_protocol_transaction_service
         self.verifier_challenge_detection_service = verifier_challenge_detection_service
@@ -47,6 +51,9 @@ class PublishNextStepController:
         self.bitvmx_protocol_verifier_private_dto_persistence = (
             bitvmx_protocol_verifier_private_dto_persistence
         )
+        self.bitvmx_protocol_setup_properties_dto_persistence = (
+            bitvmx_protocol_setup_properties_dto_persistence
+        )
 
     async def __call__(self, setup_uuid: str):
         with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
@@ -56,7 +63,9 @@ class PublishNextStepController:
         else:
             assert NETWORK == self.common_protocol_properties.network.value
 
-        bitvmx_protocol_setup_properties_dto = protocol_dict["bitvmx_protocol_setup_properties_dto"]
+        bitvmx_protocol_setup_properties_dto = (
+            self.bitvmx_protocol_setup_properties_dto_persistence.get(setup_uuid=setup_uuid)
+        )
         bitvmx_transactions_dto = protocol_dict["bitvmx_transactions_dto"]
         bitvmx_protocol_verifier_dto = protocol_dict["bitvmx_protocol_verifier_dto"]
         bitvmx_protocol_verifier_private_dto = (

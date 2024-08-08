@@ -13,6 +13,9 @@ from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_prover_
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_verifier_signatures_dto import (
     BitVMXVerifierSignaturesDTO,
 )
+from verifier_app.domain.persistence.interfaces.bitvmx_protocol_setup_properties_dto_persistence_interface import (
+    BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
+)
 from verifier_app.domain.persistence.interfaces.bitvmx_protocol_verifier_private_dto_persistence_interface import (
     BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
 )
@@ -27,6 +30,7 @@ class GenerateSignaturesController:
         verify_prover_signatures_service_class,
         common_protocol_properties,
         bitvmx_protocol_verifier_private_dto_persistence: BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
+        bitvmx_protocol_setup_properties_dto_persistence: BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
     ):
         self.bitvmx_bitcoin_scripts_generator_service = bitvmx_bitcoin_scripts_generator_service
         self.transaction_generator_from_public_keys_service = (
@@ -38,19 +42,21 @@ class GenerateSignaturesController:
         self.bitvmx_protocol_verifier_private_dto_persistence = (
             bitvmx_protocol_verifier_private_dto_persistence
         )
+        self.bitvmx_protocol_setup_properties_dto_persistence = (
+            bitvmx_protocol_setup_properties_dto_persistence
+        )
 
     def __call__(
         self,
         setup_uuid: str,
         bitvmx_prover_signatures_dto: BitVMXProverSignaturesDTO,
     ) -> BitVMXVerifierSignaturesDTO:
-
-        with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
-            protocol_dict = pickle.load(f)
         if self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
             assert NETWORK == "testnet"
         else:
             assert NETWORK == self.common_protocol_properties.network.value
+
+        protocol_dict = {}
 
         bitvmx_protocol_verifier_private_dto = (
             self.bitvmx_protocol_verifier_private_dto_persistence.get(setup_uuid=setup_uuid)
@@ -59,8 +65,9 @@ class GenerateSignaturesController:
             b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.destroyed_private_key)
         )
 
-        protocol_dict["bitvmx_prover_signatures_dto"] = bitvmx_prover_signatures_dto
-        bitvmx_protocol_setup_properties_dto = protocol_dict["bitvmx_protocol_setup_properties_dto"]
+        bitvmx_protocol_setup_properties_dto = (
+            self.bitvmx_protocol_setup_properties_dto_persistence.get(setup_uuid=setup_uuid)
+        )
 
         # Transaction construction
         bitvmx_transactions_dto = self.transaction_generator_from_public_keys_service(
