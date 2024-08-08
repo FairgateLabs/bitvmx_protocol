@@ -21,9 +21,6 @@ from bitvmx_protocol_library.script_generation.services.script_generation.commit
 from bitvmx_protocol_library.script_generation.services.script_generation.commit_search_hashes_script_generator_service import (
     CommitSearchHashesScriptGeneratorService,
 )
-from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
-    BitVMXTransactionsDTO,
-)
 from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,
 )
@@ -57,7 +54,6 @@ class PublishHashSearchTransactionService:
         self,
         iteration: int,
         setup_uuid: str,
-        bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
     ):
@@ -70,9 +66,11 @@ class PublishHashSearchTransactionService:
         ]
 
         if iteration > 0:
-            previous_choice_tx = bitvmx_transactions_dto.search_choice_tx_list[
-                iteration - 1
-            ].get_txid()
+            previous_choice_tx = (
+                bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_choice_tx_list[
+                    iteration - 1
+                ].get_txid()
+            )
             previous_choice_transaction_info = transaction_info_service(previous_choice_tx)
             previous_witness = previous_choice_transaction_info.inputs[0].witness
             previous_choice_verifier_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list[
@@ -166,7 +164,9 @@ class PublishHashSearchTransactionService:
             is_odd=current_hash_search_scripts_address.is_odd(),
         )
 
-        bitvmx_transactions_dto.search_hash_tx_list[iteration].witnesses.append(
+        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list[
+            iteration
+        ].witnesses.append(
             TxWitnessInput(
                 search_hash_signatures[iteration]
                 + hash_search_witness
@@ -178,16 +178,22 @@ class PublishHashSearchTransactionService:
         )
 
         broadcast_transaction_service(
-            transaction=bitvmx_transactions_dto.search_hash_tx_list[iteration].serialize()
+            transaction=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list[
+                iteration
+            ].serialize()
         )
         bitvmx_protocol_prover_dto.published_hashes_dict.update(iteration_hashes_dict)
         print(
             "Search hash iteration transaction "
             + str(iteration)
             + ": "
-            + bitvmx_transactions_dto.search_hash_tx_list[iteration].get_txid()
+            + bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list[
+                iteration
+            ].get_txid()
         )
-        return bitvmx_transactions_dto.search_hash_tx_list[iteration]
+        return bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list[
+            iteration
+        ]
 
     def _get_hashes(
         self,

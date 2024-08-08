@@ -187,11 +187,11 @@ class CreateSetupController:
         # Transaction construction
 
         # One call per verifier should be done
-        bitvmx_transactions_dto = self.transaction_generator_from_public_keys_service(
-            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto = (
+            self.transaction_generator_from_public_keys_service(
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            )
         )
-
-        protocol_dict["bitvmx_transactions_dto"] = bitvmx_transactions_dto
 
         # Signature computation
 
@@ -200,7 +200,6 @@ class CreateSetupController:
             private_key=prover_destroyed_private_key, destroyed_public_key=unspendable_public_key
         )
         bitvmx_signatures_dto = generate_signatures_service(
-            bitvmx_transactions_dto=bitvmx_transactions_dto,
             bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
@@ -228,7 +227,7 @@ class CreateSetupController:
             bitvmx_verifier_signatures_dto = BitVMXVerifierSignaturesDTO(
                 **signatures_response_json["verifier_signatures_dto"]
             )
-            protocol_dict["bitvmx_verifier_signatures_dto"] = bitvmx_verifier_signatures_dto
+
             for j in range(len(bitvmx_verifier_signatures_dto.search_hash_signatures)):
                 search_hash_signatures[j].append(
                     bitvmx_verifier_signatures_dto.search_hash_signatures[j]
@@ -262,7 +261,6 @@ class CreateSetupController:
                 hash_result_signature=bitvmx_verifier_signatures_dto.hash_result_signature,
                 search_hash_signatures=bitvmx_verifier_signatures_dto.search_hash_signatures,
                 trace_signature=bitvmx_verifier_signatures_dto.trace_signature,
-                bitvmx_transactions_dto=bitvmx_transactions_dto,
                 bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
                 bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             )
@@ -284,18 +282,21 @@ class CreateSetupController:
         origin_of_funds_public_key = origin_of_funds_private_key.get_public_key()
 
         funding_sig = origin_of_funds_private_key.sign_segwit_input(
-            bitvmx_transactions_dto.funding_tx,
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.funding_tx,
             0,
             origin_of_funds_public_key.get_address().to_script_pub_key(),
             initial_amount_of_satoshis + step_fees_satoshis,
         )
 
-        bitvmx_transactions_dto.funding_tx.witnesses.append(
+        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.funding_tx.witnesses.append(
             TxWitnessInput([funding_sig, origin_of_funds_public_key.to_hex()])
         )
 
         self.broadcast_transaction_service(
-            transaction=bitvmx_transactions_dto.funding_tx.serialize()
+            transaction=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.funding_tx.serialize()
         )
-        print("Funding transaction: " + bitvmx_transactions_dto.funding_tx.get_txid())
+        print(
+            "Funding transaction: "
+            + bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.funding_tx.get_txid()
+        )
         return setup_uuid

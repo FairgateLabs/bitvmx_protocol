@@ -17,9 +17,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.script_generation.services.execution_challenge_script_list_generator_service import (
     ExecutionChallengeScriptListGeneratorService,
 )
-from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
-    BitVMXTransactionsDTO,
-)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
     transaction_info_service,
@@ -39,7 +36,6 @@ class ExecutionChallengeTransactionService:
 
     def __call__(
         self,
-        bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_prover_private_dto: BitVMXProtocolProverPrivateDTO,
         bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
@@ -51,7 +47,7 @@ class ExecutionChallengeTransactionService:
         )
 
         trigger_execution_challenge_published_transaction = transaction_info_service(
-            bitvmx_transactions_dto.trigger_execution_challenge_tx.get_txid()
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_execution_challenge_tx.get_txid()
         )
         trigger_execution_challenge_witness = (
             trigger_execution_challenge_published_transaction.inputs[0].witness[2:]
@@ -129,11 +125,13 @@ class ExecutionChallengeTransactionService:
             b=bytes.fromhex(bitvmx_protocol_prover_private_dto.prover_signature_private_key)
         )
         execution_challenge_signature = private_key.sign_taproot_input(
-            bitvmx_transactions_dto.execution_challenge_tx,
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.execution_challenge_tx,
             0,
             [execution_challenge_script_address.to_script_pub_key()],
             [
-                bitvmx_transactions_dto.execution_challenge_tx.outputs[0].amount
+                bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.execution_challenge_tx.outputs[
+                    0
+                ].amount
                 + bitvmx_protocol_setup_properties_dto.step_fees_satoshis
             ],
             script_path=True,
@@ -142,7 +140,7 @@ class ExecutionChallengeTransactionService:
             tweak=False,
         )
 
-        bitvmx_transactions_dto.execution_challenge_tx.witnesses.append(
+        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.execution_challenge_tx.witnesses.append(
             TxWitnessInput(
                 [execution_challenge_signature]
                 + verifier_keys_witness
@@ -154,10 +152,10 @@ class ExecutionChallengeTransactionService:
         )
 
         broadcast_transaction_service(
-            transaction=bitvmx_transactions_dto.execution_challenge_tx.serialize()
+            transaction=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.execution_challenge_tx.serialize()
         )
         print(
             "Execution challenge transaction: "
-            + bitvmx_transactions_dto.execution_challenge_tx.get_txid()
+            + bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.execution_challenge_tx.get_txid()
         )
-        return bitvmx_transactions_dto.execution_challenge_tx
+        return bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.execution_challenge_tx

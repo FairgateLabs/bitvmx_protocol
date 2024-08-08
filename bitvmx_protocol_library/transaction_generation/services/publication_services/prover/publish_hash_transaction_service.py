@@ -18,9 +18,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.script_generation.services.script_generation.hash_result_script_generator_service import (
     HashResultScriptGeneratorService,
 )
-from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
-    BitVMXTransactionsDTO,
-)
 from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,
 )
@@ -52,7 +49,6 @@ class PublishHashTransactionService:
         self,
         setup_uuid: str,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
-        bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
     ) -> Transaction:
 
@@ -93,7 +89,7 @@ class PublishHashTransactionService:
             is_odd=hash_result_script_address.is_odd(),
         )
 
-        bitvmx_transactions_dto.hash_result_tx.witnesses.append(
+        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.hash_result_tx.witnesses.append(
             TxWitnessInput(
                 hash_result_signatures
                 + hash_result_witness
@@ -105,10 +101,10 @@ class PublishHashTransactionService:
         )
 
         broadcast_transaction_service(
-            transaction=bitvmx_transactions_dto.hash_result_tx.serialize()
+            transaction=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.hash_result_tx.serialize()
         )
         print(
             "Hash result revelation transaction: "
-            + bitvmx_transactions_dto.hash_result_tx.get_txid()
+            + bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.hash_result_tx.get_txid()
         )
-        return bitvmx_transactions_dto.hash_result_tx
+        return bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.hash_result_tx

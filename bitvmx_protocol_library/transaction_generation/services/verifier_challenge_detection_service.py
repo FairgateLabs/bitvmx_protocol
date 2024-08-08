@@ -5,9 +5,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
     BitVMXProtocolVerifierDTO,
 )
-from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
-    BitVMXTransactionsDTO,
-)
 from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection.verifier_execution_challenge_detection_service import (
     VerifierExecutionChallengeDetectionService,
 )
@@ -28,11 +25,12 @@ class VerifierChallengeDetectionService:
 
     def __call__(
         self,
-        bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
-        trace_tx_id = bitvmx_transactions_dto.trace_tx.get_txid()
+        trace_tx_id = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trace_tx.get_txid()
+        )
         trace_transaction_info = transaction_info_service(trace_tx_id)
         previous_trace_witness = trace_transaction_info.inputs[0].witness
 

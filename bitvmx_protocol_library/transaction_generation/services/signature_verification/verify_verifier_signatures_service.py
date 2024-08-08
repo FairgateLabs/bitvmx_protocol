@@ -6,9 +6,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.script_generation.entities.dtos.bitvmx_bitcoin_scripts_dto import (
     BitVMXBitcoinScriptsDTO,
 )
-from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
-    BitVMXTransactionsDTO,
-)
 from bitvmx_protocol_library.transaction_generation.services.signature_verification.verify_signature_service import (
     VerifySignatureService,
 )
@@ -28,7 +25,6 @@ class VerifyVerifierSignaturesService:
         hash_result_signature: str,
         search_hash_signatures: str,
         trace_signature: str,
-        bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_bitcoin_scripts_dto: BitVMXBitcoinScriptsDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
     ):
@@ -38,7 +34,7 @@ class VerifyVerifierSignaturesService:
         )
 
         self.verify_signature_service(
-            bitvmx_transactions_dto.hash_result_tx,
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.hash_result_tx,
             bitvmx_bitcoin_scripts_dto.hash_result_script,
             funding_result_output_amount,
             public_key,
@@ -47,7 +43,7 @@ class VerifyVerifierSignaturesService:
 
         for i in range(len(search_hash_signatures)):
             self.verify_signature_service(
-                bitvmx_transactions_dto.search_hash_tx_list[i],
+                bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list[i],
                 bitvmx_bitcoin_scripts_dto.hash_search_scripts[i],
                 funding_result_output_amount
                 - (2 + 2 * i) * bitvmx_protocol_setup_properties_dto.step_fees_satoshis,
@@ -56,7 +52,7 @@ class VerifyVerifierSignaturesService:
             )
 
         self.verify_signature_service(
-            bitvmx_transactions_dto.trace_tx,
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trace_tx,
             bitvmx_bitcoin_scripts_dto.trace_script,
             funding_result_output_amount
             - (2 + 2 * len(search_hash_signatures))

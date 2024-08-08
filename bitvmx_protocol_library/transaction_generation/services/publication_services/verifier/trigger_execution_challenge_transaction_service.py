@@ -10,9 +10,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_generic_challenge_script_generator_service import (
     TriggerGenericChallengeScriptGeneratorService,
 )
-from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
-    BitVMXTransactionsDTO,
-)
 from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,
 )
@@ -32,7 +29,6 @@ class TriggerExecutionChallengeTransactionService:
 
     def __call__(
         self,
-        bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
@@ -149,7 +145,7 @@ class TriggerExecutionChallengeTransactionService:
                 * 2
             )
 
-        bitvmx_transactions_dto.trigger_execution_challenge_tx.witnesses.append(
+        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_execution_challenge_tx.witnesses.append(
             TxWitnessInput(
                 trigger_execution_challenge_signature
                 + trigger_challenge_witness
@@ -161,10 +157,12 @@ class TriggerExecutionChallengeTransactionService:
         )
 
         broadcast_transaction_service(
-            transaction=bitvmx_transactions_dto.trigger_execution_challenge_tx.serialize()
+            transaction=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_execution_challenge_tx.serialize()
         )
         print(
             "Trigger execution challenge transaction: "
-            + bitvmx_transactions_dto.trigger_execution_challenge_tx.get_txid()
+            + bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_execution_challenge_tx.get_txid()
         )
-        return bitvmx_transactions_dto.trigger_execution_challenge_tx
+        return (
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_execution_challenge_tx
+        )

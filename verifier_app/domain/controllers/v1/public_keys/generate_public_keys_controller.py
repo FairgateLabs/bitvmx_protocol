@@ -8,6 +8,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
     BitVMXProtocolSetupPropertiesDTO,
 )
 from bitvmx_protocol_library.enums import BitcoinNetwork
+from bitvmx_protocol_library.transaction_generation.services.transaction_generator_from_public_keys_service import (
+    TransactionGeneratorFromPublicKeysService,
+)
 from verifier_app.domain.persistence.interfaces.bitvmx_protocol_setup_properties_dto_persistence_interface import (
     BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
 )
@@ -22,6 +25,7 @@ class GeneratePublicKeysController:
         self,
         generate_verifier_public_keys_service_class,
         common_protocol_properties,
+        transaction_generator_from_public_keys_service: TransactionGeneratorFromPublicKeysService,
         bitvmx_protocol_verifier_private_dto_persistence: BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
         bitvmx_protocol_setup_properties_dto_persistence: BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
     ):
@@ -29,6 +33,9 @@ class GeneratePublicKeysController:
             generate_verifier_public_keys_service_class
         )
         self.common_protocol_properties = common_protocol_properties
+        self.transaction_generator_from_public_keys_service = (
+            transaction_generator_from_public_keys_service
+        )
         self.bitvmx_protocol_verifier_private_dto_persistence = (
             bitvmx_protocol_verifier_private_dto_persistence
         )
@@ -70,6 +77,12 @@ class GeneratePublicKeysController:
         )
         bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto = generate_verifier_public_keys_service(
             bitvmx_protocol_properties_dto=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto
+        )
+
+        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto = (
+            self.transaction_generator_from_public_keys_service(
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            )
         )
 
         self.bitvmx_protocol_setup_properties_dto_persistence.create(

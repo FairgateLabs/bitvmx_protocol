@@ -35,7 +35,7 @@ class VerifyProverSignaturesService:
         )
 
         self.verify_signature_service(
-            bitvmx_transactions_dto.trigger_protocol_tx,
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_protocol_tx,
             bitvmx_bitcoin_scripts_dto.trigger_protocol_script,
             funding_result_output_amount - bitvmx_protocol_setup_properties_dto.step_fees_satoshis,
             public_key,
@@ -44,7 +44,9 @@ class VerifyProverSignaturesService:
 
         for i in range(len(bitvmx_prover_signatures_dto.search_choice_signatures)):
             self.verify_signature_service(
-                bitvmx_transactions_dto.search_choice_tx_list[i],
+                bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_choice_tx_list[
+                    i
+                ],
                 bitvmx_bitcoin_scripts_dto.choice_search_scripts[i],
                 funding_result_output_amount
                 - (3 + 2 * i) * bitvmx_protocol_setup_properties_dto.step_fees_satoshis,
@@ -53,7 +55,7 @@ class VerifyProverSignaturesService:
             )
 
         self.verify_signature_service(
-            bitvmx_transactions_dto.trigger_execution_challenge_tx,
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_execution_challenge_tx,
             bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts[0],
             funding_result_output_amount
             - (2 * len(bitvmx_prover_signatures_dto.search_choice_signatures) + 3)

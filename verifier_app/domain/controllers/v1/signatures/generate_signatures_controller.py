@@ -97,7 +97,6 @@ class GenerateSignaturesController:
             destroyed_private_key, bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
         bitvmx_signatures_dto = generate_signatures_service(
-            bitvmx_transactions_dto=bitvmx_transactions_dto,
             bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )

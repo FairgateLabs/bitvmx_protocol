@@ -1,8 +1,8 @@
 import hashlib
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from bitcoinutils.keys import PublicKey
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
@@ -12,6 +12,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_w
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
     BitVMXVerifierWinternitzPublicKeysDTO,
+)
+from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
+    BitVMXTransactionsDTO,
 )
 
 
@@ -29,10 +32,26 @@ class BitVMXProtocolSetupPropertiesDTO(BaseModel):
     prover_destroyed_public_key: str
     verifier_destroyed_public_key: str
     bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO
+    bitvmx_transactions_dto: Optional[BitVMXTransactionsDTO] = None
     bitvmx_prover_winternitz_public_keys_dto: Optional[BitVMXProverWinternitzPublicKeysDTO] = None
     bitvmx_verifier_winternitz_public_keys_dto: Optional[BitVMXVerifierWinternitzPublicKeysDTO] = (
         None
     )
+
+    def __init__(self, **data: Dict):
+        if "bitvmx_transactions_dto" in data and data["bitvmx_transactions_dto"] is not None:
+            data["bitvmx_transactions_dto"] = BitVMXTransactionsDTO(
+                **data["bitvmx_transactions_dto"]
+            )
+        super().__init__(**data)
+
+    @field_serializer("bitvmx_transactions_dto", when_used="always")
+    def serialize_transactions_dto(
+        bitvmx_transactions_dto: Union[BitVMXTransactionsDTO, None]
+    ) -> Union[None, dict]:
+        if bitvmx_transactions_dto is None:
+            return None
+        return bitvmx_transactions_dto.model_dump()
 
     @staticmethod
     def unspendable_public_key_from_seed(seed_unspendable_public_key: str):
