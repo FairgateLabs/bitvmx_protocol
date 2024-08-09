@@ -11,7 +11,16 @@ from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_
     VerifierChallengeDetectionService,
 )
 from verifier_app.config import protocol_properties
-from verifier_app.domain.v1.next_step.controllers.publish_next_step_controller import (
+from verifier_app.dependency_injection.persistences.bitvmx_protocol_setup_properties_dto_persistences import (
+    BitVMXProtocolSetupPropertiesDTOPersistences,
+)
+from verifier_app.dependency_injection.persistences.bitvmx_protocol_verifier_dto_persistences import (
+    BitVMXProtocolVerifierDTOPersistences,
+)
+from verifier_app.dependency_injection.persistences.bitvmx_protocol_verifier_private_dto_persistences import (
+    BitVMXProtocolVerifierPrivateDTOPersistences,
+)
+from verifier_app.domain.controllers.v1.next_step.publish_next_step_controller import (
     PublishNextStepController,
 )
 
@@ -24,4 +33,7 @@ class PublishNextStepControllers(containers.DeclarativeContainer):
         publish_choice_search_transaction_service_class=PublishChoiceSearchTransactionService,
         protocol_properties=protocol_properties,
         common_protocol_properties=common_protocol_properties,
+        bitvmx_protocol_verifier_private_dto_persistence=BitVMXProtocolVerifierPrivateDTOPersistences.bitvmx,
+        bitvmx_protocol_setup_properties_dto_persistence=BitVMXProtocolSetupPropertiesDTOPersistences.bitvmx,
+        bitvmx_protocol_verifier_dto_persistence=BitVMXProtocolVerifierDTOPersistences.bitvmx,
     )

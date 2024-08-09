@@ -7,9 +7,6 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_generatio
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
     ExecutionTraceQueryService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
-    BitVMXProtocolPropertiesDTO,
-)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
@@ -18,9 +15,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 )
 from bitvmx_protocol_library.script_generation.services.script_generation.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
-)
-from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
-    BitVMXTransactionsDTO,
 )
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
@@ -36,8 +30,6 @@ class TriggerProtocolTransactionService:
     def __call__(
         self,
         hash_result_transaction,
-        bitvmx_transactions_dto: BitVMXTransactionsDTO,
-        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
@@ -47,7 +39,8 @@ class TriggerProtocolTransactionService:
             len(bitvmx_protocol_setup_properties_dto.signature_public_keys) : len(
                 bitvmx_protocol_setup_properties_dto.signature_public_keys
             )
-            + 2 * bitvmx_protocol_properties_dto.amount_of_nibbles_hash
+            + 2
+            * bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash
         ]
         published_result_hash = "".join(
             [
@@ -57,7 +50,10 @@ class TriggerProtocolTransactionService:
         )
 
         self.execution_trace_generation_service(bitvmx_protocol_setup_properties_dto.setup_uuid)
-        last_step_index = bitvmx_protocol_properties_dto.amount_of_trace_steps - 1
+        last_step_index = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_trace_steps
+            - 1
+        )
         last_step_trace = self.execution_trace_query_service(
             setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid, index=last_step_index
         )
@@ -86,7 +82,7 @@ class TriggerProtocolTransactionService:
             )
 
             trigger_protocol_witness = []
-            bitvmx_transactions_dto.trigger_protocol_tx.witnesses.append(
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_protocol_tx.witnesses.append(
                 TxWitnessInput(
                     trigger_protocol_witness
                     + trigger_protocol_signatures
@@ -98,12 +94,12 @@ class TriggerProtocolTransactionService:
             )
 
             broadcast_transaction_service(
-                transaction=bitvmx_transactions_dto.trigger_protocol_tx.serialize()
+                transaction=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_protocol_tx.serialize()
             )
             print(
                 "Trigger protocol transaction: "
-                + bitvmx_transactions_dto.trigger_protocol_tx.get_txid()
+                + bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_protocol_tx.get_txid()
             )
-            return bitvmx_transactions_dto.trigger_protocol_tx
+            return bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_protocol_tx
 
         raise Exception("Protocol aborted at trigger step because both hashes are equal")

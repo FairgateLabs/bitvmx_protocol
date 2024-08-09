@@ -1,0 +1,19 @@
+name: Code Quality
+
+# Controls when the action will run.
+on:
+  pull_request:
+    branches:
+      - dev
+      - master
+jobs:
+  flake8:
+    runs-on: ubuntu-latest
+    container: alpine/flake8:4.0.1
+
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    - name: flake8 linting
+      run: flake8 --statistics --count

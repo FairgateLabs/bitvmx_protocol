@@ -1,6 +1,6 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 from bitvmx_protocol_library.bitvmx_execution.entities.execution_trace_dto import ExecutionTraceDTO
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_prover_signatures_dto import (
@@ -21,6 +21,14 @@ class BitVMXProtocolVerifierDTO(BaseModel):
     prover_trace_witness: Optional[List[str]] = None
     published_execution_trace: Optional[ExecutionTraceDTO] = None
     first_wrong_step: Optional[int] = None
+
+    @field_serializer("last_confirmed_step", when_used="always")
+    def serialize_last_confirmed_step(
+        last_confirmed_step: Union[None, TransactionVerifierStepType]
+    ) -> Union[None, str]:
+        if last_confirmed_step is None:
+            return None
+        return last_confirmed_step.value
 
     @property
     def trigger_protocol_signatures(self) -> List[str]:

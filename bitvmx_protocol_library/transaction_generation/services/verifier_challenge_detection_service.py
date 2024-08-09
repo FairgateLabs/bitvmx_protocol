@@ -1,21 +1,9 @@
 from bitvmx_protocol_library.bitvmx_execution.entities.execution_trace_dto import ExecutionTraceDTO
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
-    BitVMXProtocolPropertiesDTO,
-)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
     BitVMXProtocolVerifierDTO,
-)
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
-    BitVMXProverWinternitzPublicKeysDTO,
-)
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
-    BitVMXVerifierWinternitzPublicKeysDTO,
-)
-from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
-    BitVMXTransactionsDTO,
 )
 from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection.verifier_execution_challenge_detection_service import (
     VerifierExecutionChallengeDetectionService,
@@ -37,14 +25,12 @@ class VerifierChallengeDetectionService:
 
     def __call__(
         self,
-        bitvmx_transactions_dto: BitVMXTransactionsDTO,
-        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
-        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
-        bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
-        trace_tx_id = bitvmx_transactions_dto.trace_tx.get_txid()
+        trace_tx_id = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trace_tx.get_txid()
+        )
         trace_transaction_info = transaction_info_service(trace_tx_id)
         previous_trace_witness = trace_transaction_info.inputs[0].witness
 
@@ -57,7 +43,7 @@ class VerifierChallengeDetectionService:
                 list(
                     map(
                         lambda x: len(x),
-                        bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
+                        bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
                     )
                 )
             )
@@ -69,14 +55,22 @@ class VerifierChallengeDetectionService:
         ]
         bitvmx_protocol_verifier_dto.prover_trace_witness = prover_trace_witness
 
-        trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
+        trace_words_lengths = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
+                ::-1
+            ]
+        )
 
         consumed_items = 0
         trace_values = []
-        for i in range(len(bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys)):
-            current_public_keys = (
-                bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[i]
+        for i in range(
+            len(
+                bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys
             )
+        ):
+            current_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys[
+                i
+            ]
             current_length = trace_words_lengths[i]
             current_witness = prover_trace_witness[
                 len(prover_trace_witness)
@@ -99,7 +93,7 @@ class VerifierChallengeDetectionService:
             "".join(
                 map(
                     lambda digit: bin(digit)[2:].zfill(
-                        bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                        bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
                     ),
                     bitvmx_protocol_verifier_dto.search_choices,
                 )

@@ -9,9 +9,6 @@ from bitvmx_protocol_library.script_generation.entities.dtos.bitvmx_bitcoin_scri
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_signatures_dto import (
     BitVMXSignaturesDTO,
 )
-from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
-    BitVMXTransactionsDTO,
-)
 
 
 class GenerateSignaturesService:
@@ -22,7 +19,6 @@ class GenerateSignaturesService:
 
     def __call__(
         self,
-        bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_bitcoin_scripts_dto: BitVMXBitcoinScriptsDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
     ):
@@ -37,7 +33,7 @@ class GenerateSignaturesService:
             )
         )
         hash_result_signature = self.private_key.sign_taproot_input(
-            bitvmx_transactions_dto.hash_result_tx,
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.hash_result_tx,
             0,
             [hash_result_script_address.to_script_pub_key()],
             [funding_result_output_amount],
@@ -53,7 +49,7 @@ class GenerateSignaturesService:
             )
         )
         trigger_protocol_signature = self.private_key.sign_taproot_input(
-            bitvmx_transactions_dto.trigger_protocol_tx,
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_protocol_tx,
             0,
             [trigger_protocol_script_address.to_script_pub_key()],
             [
@@ -68,8 +64,12 @@ class GenerateSignaturesService:
 
         search_hash_signatures = []
         search_choice_signatures = []
-        for i in range(len(bitvmx_transactions_dto.search_hash_tx_list)):
-            current_search_hash_tx = bitvmx_transactions_dto.search_hash_tx_list[i]
+        for i in range(
+            len(bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list)
+        ):
+            current_search_hash_tx = (
+                bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list[i]
+            )
             current_search_hash_script_address = bitvmx_bitcoin_scripts_dto.hash_search_scripts[
                 i
             ].get_taproot_address(self.destroyed_public_key)
@@ -88,7 +88,11 @@ class GenerateSignaturesService:
             )
             search_hash_signatures.append(current_search_hash_signature)
 
-            current_search_choice_tx = bitvmx_transactions_dto.search_choice_tx_list[i]
+            current_search_choice_tx = (
+                bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_choice_tx_list[
+                    i
+                ]
+            )
             current_search_choice_script_address = bitvmx_bitcoin_scripts_dto.choice_search_scripts[
                 i
             ].get_taproot_address(self.destroyed_public_key)
@@ -111,12 +115,18 @@ class GenerateSignaturesService:
             self.destroyed_public_key
         )
         trace_signature = self.private_key.sign_taproot_input(
-            bitvmx_transactions_dto.trace_tx,
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trace_tx,
             0,
             [trace_script_address.to_script_pub_key()],
             [
                 funding_result_output_amount
-                - (2 * len(bitvmx_transactions_dto.search_hash_tx_list) + 2)
+                - (
+                    2
+                    * len(
+                        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list
+                    )
+                    + 2
+                )
                 * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
             ],
             script_path=True,
@@ -131,12 +141,18 @@ class GenerateSignaturesService:
             )
         )
         trigger_execution_challenge_signature = self.private_key.sign_taproot_input(
-            bitvmx_transactions_dto.trigger_execution_challenge_tx,
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_execution_challenge_tx,
             0,
             [trigger_challenge_address.to_script_pub_key()],
             [
                 funding_result_output_amount
-                - (2 * len(bitvmx_transactions_dto.search_hash_tx_list) + 3)
+                - (
+                    2
+                    * len(
+                        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list
+                    )
+                    + 3
+                )
                 * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
             ],
             script_path=True,

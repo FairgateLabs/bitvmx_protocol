@@ -4,26 +4,14 @@ from bitcoinutils.utils import ControlBlock
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
     ExecutionTraceQueryService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
-    BitVMXProtocolPropertiesDTO,
-)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_prover_dto import (
     BitVMXProtocolProverDTO,
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_winternitz_public_keys_dto import (
-    BitVMXProverWinternitzPublicKeysDTO,
-)
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
-    BitVMXVerifierWinternitzPublicKeysDTO,
-)
 from bitvmx_protocol_library.script_generation.services.script_generation.execution_trace_script_generator_service import (
     ExecutionTraceScriptGeneratorService,
-)
-from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
-    BitVMXTransactionsDTO,
 )
 from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,
@@ -52,20 +40,24 @@ class PublishTraceTransactionService:
     def __call__(
         self,
         setup_uuid: str,
-        bitvmx_transactions_dto: BitVMXTransactionsDTO,
-        bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
-        bitvmx_prover_winternitz_public_keys_dto: BitVMXProverWinternitzPublicKeysDTO,
-        bitvmx_verifier_winternitz_public_keys_dto: BitVMXVerifierWinternitzPublicKeysDTO,
         bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
     ):
 
         trace_signatures = bitvmx_protocol_prover_dto.trace_signatures
-        trace_words_lengths = bitvmx_protocol_properties_dto.trace_words_lengths[::-1]
+        trace_words_lengths = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
+                ::-1
+            ]
+        )
 
         trace_witness = []
 
-        previous_choice_tx = bitvmx_transactions_dto.search_choice_tx_list[-1].get_txid()
+        previous_choice_tx = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_choice_tx_list[
+                -1
+            ].get_txid()
+        )
         previous_choice_transaction_info = transaction_info_service(previous_choice_tx)
         previous_witness = previous_choice_transaction_info.inputs[0].witness
         trace_witness += previous_witness[len(trace_signatures) + 0 : len(trace_signatures) + 4]
@@ -80,7 +72,7 @@ class PublishTraceTransactionService:
             "".join(
                 map(
                     lambda digit: bin(digit)[2:].zfill(
-                        bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                        bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
                     ),
                     bitvmx_protocol_prover_dto.search_choices,
                 )
@@ -102,12 +94,16 @@ class PublishTraceTransactionService:
         trace_witness += self.generate_prover_witness_from_input_single_word_service(
             step=(
                 3
-                + (bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations - 1) * 2
+                + (
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+                    - 1
+                )
+                * 2
                 + 1
             ),
             case=0,
             input_number=current_choice,
-            amount_of_bits=bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            amount_of_bits=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
         )
 
         for word_count in range(len(trace_words_lengths)):
@@ -117,20 +113,28 @@ class PublishTraceTransactionService:
                 input_number.append(int(letter, 16))
 
             trace_witness += self.generate_witness_from_input_nibbles_service(
-                step=3 + bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations * 2,
+                step=3
+                + bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+                * 2,
                 case=len(trace_words_lengths) - word_count - 1,
                 input_numbers=input_number,
-                bits_per_digit_checksum=bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+                bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             )
 
         trace_script = self.execution_trace_script_generator_service(
             bitvmx_protocol_setup_properties_dto.signature_public_keys,
-            bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
+            bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
             trace_words_lengths,
-            bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
-            bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
-            bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list[-1][0],
-            bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list[-1][
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list[
+                -1
+            ][
+                0
+            ],
+            bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list[
+                -1
+            ][
                 0
             ],
         )
@@ -147,7 +151,7 @@ class PublishTraceTransactionService:
             is_odd=trace_script_address.is_odd(),
         )
 
-        bitvmx_transactions_dto.trace_tx.witnesses.append(
+        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trace_tx.witnesses.append(
             TxWitnessInput(
                 trace_signatures
                 + trace_witness
@@ -158,6 +162,11 @@ class PublishTraceTransactionService:
             )
         )
 
-        broadcast_transaction_service(transaction=bitvmx_transactions_dto.trace_tx.serialize())
-        print("Trace transaction: " + bitvmx_transactions_dto.trace_tx.get_txid())
-        return bitvmx_transactions_dto.trace_tx
+        broadcast_transaction_service(
+            transaction=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trace_tx.serialize()
+        )
+        print(
+            "Trace transaction: "
+            + bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trace_tx.get_txid()
+        )
+        return bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trace_tx

@@ -42,5 +42,23 @@ services:
         target: /bitvmx-backend
     entrypoint: sh -c "black --config .black . && ruff check --fix"
 
+  flake8:
+    image: bitvmx-base
+    volumes:
+      - type: bind
+        source: ./
+        target: /bitvmx-backend
+        read_only: true
+    entrypoint: flake8
+
+  black:
+    image: bitvmx-base
+    volumes:
+      - type: bind
+        source: ./
+        target: /bitvmx-backend
+        read_only: true
+    entrypoint: black --config .black --check --diff .
+
 networks:
   bitvmx-net:
