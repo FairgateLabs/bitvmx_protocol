@@ -1,4 +1,3 @@
-import pickle
 
 from bitcoinutils.keys import PrivateKey
 from bitcoinutils.setup import NETWORK
@@ -61,8 +60,6 @@ class GenerateSignaturesController:
         else:
             assert NETWORK == self.common_protocol_properties.network.value
 
-        protocol_dict = {}
-
         bitvmx_protocol_verifier_private_dto = (
             self.bitvmx_protocol_verifier_private_dto_persistence.get(setup_uuid=setup_uuid)
         )
@@ -123,9 +120,6 @@ class GenerateSignaturesController:
             prover_signatures_dto=bitvmx_prover_signatures_dto,
             verifier_signatures_dtos=verifier_signatures_dtos,
         )
-
-        with open(f"verifier_files/{setup_uuid}/file_database.pkl", "wb") as f:
-            pickle.dump(protocol_dict, f)
 
         self.bitvmx_protocol_verifier_private_dto_persistence.delete_private_key(
             setup_uuid=setup_uuid

@@ -1,5 +1,3 @@
-import os
-import pickle
 import secrets
 import uuid
 from typing import List
@@ -27,6 +25,12 @@ from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_verifier_signatures_dto import (
     BitVMXVerifierSignaturesDTO,
 )
+from prover_app.domain.persistences.interfaces.bitvmx_protocol_prover_dto_persistence_interface import (
+    BitVMXProtocolProverDTOPersistenceInterface,
+)
+from prover_app.domain.persistences.interfaces.bitvmx_protocol_prover_private_dto_persistence_interface import (
+    BitVMXProtocolProverPrivateDTOPersistenceInterface,
+)
 from verifier_app.domain.persistences.interfaces.bitvmx_protocol_setup_properties_dto_persistence_interface import (
     BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
 )
@@ -44,6 +48,8 @@ class CreateSetupController:
         verify_verifier_signatures_service_class,
         generate_signatures_service_class,
         bitvmx_protocol_setup_properties_dto_persistence: BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
+        bitvmx_protocol_prover_private_dto_persistence: BitVMXProtocolProverPrivateDTOPersistenceInterface,
+        bitvmx_protocol_prover_dto_persistence: BitVMXProtocolProverDTOPersistenceInterface,
     ):
         self.broadcast_transaction_service = broadcast_transaction_service
         self.transaction_info_service = transaction_info_service
@@ -58,6 +64,10 @@ class CreateSetupController:
         self.bitvmx_protocol_setup_properties_dto_persistence = (
             bitvmx_protocol_setup_properties_dto_persistence
         )
+        self.bitvmx_protocol_prover_private_dto_persistence = (
+            bitvmx_protocol_prover_private_dto_persistence
+        )
+        self.bitvmx_protocol_prover_dto_persistence = bitvmx_protocol_prover_dto_persistence
 
     async def __call__(
         self,
@@ -84,8 +94,6 @@ class CreateSetupController:
             amount_of_bits_wrong_step_search=amount_of_bits_wrong_step_search,
             amount_of_bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
         )
-
-        protocol_dict = {}
 
         public_keys = []
         verifier_destroyed_public_key_hex = None
@@ -257,7 +265,6 @@ class CreateSetupController:
             prover_signatures_dto=prover_signatures_dto,
             verifier_signatures_dtos=verifier_signatures_dto_dict,
         )
-        protocol_dict["bitvmx_protocol_prover_dto"] = bitvmx_protocol_prover_dto
 
         verify_verifier_signatures_service = self.verify_verifier_signatures_service_class(
             unspendable_public_key=unspendable_public_key
@@ -272,7 +279,7 @@ class CreateSetupController:
                 bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             )
 
-        protocol_dict["bitvmx_protocol_prover_private_dto"] = BitVMXProtocolProverPrivateDTO(
+        bitvmx_protocol_prover_private_dto = BitVMXProtocolProverPrivateDTO(
             winternitz_private_key=winternitz_private_key.to_bytes().hex(),
             prover_signature_private_key=prover_signature_private_key,
         )
@@ -280,11 +287,13 @@ class CreateSetupController:
         self.bitvmx_protocol_setup_properties_dto_persistence.create(
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
         )
-
-        os.makedirs(f"prover_files/{setup_uuid}")
-
-        with open(f"prover_files/{setup_uuid}/file_database.pkl", "xb") as f:
-            pickle.dump(protocol_dict, f)
+        self.bitvmx_protocol_prover_private_dto_persistence.create(
+            setup_uuid=setup_uuid,
+            bitvmx_protocol_prover_private_dto=bitvmx_protocol_prover_private_dto,
+        )
+        self.bitvmx_protocol_prover_dto_persistence.create(
+            setup_uuid=setup_uuid, bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto
+        )
 
         #################################################################
 

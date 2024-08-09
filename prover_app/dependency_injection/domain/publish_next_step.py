@@ -15,6 +15,12 @@ from bitvmx_protocol_library.transaction_generation.services.publication_service
 from blockchain_query_services.common.transaction_published_service import (
     TransactionPublishedService,
 )
+from prover_app.dependency_injection.persistences.bitvmx_protocol_prover_dto_persistences import (
+    BitVMXProtocolProverDTOPersistences,
+)
+from prover_app.dependency_injection.persistences.bitvmx_protocol_prover_private_dto_persistences import (
+    BitVMXProtocolProverPrivateDTOPersistences,
+)
 from prover_app.dependency_injection.persistences.bitvmx_protocol_setup_properties_dto_persistences import (
     BitVMXProtocolSetupPropertiesDTOPersistences,
 )
@@ -32,4 +38,6 @@ class PublishNextStepControllers(containers.DeclarativeContainer):
         publish_trace_transaction_service_class=PublishTraceTransactionService,
         execution_challenge_transaction_service_class=ExecutionChallengeTransactionService,
         bitvmx_protocol_setup_properties_dto_persistence=BitVMXProtocolSetupPropertiesDTOPersistences.bitvmx,
+        bitvmx_protocol_prover_private_dto_persistence=BitVMXProtocolProverPrivateDTOPersistences.bitvmx,
+        bitvmx_protocol_prover_dto_persistence=BitVMXProtocolProverDTOPersistences.bitvmx,
     )

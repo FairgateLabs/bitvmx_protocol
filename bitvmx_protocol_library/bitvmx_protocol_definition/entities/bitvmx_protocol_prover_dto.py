@@ -1,6 +1,6 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_verifier_signatures_dto import (
     BitVMXVerifierSignaturesDTO,
@@ -17,6 +17,14 @@ class BitVMXProtocolProverDTO(BaseModel):
     last_confirmed_step_tx_id: Optional[str] = None
     search_choices: List[int] = Field(default_factory=list)
     published_hashes_dict: Dict[int, str] = Field(default_factory=dict)
+
+    @field_serializer("last_confirmed_step", when_used="always")
+    def serialize_last_confirmed_step(
+        last_confirmed_step: Union[None, TransactionProverStepType]
+    ) -> Union[None, str]:
+        if last_confirmed_step is None:
+            return None
+        return last_confirmed_step.value
 
     @property
     def hash_result_signatures(self):

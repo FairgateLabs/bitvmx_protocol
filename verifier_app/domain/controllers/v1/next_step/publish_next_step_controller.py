@@ -1,5 +1,4 @@
 import asyncio
-import pickle
 
 import httpx
 from bitcoinutils.keys import PrivateKey
@@ -61,8 +60,6 @@ class PublishNextStepController:
         self.bitvmx_protocol_verifier_dto_persistence = bitvmx_protocol_verifier_dto_persistence
 
     async def __call__(self, setup_uuid: str):
-        with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
-            protocol_dict = pickle.load(f)
         if self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
             assert NETWORK == "testnet"
         else:
@@ -207,8 +204,5 @@ class PublishNextStepController:
         self.bitvmx_protocol_verifier_dto_persistence.update(
             setup_uuid=setup_uuid, bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto
         )
-
-        with open(f"verifier_files/{setup_uuid}/file_database.pkl", "wb") as f:
-            pickle.dump(protocol_dict, f)
 
         return bitvmx_protocol_verifier_dto.last_confirmed_step
