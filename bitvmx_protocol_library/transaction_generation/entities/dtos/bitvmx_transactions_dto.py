@@ -31,12 +31,10 @@ class BitVMXTransactionsDTO(BaseModel):
         )
 
     @staticmethod
-    def transform_transaction_input(input: Union[Transaction, Dict]) -> Transaction:
+    def transform_transaction_input(input: Union[Transaction, str]) -> Transaction:
         if isinstance(input, Transaction):
             return input
-        reconstructed_input = Transaction.from_raw(rawtxhex=input["serialization"])
-        reconstructed_input.locktime = bytes.fromhex(input["locktime"])
-        return reconstructed_input
+        return Transaction.from_raw(rawtxhex=input)
 
     def __init__(self, **data: Dict):
         for field_name, field_type in self.__annotations__.items():
@@ -53,23 +51,23 @@ class BitVMXTransactionsDTO(BaseModel):
         super().__init__(**data)
 
     @staticmethod
-    def transaction_to_str(transaction: Transaction) -> Dict:
-        return {"serialization": transaction.to_hex(), "locktime": transaction.locktime.hex()}
+    def transaction_to_str(transaction: Transaction) -> str:
+        return transaction.to_hex()
 
     @field_serializer("funding_tx", when_used="always")
-    def serialize_funding_tx(funding_tx: Transaction) -> Dict:
+    def serialize_funding_tx(funding_tx: Transaction) -> str:
         return BitVMXTransactionsDTO.transaction_to_str(funding_tx)
 
     @field_serializer("hash_result_tx", when_used="always")
-    def serialize_hash_result_tx(hash_result_tx: Transaction) -> Dict:
+    def serialize_hash_result_tx(hash_result_tx: Transaction) -> str:
         return BitVMXTransactionsDTO.transaction_to_str(hash_result_tx)
 
     @field_serializer("trigger_protocol_tx", when_used="always")
-    def serialize_trigger_protocol_tx(trigger_protocol_tx: Transaction) -> Dict:
+    def serialize_trigger_protocol_tx(trigger_protocol_tx: Transaction) -> str:
         return BitVMXTransactionsDTO.transaction_to_str(trigger_protocol_tx)
 
     @field_serializer("search_hash_tx_list", when_used="always")
-    def serialize_search_hash_tx_list(search_hash_tx_list: List[Transaction]) -> List[Dict]:
+    def serialize_search_hash_tx_list(search_hash_tx_list: List[Transaction]) -> List[str]:
         return list(
             map(
                 lambda transaction: BitVMXTransactionsDTO.transaction_to_str(transaction),
@@ -78,7 +76,7 @@ class BitVMXTransactionsDTO(BaseModel):
         )
 
     @field_serializer("search_choice_tx_list", when_used="always")
-    def serialize_search_choice_tx_list(search_choice_tx_list: List[Transaction]) -> List[Dict]:
+    def serialize_search_choice_tx_list(search_choice_tx_list: List[Transaction]) -> List[str]:
         return list(
             map(
                 lambda transaction: BitVMXTransactionsDTO.transaction_to_str(transaction),
@@ -87,15 +85,15 @@ class BitVMXTransactionsDTO(BaseModel):
         )
 
     @field_serializer("trace_tx", when_used="always")
-    def serialize_trace_tx(trace_tx: Transaction) -> Dict:
+    def serialize_trace_tx(trace_tx: Transaction) -> str:
         return BitVMXTransactionsDTO.transaction_to_str(trace_tx)
 
     @field_serializer("trigger_execution_challenge_tx", when_used="always")
     def serialize_trigger_execution_challenge_tx(
         trigger_execution_challenge_tx: Transaction,
-    ) -> Dict:
+    ) -> str:
         return BitVMXTransactionsDTO.transaction_to_str(trigger_execution_challenge_tx)
 
     @field_serializer("execution_challenge_tx", when_used="always")
-    def serialize_execution_challenge_tx(execution_challenge_tx: Transaction) -> Dict:
+    def serialize_execution_challenge_tx(execution_challenge_tx: Transaction) -> str:
         return BitVMXTransactionsDTO.transaction_to_str(execution_challenge_tx)

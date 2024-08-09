@@ -6,6 +6,9 @@ import httpx
 from bitcoinutils.keys import PrivateKey
 
 from bitvmx_protocol_library.transaction_generation.enums import TransactionProverStepType
+from prover_app.domain.persistences.interfaces.bitvmx_protocol_setup_properties_dto_persistence_interface import (
+    BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
+)
 
 
 async def _trigger_next_step_verifier(setup_uuid: str, verifier_list: List[str]):
@@ -34,6 +37,7 @@ class PublishNextStepController:
         publish_hash_search_transaction_service_class,
         publish_trace_transaction_service_class,
         execution_challenge_transaction_service_class,
+        bitvmx_protocol_setup_properties_dto_persistence: BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
     ):
         self.transaction_published_service = transaction_published_service
         self.publish_hash_transaction_service_class = publish_hash_transaction_service_class
@@ -44,14 +48,20 @@ class PublishNextStepController:
         self.execution_challenge_transaction_service_class = (
             execution_challenge_transaction_service_class
         )
+        self.bitvmx_protocol_setup_properties_dto_persistence = (
+            bitvmx_protocol_setup_properties_dto_persistence
+        )
 
     def __call__(self, setup_uuid: str) -> TransactionProverStepType:
         with open(f"prover_files/{setup_uuid}/file_database.pkl", "rb") as f:
             protocol_dict = pickle.load(f)
 
-        bitvmx_protocol_setup_properties_dto = protocol_dict["bitvmx_protocol_setup_properties_dto"]
         bitvmx_protocol_prover_private_dto = protocol_dict["bitvmx_protocol_prover_private_dto"]
         bitvmx_protocol_prover_dto = protocol_dict["bitvmx_protocol_prover_dto"]
+
+        bitvmx_protocol_setup_properties_dto = (
+            self.bitvmx_protocol_setup_properties_dto_persistence.get(setup_uuid=setup_uuid)
+        )
 
         wintertniz_private_key = PrivateKey(
             b=bytes.fromhex(bitvmx_protocol_prover_private_dto.winternitz_private_key)

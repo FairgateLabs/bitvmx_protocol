@@ -11,10 +11,10 @@ from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_
     VerifierChallengeDetectionService,
 )
 from verifier_app.config import protocol_properties
-from verifier_app.dependency_injection.persistence.bitvmx_protocol_setup_properties_dto_persistences import (
+from verifier_app.dependency_injection.persistences.bitvmx_protocol_setup_properties_dto_persistences import (
     BitVMXProtocolSetupPropertiesDTOPersistences,
 )
-from verifier_app.dependency_injection.persistence.bitvmx_protocol_verifier_private_dto_persistences import (
+from verifier_app.dependency_injection.persistences.bitvmx_protocol_verifier_private_dto_persistences import (
     BitVMXProtocolVerifierPrivateDTOPersistences,
 )
 from verifier_app.domain.controllers.v1.next_step.publish_next_step_controller import (

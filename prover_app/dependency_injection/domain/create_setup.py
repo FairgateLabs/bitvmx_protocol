@@ -20,7 +20,10 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
     transaction_info_service,
 )
 from blockchain_query_services.services.mutinynet_api.faucet_service import FaucetService
-from prover_app.domain.v1.setup.controllers.create_setup_controller import CreateSetupController
+from prover_app.dependency_injection.persistences.bitvmx_protocol_setup_properties_dto_persistences import (
+    BitVMXProtocolSetupPropertiesDTOPersistences,
+)
+from prover_app.domain.controllers.v1.setup.create_setup_controller import CreateSetupController
 
 
 class CreateSetupControllers(containers.DeclarativeContainer):
@@ -34,4 +37,5 @@ class CreateSetupControllers(containers.DeclarativeContainer):
         generate_prover_public_keys_service_class=GenerateProverPublicKeysService,
         verify_verifier_signatures_service_class=VerifyVerifierSignaturesService,
         generate_signatures_service_class=GenerateSignaturesService,
+        bitvmx_protocol_setup_properties_dto_persistence=BitVMXProtocolSetupPropertiesDTOPersistences.bitvmx,
     )

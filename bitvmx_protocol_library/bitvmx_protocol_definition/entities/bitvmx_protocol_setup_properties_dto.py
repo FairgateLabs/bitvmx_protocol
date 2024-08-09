@@ -38,7 +38,7 @@ class BitVMXProtocolSetupPropertiesDTO(BaseModel):
         None
     )
 
-    def __init__(self, **data: Dict):
+    def __init__(self, **data):
         if "bitvmx_transactions_dto" in data and data["bitvmx_transactions_dto"] is not None:
             data["bitvmx_transactions_dto"] = BitVMXTransactionsDTO(
                 **data["bitvmx_transactions_dto"]

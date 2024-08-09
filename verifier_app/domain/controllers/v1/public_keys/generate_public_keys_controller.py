@@ -11,10 +11,10 @@ from bitvmx_protocol_library.enums import BitcoinNetwork
 from bitvmx_protocol_library.transaction_generation.services.transaction_generator_from_public_keys_service import (
     TransactionGeneratorFromPublicKeysService,
 )
-from verifier_app.domain.persistence.interfaces.bitvmx_protocol_setup_properties_dto_persistence_interface import (
+from verifier_app.domain.persistences.interfaces.bitvmx_protocol_setup_properties_dto_persistence_interface import (
     BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
 )
-from verifier_app.domain.persistence.interfaces.bitvmx_protocol_verifier_private_dto_persistence_interface import (
+from verifier_app.domain.persistences.interfaces.bitvmx_protocol_verifier_private_dto_persistence_interface import (
     BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
 )
 

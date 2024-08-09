@@ -13,10 +13,10 @@ from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_prover_
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_verifier_signatures_dto import (
     BitVMXVerifierSignaturesDTO,
 )
-from verifier_app.domain.persistence.interfaces.bitvmx_protocol_setup_properties_dto_persistence_interface import (
+from verifier_app.domain.persistences.interfaces.bitvmx_protocol_setup_properties_dto_persistence_interface import (
     BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
 )
-from verifier_app.domain.persistence.interfaces.bitvmx_protocol_verifier_private_dto_persistence_interface import (
+from verifier_app.domain.persistences.interfaces.bitvmx_protocol_verifier_private_dto_persistence_interface import (
     BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
 )
 
@@ -69,13 +69,6 @@ class GenerateSignaturesController:
             self.bitvmx_protocol_setup_properties_dto_persistence.get(setup_uuid=setup_uuid)
         )
 
-        # Transaction construction
-        bitvmx_transactions_dto = self.transaction_generator_from_public_keys_service(
-            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-        )
-
-        protocol_dict["bitvmx_transactions_dto"] = bitvmx_transactions_dto
-
         # Scripts construction
         bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
@@ -88,7 +81,6 @@ class GenerateSignaturesController:
         verify_prover_signatures_service(
             public_key=bitvmx_protocol_setup_properties_dto.prover_destroyed_public_key,
             bitvmx_prover_signatures_dto=bitvmx_prover_signatures_dto,
-            bitvmx_transactions_dto=bitvmx_transactions_dto,
             bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )

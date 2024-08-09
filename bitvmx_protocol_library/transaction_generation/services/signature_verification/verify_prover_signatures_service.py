@@ -7,9 +7,6 @@ from bitvmx_protocol_library.script_generation.entities.dtos.bitvmx_bitcoin_scri
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_prover_signatures_dto import (
     BitVMXProverSignaturesDTO,
 )
-from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
-    BitVMXTransactionsDTO,
-)
 from bitvmx_protocol_library.transaction_generation.services.signature_verification.verify_signature_service import (
     VerifySignatureService,
 )
@@ -25,7 +22,6 @@ class VerifyProverSignaturesService:
         self,
         public_key: str,
         bitvmx_prover_signatures_dto: BitVMXProverSignaturesDTO,
-        bitvmx_transactions_dto: BitVMXTransactionsDTO,
         bitvmx_bitcoin_scripts_dto: BitVMXBitcoinScriptsDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
     ):

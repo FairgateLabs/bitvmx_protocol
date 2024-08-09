@@ -7,7 +7,7 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
     BitVMXProtocolVerifierPrivateDTO,
 )
 from bitvmx_protocol_library.enums import BitcoinNetwork
-from verifier_app.domain.persistence.interfaces.bitvmx_protocol_verifier_private_dto_persistence_interface import (
+from verifier_app.domain.persistences.interfaces.bitvmx_protocol_verifier_private_dto_persistence_interface import (
     BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
 )
 

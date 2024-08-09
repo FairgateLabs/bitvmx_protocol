@@ -27,6 +27,9 @@ from bitvmx_protocol_library.config import common_protocol_properties
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_verifier_signatures_dto import (
     BitVMXVerifierSignaturesDTO,
 )
+from verifier_app.domain.persistences.interfaces.bitvmx_protocol_setup_properties_dto_persistence_interface import (
+    BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
+)
 
 
 class CreateSetupController:
@@ -40,6 +43,7 @@ class CreateSetupController:
         generate_prover_public_keys_service_class,
         verify_verifier_signatures_service_class,
         generate_signatures_service_class,
+        bitvmx_protocol_setup_properties_dto_persistence: BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
     ):
         self.broadcast_transaction_service = broadcast_transaction_service
         self.transaction_info_service = transaction_info_service
@@ -51,6 +55,9 @@ class CreateSetupController:
         self.generate_prover_public_keys_service_class = generate_prover_public_keys_service_class
         self.verify_verifier_signatures_service_class = verify_verifier_signatures_service_class
         self.generate_signatures_service_class = generate_signatures_service_class
+        self.bitvmx_protocol_setup_properties_dto_persistence = (
+            bitvmx_protocol_setup_properties_dto_persistence
+        )
 
     async def __call__(
         self,
@@ -270,7 +277,9 @@ class CreateSetupController:
             prover_signature_private_key=prover_signature_private_key,
         )
 
-        protocol_dict["bitvmx_protocol_setup_properties_dto"] = bitvmx_protocol_setup_properties_dto
+        self.bitvmx_protocol_setup_properties_dto_persistence.create(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
+        )
 
         os.makedirs(f"prover_files/{setup_uuid}")
 

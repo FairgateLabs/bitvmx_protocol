@@ -10,10 +10,10 @@ from bitvmx_protocol_library.transaction_generation.enums import TransactionVeri
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     transaction_info_service,
 )
-from verifier_app.domain.persistence.interfaces.bitvmx_protocol_setup_properties_dto_persistence_interface import (
+from verifier_app.domain.persistences.interfaces.bitvmx_protocol_setup_properties_dto_persistence_interface import (
     BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
 )
-from verifier_app.domain.persistence.interfaces.bitvmx_protocol_verifier_private_dto_persistence_interface import (
+from verifier_app.domain.persistences.interfaces.bitvmx_protocol_verifier_private_dto_persistence_interface import (
     BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
 )
 

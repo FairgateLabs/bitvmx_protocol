@@ -13,10 +13,10 @@ from bitvmx_protocol_library.transaction_generation.services.signature_verificat
 from bitvmx_protocol_library.transaction_generation.services.transaction_generator_from_public_keys_service import (
     TransactionGeneratorFromPublicKeysService,
 )
-from verifier_app.dependency_injection.persistence.bitvmx_protocol_setup_properties_dto_persistences import (
+from verifier_app.dependency_injection.persistences.bitvmx_protocol_setup_properties_dto_persistences import (
     BitVMXProtocolSetupPropertiesDTOPersistences,
 )
-from verifier_app.dependency_injection.persistence.bitvmx_protocol_verifier_private_dto_persistences import (
+from verifier_app.dependency_injection.persistences.bitvmx_protocol_verifier_private_dto_persistences import (
     BitVMXProtocolVerifierPrivateDTOPersistences,
 )
 from verifier_app.domain.controllers.v1.signatures.generate_signatures_controller import (
