@@ -13,6 +13,9 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 from verifier_app.domain.persistences.interfaces.bitvmx_protocol_setup_properties_dto_persistence_interface import (
     BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
 )
+from verifier_app.domain.persistences.interfaces.bitvmx_protocol_verifier_dto_persistence_interface import (
+    BitVMXProtocolVerifierDTOPersistenceInterface,
+)
 from verifier_app.domain.persistences.interfaces.bitvmx_protocol_verifier_private_dto_persistence_interface import (
     BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
 )
@@ -40,6 +43,7 @@ class PublishNextStepController:
         common_protocol_properties,
         bitvmx_protocol_verifier_private_dto_persistence: BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
         bitvmx_protocol_setup_properties_dto_persistence: BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
+        bitvmx_protocol_verifier_dto_persistence: BitVMXProtocolVerifierDTOPersistenceInterface,
     ):
         self.trigger_protocol_transaction_service = trigger_protocol_transaction_service
         self.verifier_challenge_detection_service = verifier_challenge_detection_service
@@ -54,6 +58,7 @@ class PublishNextStepController:
         self.bitvmx_protocol_setup_properties_dto_persistence = (
             bitvmx_protocol_setup_properties_dto_persistence
         )
+        self.bitvmx_protocol_verifier_dto_persistence = bitvmx_protocol_verifier_dto_persistence
 
     async def __call__(self, setup_uuid: str):
         with open(f"verifier_files/{setup_uuid}/file_database.pkl", "rb") as f:
@@ -67,7 +72,9 @@ class PublishNextStepController:
             self.bitvmx_protocol_setup_properties_dto_persistence.get(setup_uuid=setup_uuid)
         )
 
-        bitvmx_protocol_verifier_dto = protocol_dict["bitvmx_protocol_verifier_dto"]
+        bitvmx_protocol_verifier_dto = self.bitvmx_protocol_verifier_dto_persistence.get(
+            setup_uuid=setup_uuid
+        )
         bitvmx_protocol_verifier_private_dto = (
             self.bitvmx_protocol_verifier_private_dto_persistence.get(setup_uuid=setup_uuid)
         )
@@ -196,6 +203,10 @@ class PublishNextStepController:
                     setup_uuid=setup_uuid, prover_host=self.protocol_properties.prover_host
                 )
             )
+
+        self.bitvmx_protocol_verifier_dto_persistence.update(
+            setup_uuid=setup_uuid, bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto
+        )
 
         with open(f"verifier_files/{setup_uuid}/file_database.pkl", "wb") as f:
             pickle.dump(protocol_dict, f)

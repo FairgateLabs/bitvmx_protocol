@@ -16,6 +16,9 @@ from bitvmx_protocol_library.transaction_generation.services.transaction_generat
 from verifier_app.dependency_injection.persistences.bitvmx_protocol_setup_properties_dto_persistences import (
     BitVMXProtocolSetupPropertiesDTOPersistences,
 )
+from verifier_app.dependency_injection.persistences.bitvmx_protocol_verifier_dto_persistences import (
+    BitVMXProtocolVerifierDTOPersistences,
+)
 from verifier_app.dependency_injection.persistences.bitvmx_protocol_verifier_private_dto_persistences import (
     BitVMXProtocolVerifierPrivateDTOPersistences,
 )
@@ -34,4 +37,5 @@ class GenerateSignaturesControllers(containers.DeclarativeContainer):
         common_protocol_properties=common_protocol_properties,
         bitvmx_protocol_verifier_private_dto_persistence=BitVMXProtocolVerifierPrivateDTOPersistences.bitvmx,
         bitvmx_protocol_setup_properties_dto_persistence=BitVMXProtocolSetupPropertiesDTOPersistences.bitvmx,
+        bitvmx_protocol_verifier_dto_persistence=BitVMXProtocolVerifierDTOPersistences.bitvmx,
     )
