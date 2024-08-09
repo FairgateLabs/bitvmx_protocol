@@ -1,4 +1,3 @@
-
 from bitcoinutils.keys import PrivateKey
 from bitcoinutils.setup import NETWORK
 
