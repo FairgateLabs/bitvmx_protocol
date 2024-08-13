@@ -7,7 +7,7 @@ from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_commitmen
 from bitvmx_protocol_library.script_generation.entities.business_objects.bitvmx_execution_script_list import (
     BitVMXExecutionScriptList,
 )
-from bitvmx_protocol_library.script_generation.services.script_generation.execution_challenge_script_from_key_generator_service import (
+from bitvmx_protocol_library.script_generation.services.script_generation.prover.execution_challenge_script_from_key_generator_service import (
     ExecutionChallengeScriptFromKeyGeneratorService,
 )
 from bitvmx_protocol_library.winternitz_keys_handling.scripts.verify_digit_signature_nibbles_service import (

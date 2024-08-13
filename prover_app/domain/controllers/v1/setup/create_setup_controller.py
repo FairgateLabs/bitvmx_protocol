@@ -97,6 +97,8 @@ class CreateSetupController:
 
         public_keys = []
         verifier_destroyed_public_key_hex = None
+        verifier_signature_public_key_hex = None
+        verifier_destination_address = None
         verifier_address_dict = {}
         signatures_public_keys_dict = {}
         for verifier in verifier_list:
@@ -110,6 +112,8 @@ class CreateSetupController:
             if response.status_code == 200:
                 response_json = response.json()
                 verifier_destroyed_public_key_hex = response_json["public_key"]
+                verifier_signature_public_key_hex = response_json["verifier_signature_public_key"]
+                verifier_destination_address = response_json["verifier_destination_address"]
                 public_keys.append(verifier_destroyed_public_key_hex)
                 signatures_public_keys_dict[current_uuid] = verifier_destroyed_public_key_hex
             else:
@@ -156,6 +160,8 @@ class CreateSetupController:
             verifier_address_dict=verifier_address_dict,
             prover_destination_address=prover_destination_address,
             prover_signature_public_key=prover_signature_public_key,
+            verifier_signature_public_key=verifier_signature_public_key_hex,
+            verifier_destination_address=verifier_destination_address,
             seed_unspendable_public_key=seed_unspendable_public_key,
             prover_destroyed_public_key=prover_destroyed_private_key.get_public_key().to_hex(),
             verifier_destroyed_public_key=verifier_destroyed_public_key_hex,

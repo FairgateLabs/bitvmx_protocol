@@ -135,10 +135,8 @@ class GenerateSignaturesService:
             tweak=False,
         )
 
-        trigger_challenge_address = (
-            bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts.get_taproot_address(
-                self.destroyed_public_key
-            )
+        trigger_challenge_address = bitvmx_bitcoin_scripts_dto.trigger_challenge_address(
+            self.destroyed_public_key
         )
         trigger_execution_challenge_signature = self.private_key.sign_taproot_input(
             bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_execution_challenge_tx,

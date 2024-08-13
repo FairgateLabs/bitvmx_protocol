@@ -129,10 +129,8 @@ class TransactionGeneratorFromPublicKeysService:
             search_choice_tx_list.append(current_tx)
             previous_tx_id = current_tx.get_txid()
 
-        trigger_challenge_script_address = (
-            bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts.get_taproot_address(
-                destroyed_public_key
-            )
+        trigger_challenge_script_address = bitvmx_bitcoin_scripts_dto.trigger_challenge_address(
+            destroyed_public_key=destroyed_public_key
         )
 
         trace_txin = TxInput(search_choice_tx_list[-1].get_txid(), 0)
@@ -154,7 +152,6 @@ class TransactionGeneratorFromPublicKeysService:
         )
 
         #  Here we should put all the challenges
-
         execution_challenge_address = (
             bitvmx_bitcoin_scripts_dto.execution_challenge_script_list.get_taproot_address(
                 destroyed_public_key
@@ -168,6 +165,19 @@ class TransactionGeneratorFromPublicKeysService:
         )
         trigger_execution_challenge_tx = Transaction(
             [trigger_execution_challenge_txin], [trigger_execution_challenge_txout], has_segwit=True
+        )
+
+        trigger_wrong_hash_txin = TxInput(trace_tx.get_txid(), 0)
+        trigger_wrong_hash_output_address = P2wpkhAddress.from_address(
+            address=bitvmx_protocol_setup_properties_dto.prover_destination_address
+        )
+        trigger_wrong_hash_txout = TxOutput(
+            trigger_challenge_output_amount,
+            trigger_wrong_hash_output_address.to_script_pub_key(),
+        )
+
+        trigger_wrong_hash_tx = Transaction(
+            [trigger_wrong_hash_txin], [trigger_wrong_hash_txout], has_segwit=True
         )
 
         execution_challenge_txin = TxInput(trigger_execution_challenge_tx.get_txid(), 0)
@@ -193,5 +203,6 @@ class TransactionGeneratorFromPublicKeysService:
             search_choice_tx_list=search_choice_tx_list,
             trace_tx=trace_tx,
             trigger_execution_challenge_tx=trigger_execution_challenge_tx,
+            trigger_wrong_hash_challenge_tx=trigger_wrong_hash_tx,
             execution_challenge_tx=execution_challenge_tx,
         )

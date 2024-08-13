@@ -42,6 +42,7 @@ class BitVMXProtocolVerifierPrivateDTOJsonPersistence(
             destroyed_private_key=(
                 self.private_keys_dict[setup_uuid] if setup_uuid in self.private_keys_dict else None
             ),
+            verifier_signature_private_key=json_data["verifier_signature_private_key"],
         )
 
     def delete_private_key(self, setup_uuid: str) -> bool:

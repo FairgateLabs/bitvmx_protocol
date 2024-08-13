@@ -22,6 +22,7 @@ class SetupFundPostViewControllerV1:
         self.common_protocol_properties = common_protocol_properties
 
     async def __call__(self, setup_post_view_input: SetupFundPostV1Input) -> SetupFundPostV1Output:
+        # sha_256_bitcoin_script = BitcoinScript.from_int_list(script_list=pybitvmbinding.sha_256_script(int(64 / 2)))
         if not self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
             raise HTTPException(
                 status_code=404,

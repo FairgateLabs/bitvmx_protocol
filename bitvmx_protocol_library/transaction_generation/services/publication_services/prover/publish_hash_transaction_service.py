@@ -15,7 +15,7 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
-from bitvmx_protocol_library.script_generation.services.script_generation.hash_result_script_generator_service import (
+from bitvmx_protocol_library.script_generation.services.script_generation.prover.hash_result_script_generator_service import (
     HashResultScriptGeneratorService,
 )
 from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (

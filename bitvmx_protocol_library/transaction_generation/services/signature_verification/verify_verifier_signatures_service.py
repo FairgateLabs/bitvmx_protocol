@@ -32,31 +32,43 @@ class VerifyVerifierSignaturesService:
         funding_result_output_amount = (
             bitvmx_protocol_setup_properties_dto.funding_amount_of_satoshis
         )
+        script = bitvmx_bitcoin_scripts_dto.hash_result_script
+        script_address = self.unspendable_public_key.get_taproot_address([[script]])
 
         self.verify_signature_service(
-            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.hash_result_tx,
-            bitvmx_bitcoin_scripts_dto.hash_result_script,
-            funding_result_output_amount,
-            public_key,
-            hash_result_signature,
+            tx=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.hash_result_tx,
+            script=bitvmx_bitcoin_scripts_dto.hash_result_script,
+            script_address=script_address,
+            amount=funding_result_output_amount,
+            public_key_hex=public_key,
+            signature=hash_result_signature,
         )
 
         for i in range(len(search_hash_signatures)):
+            script = bitvmx_bitcoin_scripts_dto.hash_search_scripts[i]
+            script_address = self.unspendable_public_key.get_taproot_address([[script]])
             self.verify_signature_service(
-                bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list[i],
-                bitvmx_bitcoin_scripts_dto.hash_search_scripts[i],
-                funding_result_output_amount
+                tx=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list[
+                    i
+                ],
+                script=script,
+                script_address=script_address,
+                amount=funding_result_output_amount
                 - (2 + 2 * i) * bitvmx_protocol_setup_properties_dto.step_fees_satoshis,
-                public_key,
-                search_hash_signatures[i],
+                public_key_hex=public_key,
+                signature=search_hash_signatures[i],
             )
 
+        script = bitvmx_bitcoin_scripts_dto.trace_script
+        script_address = self.unspendable_public_key.get_taproot_address([[script]])
+
         self.verify_signature_service(
-            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trace_tx,
-            bitvmx_bitcoin_scripts_dto.trace_script,
-            funding_result_output_amount
+            tx=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trace_tx,
+            script=script,
+            script_address=script_address,
+            amount=funding_result_output_amount
             - (2 + 2 * len(search_hash_signatures))
             * bitvmx_protocol_setup_properties_dto.step_fees_satoshis,
-            public_key,
-            trace_signature,
+            public_key_hex=public_key,
+            signature=trace_signature,
         )

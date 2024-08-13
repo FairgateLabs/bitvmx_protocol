@@ -13,7 +13,7 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
     BitVMXProtocolVerifierDTO,
 )
-from bitvmx_protocol_library.script_generation.services.script_generation.trigger_protocol_script_generator_service import (
+from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
 )
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (

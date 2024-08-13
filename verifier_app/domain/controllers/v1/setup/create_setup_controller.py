@@ -28,13 +28,19 @@ class CreateSetupController:
             assert NETWORK == network.value
         private_key = PrivateKey(b=secrets.token_bytes(32))
         winternitz_private_key = PrivateKey(b=secrets.token_bytes(32))
+        signature_private_key = PrivateKey(b=secrets.token_bytes(32))
         print("Init setup for id " + str(setup_uuid))
         bitvmx_protocol_verifier_private_dto = BitVMXProtocolVerifierPrivateDTO(
             winternitz_private_key=winternitz_private_key.to_bytes().hex(),
             destroyed_private_key=private_key.to_bytes().hex(),
+            verifier_signature_private_key=signature_private_key.to_bytes().hex(),
         )
         self.bitvmx_protocol_verifier_private_dto_persistence.create(
             setup_uuid=setup_uuid,
             bitvmx_protocol_verifier_private_dto=bitvmx_protocol_verifier_private_dto,
         )
-        return private_key.get_public_key().to_hex()
+        return (
+            private_key.get_public_key().to_hex(),
+            private_key.get_public_key().to_hex(),
+            private_key.get_public_key().get_segwit_address().to_string(),
+        )

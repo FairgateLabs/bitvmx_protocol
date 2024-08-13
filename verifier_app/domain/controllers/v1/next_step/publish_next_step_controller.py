@@ -193,7 +193,6 @@ class PublishNextStepController:
             TransactionVerifierStepType.TRIGGER_PROTOCOL,
             TransactionVerifierStepType.SEARCH_STEP_CHOICE,
             TransactionVerifierStepType.TRIGGER_EXECUTION_CHALLENGE,
-            TransactionVerifierStepType.TRIGGER_WRONG_HASH_CHALLENGE,
         ]:
             asyncio.create_task(
                 _trigger_next_step_prover(

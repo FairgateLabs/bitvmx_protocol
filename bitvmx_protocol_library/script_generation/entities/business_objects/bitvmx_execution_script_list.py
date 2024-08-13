@@ -14,7 +14,7 @@ from bitcoinutils.utils import (
 )
 from pydantic import BaseModel
 
-from bitvmx_protocol_library.script_generation.services.script_generation.execution_challenge_script_from_key_generator_service import (
+from bitvmx_protocol_library.script_generation.services.script_generation.prover.execution_challenge_script_from_key_generator_service import (
     ExecutionChallengeScriptFromKeyGeneratorService,
 )
 from bitvmx_protocol_library.script_generation.services.split_list_for_merkle_tree_service import (
