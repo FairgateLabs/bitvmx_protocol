@@ -32,6 +32,7 @@ class TriggerExecutionChallengeTransactionService:
         self.generate_witness_from_input_nibbles_service = GenerateWitnessFromInputNibblesService(
             verifier_private_key
         )
+        self.bitvmx_bitcoin_scripts_generator_service = BitVMXBitcoinScriptsGeneratorService()
 
     def __call__(
         self,
@@ -98,8 +99,7 @@ class TriggerExecutionChallengeTransactionService:
                 bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             )
 
-        bitvmx_bitcoin_scripts_generator_service = BitVMXBitcoinScriptsGeneratorService()
-        bitvmx_bitcoin_scripts_dto = bitvmx_bitcoin_scripts_generator_service(
+        bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys,
         )

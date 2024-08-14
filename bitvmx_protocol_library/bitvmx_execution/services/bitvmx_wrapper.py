@@ -35,6 +35,8 @@ class BitVMXWrapper:
             + str(base_point)
             + " and limit "
             + str(index)
+            + " with base 0 index "
+            + str(index - 1)
         )
         command = [
             "cargo",

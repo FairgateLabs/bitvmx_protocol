@@ -34,10 +34,10 @@ class VerifierWrongHashChallengeDetectionService:
             byte_sha256(bytes.fromhex(previous_step_hash + write_trace)).hex().zfill(64)
         )
         # This should be erased when the script works
-        # return (
-        #     TriggerWrongHashChallengeTransactionService,
-        #     TransactionVerifierStepType.TRIGGER_WRONG_HASH_CHALLENGE,
-        # )
+        return (
+            TriggerWrongHashChallengeTransactionService,
+            TransactionVerifierStepType.TRIGGER_WRONG_HASH_CHALLENGE,
+        )
         if (
             bitvmx_protocol_verifier_dto.published_hashes_dict[
                 bitvmx_protocol_verifier_dto.first_wrong_step

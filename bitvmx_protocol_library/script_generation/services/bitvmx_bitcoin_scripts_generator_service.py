@@ -163,8 +163,10 @@ class BitVMXBitcoinScriptsGeneratorService:
             prover_signature_public_key=bitvmx_protocol_setup_properties_dto.prover_signature_public_key,
         )
 
-        wrong_hash_challenge_scripts_list = self.trigger_wrong_hash_challenge_script_generator_service(
-            verifier_public_key=bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+        wrong_hash_challenge_scripts_list = (
+            self.trigger_wrong_hash_challenge_script_generator_service(
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
+            )
         )
         wrong_hash_challenge_scripts = BitcoinScriptList(wrong_hash_challenge_scripts_list)
 

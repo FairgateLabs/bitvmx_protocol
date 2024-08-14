@@ -62,6 +62,7 @@ class ExecutionChallengeTransactionService:
                     i
                 ]
             )
+            # We need to skip the double amount of digits because the verifier cross signed them (so they are repeated)
             current_verifier_witness = trigger_execution_challenge_witness[
                 processed_values
                 + 2 * current_keys_length : processed_values

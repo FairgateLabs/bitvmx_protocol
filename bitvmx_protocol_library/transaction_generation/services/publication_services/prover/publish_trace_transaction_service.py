@@ -58,7 +58,7 @@ class PublishTraceTransactionService:
                 -1
             ].get_txid()
         )
-        previous_choice_transaction_info = transaction_info_service(previous_choice_tx)
+        previous_choice_transaction_info = transaction_info_service(tx_id=previous_choice_tx)
         previous_witness = previous_choice_transaction_info.inputs[0].witness
         trace_witness += previous_witness[len(trace_signatures) + 0 : len(trace_signatures) + 4]
         current_choice = (
