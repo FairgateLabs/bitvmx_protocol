@@ -67,8 +67,19 @@ class TriggerWrongHashChallengeTransactionService:
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
         )
         write_trace_witness = []
+        # We only take the write part of the trace
         for i in range(len(trace_witness) - 4, len(trace_witness)):
             write_trace_witness.extend(trace_witness[i])
+
+        wrong_hash_witness = self._get_wrong_hash_witness(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
+        )
+
+        correct_hash_witness = self._get_correct_hash_witness(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
+        )
 
         private_key = PrivateKey(
             b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.verifier_signature_private_key)
@@ -90,7 +101,7 @@ class TriggerWrongHashChallengeTransactionService:
         )
 
         trigger_execution_challenge_signature = [wrong_hash_challenge_signature]
-        trigger_challenge_witness = write_trace_witness
+        trigger_challenge_witness = write_trace_witness + correct_hash_witness + wrong_hash_witness
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_wrong_hash_challenge_tx.witnesses.append(
             TxWitnessInput(
@@ -131,7 +142,7 @@ class TriggerWrongHashChallengeTransactionService:
         # At this point, we have erased the signatures
         # In the publication trace, there is the confirmation for the last choice, we also need to erase that
         # The amount of hashes to discard is 4 because we sign a single word. Then we have the hash and the value.
-        # Hence, 8 elements
+        # Hence, 8 elements. We'll never use more than a nibble to encode the choices.
         publish_trace_tx_witness = publish_trace_tx_witness[8:]
 
         trace_words_lengths = (
@@ -162,12 +173,94 @@ class TriggerWrongHashChallengeTransactionService:
 
         return verifier_keys_witness_values
 
+    def _get_hash_witness(
+        self,
+        binary_choice_array: List[str],
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
+    ) -> List[str]:
+        hash_step_iteration = len(binary_choice_array) - 1
+        while binary_choice_array[hash_step_iteration] == "11":
+            hash_step_iteration -= 1
+        witness_hash_tx_definition = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list[
+                hash_step_iteration
+            ]
+        )
+        witness_hash_tx = transaction_info_service(tx_id=witness_hash_tx_definition.get_txid())
+        hash_index = int(binary_choice_array[hash_step_iteration], 2)
+        hash_witness = witness_hash_tx.inputs[0].witness
+        while len(hash_witness[0]) == 128:
+            hash_witness = hash_witness[1:]
+        # At this point, we have erased the signatures
+        # In the publication trace, there is the confirmation for the last choice, we also need to erase that
+        # The amount of hashes to discard is 4 because we sign a single word. Then we have the hash and the value.
+        # Hence, 8 elements. We'll never use more than a nibble to encode the choices.
+        hash_witness = hash_witness[8:]
+        hash_length = (
+            len(
+                bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.hash_search_public_keys_list[
+                    hash_step_iteration
+                ][
+                    0
+                ]
+            )
+            * 2
+        )
+        hash_index_in_witness = (
+            len(
+                bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.hash_search_public_keys_list[
+                    hash_step_iteration
+                ]
+            )
+            - hash_index
+            - 1
+        )
+        return hash_witness[
+            hash_length * hash_index_in_witness : hash_length * (hash_index_in_witness + 1)
+        ]
+
     def _get_wrong_hash_witness(
-        self, bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO
-    ):
-        pass
+        self,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
+        bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
+    ) -> List[str]:
+        binary_choice_array = list(
+            map(
+                lambda x: bin(x)[2:].zfill(
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                ),
+                bitvmx_protocol_verifier_dto.search_choices,
+            )
+        )
+        return self._get_hash_witness(
+            binary_choice_array=binary_choice_array,
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+        )
 
     def _get_correct_hash_witness(
-        self, bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO
-    ):
-        pass
+        self,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
+        bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
+    ) -> List[str]:
+        binary_choice_array = list(
+            map(
+                lambda x: bin(x)[2:].zfill(
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                ),
+                bitvmx_protocol_verifier_dto.search_choices,
+            )
+        )
+        correct_step_hash = int("".join(binary_choice_array), 2) - 1
+        binary_correct_step_hash = bin(correct_step_hash)[2:].zfill(
+            len("".join(binary_choice_array))
+        )
+        search_digit_length = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+        )
+        return self._get_hash_witness(
+            binary_choice_array=[
+                binary_correct_step_hash[i : i + search_digit_length]
+                for i in range(0, len(binary_correct_step_hash), search_digit_length)
+            ],
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+        )
