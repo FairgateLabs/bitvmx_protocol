@@ -39,6 +39,9 @@ class BitcoinScriptList:
         assert isinstance(other, BitcoinScriptList)
         return BitcoinScriptList(self.script_list + other.script_list)
 
+    def __len__(self):
+        return len(self.script_list)
+
     def to_scripts_tree(self):
         if len(self.script_list) == 1:
             return [self.script_list]

@@ -141,6 +141,7 @@ class PublishNextStepController:
                 )
                 last_confirmed_step_tx = trigger_challenge_transaction_service(
                     bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                    bitvmx_protocol_verifier_private_dto=bitvmx_protocol_verifier_private_dto,
                     bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
                 )
                 bitvmx_protocol_verifier_dto.last_confirmed_step_tx_id = (

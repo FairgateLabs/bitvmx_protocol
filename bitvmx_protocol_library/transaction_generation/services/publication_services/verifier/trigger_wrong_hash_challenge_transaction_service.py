@@ -1,3 +1,5 @@
+from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
+from bitcoinutils.keys import PrivateKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
@@ -6,6 +8,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
     BitVMXProtocolVerifierDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_private_dto import (
+    BitVMXProtocolVerifierPrivateDTO,
 )
 from bitvmx_protocol_library.script_generation.services.bitvmx_bitcoin_scripts_generator_service import (
     BitVMXBitcoinScriptsGeneratorService,
@@ -33,6 +38,7 @@ class TriggerWrongHashChallengeTransactionService:
     def __call__(
         self,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
+        bitvmx_protocol_verifier_private_dto: BitVMXProtocolVerifierPrivateDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
 
@@ -41,22 +47,40 @@ class TriggerWrongHashChallengeTransactionService:
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys,
         )
+
         trigger_challenge_taptree = bitvmx_bitcoin_scripts_dto.trigger_challenge_taptree()
-        trigger_challenge_scripts_address = (
-            bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
-                trigger_challenge_taptree
-            )
+        trigger_challenge_scripts_address = bitvmx_bitcoin_scripts_dto.trigger_challenge_address(
+            bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
 
         wrong_hash_control_block = ControlBlock(
             bitvmx_protocol_setup_properties_dto.unspendable_public_key,
             scripts=trigger_challenge_taptree,
-            index=1,
+            index=bitvmx_bitcoin_scripts_dto.trigger_wrong_hash_challenge_index(0),
             is_odd=trigger_challenge_scripts_address.is_odd(),
         )
 
-        trigger_execution_challenge_signature = []
-        trigger_challenge_witness = ["01"]
+        private_key = PrivateKey(
+            b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.verifier_signature_private_key)
+        )
+        wrong_hash_challenge_signature = private_key.sign_taproot_input(
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_wrong_hash_challenge_tx,
+            0,
+            [trigger_challenge_scripts_address.to_script_pub_key()],
+            [
+                bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_wrong_hash_challenge_tx.outputs[
+                    0
+                ].amount
+                + bitvmx_protocol_setup_properties_dto.step_fees_satoshis
+            ],
+            script_path=True,
+            tapleaf_script=bitvmx_bitcoin_scripts_dto.wrong_hash_challenge_scripts[0],
+            sighash=TAPROOT_SIGHASH_ALL,
+            tweak=False,
+        )
+
+        trigger_execution_challenge_signature = [wrong_hash_challenge_signature]
+        trigger_challenge_witness = []
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_wrong_hash_challenge_tx.witnesses.append(
             TxWitnessInput(

@@ -1,4 +1,5 @@
 import secrets
+from typing import Tuple
 
 from bitcoinutils.keys import PrivateKey
 from bitcoinutils.setup import NETWORK
@@ -21,7 +22,7 @@ class CreateSetupController:
             bitvmx_protocol_verifier_private_dto_persistence
         )
 
-    async def __call__(self, setup_uuid: str, network: BitcoinNetwork) -> str:
+    async def __call__(self, setup_uuid: str, network: BitcoinNetwork) -> Tuple[str, str, str]:
         if network == BitcoinNetwork.MUTINYNET:
             assert NETWORK == "testnet"
         else:
@@ -41,6 +42,6 @@ class CreateSetupController:
         )
         return (
             private_key.get_public_key().to_hex(),
-            private_key.get_public_key().to_hex(),
-            private_key.get_public_key().get_segwit_address().to_string(),
+            signature_private_key.get_public_key().to_hex(),
+            signature_private_key.get_public_key().get_segwit_address().to_string(),
         )

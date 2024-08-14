@@ -7,6 +7,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
     BitVMXProtocolVerifierDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_private_dto import (
+    BitVMXProtocolVerifierPrivateDTO,
+)
 from bitvmx_protocol_library.script_generation.services.bitvmx_bitcoin_scripts_generator_service import (
     BitVMXBitcoinScriptsGeneratorService,
 )
@@ -33,6 +36,7 @@ class TriggerExecutionChallengeTransactionService:
     def __call__(
         self,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
+        bitvmx_protocol_verifier_private_dto: BitVMXProtocolVerifierPrivateDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
 
@@ -111,7 +115,7 @@ class TriggerExecutionChallengeTransactionService:
         challenge_scripts_control_block = ControlBlock(
             bitvmx_protocol_setup_properties_dto.unspendable_public_key,
             scripts=trigger_challenge_taptree,
-            index=0,
+            index=bitvmx_bitcoin_scripts_dto.trigger_challenge_index(0),
             is_odd=trigger_challenge_scripts_address.is_odd(),
         )
 

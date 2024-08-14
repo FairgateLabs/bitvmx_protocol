@@ -38,3 +38,9 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
 
     def trigger_challenge_taptree(self):
         return self.trigger_challenge_scripts_list.to_scripts_tree()
+
+    def trigger_challenge_index(self, index: int) -> int:
+        return index
+
+    def trigger_wrong_hash_challenge_index(self, index: int) -> int:
+        return len(self.trigger_challenge_scripts) + index
