@@ -101,7 +101,7 @@ class TriggerWrongHashChallengeTransactionService:
         )
 
         trigger_execution_challenge_signature = [wrong_hash_challenge_signature]
-        trigger_challenge_witness = write_trace_witness + correct_hash_witness + wrong_hash_witness
+        trigger_challenge_witness = correct_hash_witness + write_trace_witness + wrong_hash_witness
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_wrong_hash_challenge_tx.witnesses.append(
             TxWitnessInput(

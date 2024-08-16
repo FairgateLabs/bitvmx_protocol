@@ -37,12 +37,6 @@ class TriggerWrongHashChallengeScriptGeneratorService:
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
 
-        # Correct hash (previous step)
-        self._add_hash_to_stack(
-            script=script,
-            choice_array=[0, 3, 3, 2, 1],
-            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-        )
         trace_words_lengths = (
             bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
                 ::-1
@@ -59,16 +53,46 @@ class TriggerWrongHashChallengeScriptGeneratorService:
                 to_alt_stack=True,
             )
 
-        amount_of_input_hash_nibbles = 64 + 8 + 8 + 8 + 2
-        for _ in range(amount_of_input_hash_nibbles):
+        # Correct hash (previous step)
+        self._add_hash_to_stack(
+            script=script,
+            choice_array=[0, 3, 3, 2, 1],
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+        )
+
+        amount_of_input_hash_nibbles_hash = 64
+        for _ in range(amount_of_input_hash_nibbles_hash):
             script.append("OP_FROMALTSTACK")
+        for i in range(1, amount_of_input_hash_nibbles_hash):
+            script.extend([i, "OP_ROLL"])
+        # script.extend([0, "OP_PICK", int("8", 16), "OP_EQUALVERIFY"])
+        # script.extend([1, "OP_PICK", int("d", 16), "OP_EQUALVERIFY"])
+        # script.extend([2, "OP_PICK", int("2", 16), "OP_EQUALVERIFY"])
+        # script.extend([3, "OP_PICK", int("8", 16), "OP_EQUALVERIFY"])
+        # script.extend([4, "OP_PICK", int("d", 16), "OP_EQUALVERIFY"])
+        amount_of_input_hash_nibbles_trace = 8 + 8 + 8 + 2
+        for _ in range(amount_of_input_hash_nibbles_trace):
+            script.append("OP_FROMALTSTACK")
+        amount_of_input_hash_nibbles = (
+            amount_of_input_hash_nibbles_hash + amount_of_input_hash_nibbles_trace
+        )
+        # script.extend([0, "OP_PICK", 0, "OP_EQUALVERIFY"])
+        # script.extend([1, "OP_PICK", 0, "OP_EQUALVERIFY"])
+        # script.extend([2, "OP_PICK", 4, "OP_EQUALVERIFY"])
+        # script.extend([3, "OP_PICK", 8, "OP_EQUALVERIFY"])
+        # script.extend([4, "OP_PICK", 3, "OP_EQUALVERIFY"])
         sha_256_script_int_opcodes = pybitvmbinding.sha_256_script(
             int(amount_of_input_hash_nibbles / 2)
         )
         sha_256_script = BitcoinScript.from_int_list(sha_256_script_int_opcodes)
         script += sha_256_script
+        # nibbles_to_verify = [int("0f", 16), int("0a", 16), int("02", 16), int("01", 16)]
+        # for i in range(len(nibbles_to_verify)):
+        #     script.append(nibbles_to_verify[i])
+        #     script.append("OP_EQUALVERIFY")
         for _ in range(64):
-            script.append("OP_DROP")
+            script.append("OP_FROMALTSTACK")
+            script.append("OP_EQUALVERIFY")
         script.append(1)
         return script
 
