@@ -1,5 +1,6 @@
 from typing import List
 
+import pybitvmbinding
 from bitcoinutils.keys import PublicKey
 
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
@@ -57,6 +58,17 @@ class TriggerWrongHashChallengeScriptGeneratorService:
                 bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
                 to_alt_stack=True,
             )
+
+        amount_of_input_hash_nibbles = 64 + 8 + 8 + 8 + 2
+        for _ in range(amount_of_input_hash_nibbles):
+            script.append("OP_FROMALTSTACK")
+        sha_256_script_int_opcodes = pybitvmbinding.sha_256_script(
+            int(amount_of_input_hash_nibbles / 2)
+        )
+        sha_256_script = BitcoinScript.from_int_list(sha_256_script_int_opcodes)
+        script += sha_256_script
+        for _ in range(64):
+            script.append("OP_DROP")
         script.append(1)
         return script
 

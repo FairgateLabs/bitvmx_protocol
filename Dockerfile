@@ -22,7 +22,7 @@ RUN pip install -r /tmp/requirements/base.txt
 #RUN pip install --no-cache-dir git+https://github.com/ramonamela/python-bitcoin-utils.git@5392fec4f6b149cf7d913d65640b619727e976ef
 RUN pip install --no-cache-dir git+https://github.com/ramonamela/python-bitcoin-utils.git@3e8c2a0bf1b080ed5f80f4e78f71005f42eb52c5
 
-RUN pip install --no-cache-dir git+https://github.com/ramonamela/pybitvmbinding.git@7736803a238a88ad85f8cf374fa64d99c0feec5c
+RUN pip install --no-cache-dir git+https://github.com/ramonamela/pybitvmbinding.git@2cb13f79fca1e0da47305a102eeb66fc5982a9e1
 
 RUN mkdir /bitvmx-backend
 

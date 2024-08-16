@@ -92,7 +92,7 @@ class TriggerWrongHashChallengeTransactionService:
                 bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_wrong_hash_challenge_tx.outputs[
                     0
                 ].amount
-                + bitvmx_protocol_setup_properties_dto.step_fees_satoshis
+                + bitvmx_protocol_setup_properties_dto.step_fees_satoshis * 4
             ],
             script_path=True,
             tapleaf_script=bitvmx_bitcoin_scripts_dto.wrong_hash_challenge_scripts[0],

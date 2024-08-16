@@ -33,6 +33,14 @@ class VerifierWrongHashChallengeDetectionService:
         next_step_hash = (
             byte_sha256(bytes.fromhex(previous_step_hash + write_trace)).hex().zfill(64)
         )
+        print(
+            "Checking correct hash challenge. Previous hash (correct): "
+            + previous_step_hash
+            + ", write trace: "
+            + write_trace
+            + ", next hash(incorrect): "
+            + next_step_hash
+        )
         # This should be erased when the script works
         return (
             TriggerWrongHashChallengeTransactionService,

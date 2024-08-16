@@ -171,8 +171,11 @@ class TransactionGeneratorFromPublicKeysService:
         trigger_wrong_hash_output_address = P2wpkhAddress.from_address(
             address=bitvmx_protocol_setup_properties_dto.prover_destination_address
         )
+        trigger_wrong_hash_output_amount = (
+            trace_output_amount - bitvmx_protocol_setup_properties_dto.step_fees_satoshis * 4
+        )
         trigger_wrong_hash_txout = TxOutput(
-            trigger_challenge_output_amount,
+            trigger_wrong_hash_output_amount,
             trigger_wrong_hash_output_address.to_script_pub_key(),
         )
 
