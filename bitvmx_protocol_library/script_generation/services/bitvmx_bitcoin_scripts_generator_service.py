@@ -9,9 +9,6 @@ from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin
 from bitvmx_protocol_library.script_generation.entities.dtos.bitvmx_bitcoin_scripts_dto import (
     BitVMXBitcoinScriptsDTO,
 )
-from bitvmx_protocol_library.script_generation.services.execution_challenge_script_list_generator_service import (
-    ExecutionChallengeScriptListGeneratorService,
-)
 from bitvmx_protocol_library.script_generation.services.script_generation.prover.commit_search_hashes_script_generator_service import (
     CommitSearchHashesScriptGeneratorService,
 )
@@ -30,8 +27,11 @@ from bitvmx_protocol_library.script_generation.services.script_generation.verifi
 from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
 )
-from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_wrong_hash_challenge_script_generator_service import (
-    TriggerWrongHashChallengeScriptGeneratorService,
+from bitvmx_protocol_library.script_generation.services.script_list_generator_services.prover.execution_challenge_script_list_generator_service import (
+    ExecutionChallengeScriptListGeneratorService,
+)
+from bitvmx_protocol_library.script_generation.services.script_list_generator_services.verifier.trigger_wrong_hash_script_list_generator_service import (
+    TriggerWrongHashScriptListGeneratorService,
 )
 
 
@@ -53,8 +53,8 @@ class BitVMXBitcoinScriptsGeneratorService:
         self.execution_challenge_script_list_generator_service = (
             ExecutionChallengeScriptListGeneratorService()
         )
-        self.trigger_wrong_hash_challenge_script_generator_service = (
-            TriggerWrongHashChallengeScriptGeneratorService()
+        self.trigger_wrong_hash_challenge_script_list_generator_service = (
+            TriggerWrongHashScriptListGeneratorService()
         )
 
     def __call__(
@@ -163,12 +163,19 @@ class BitVMXBitcoinScriptsGeneratorService:
             prover_signature_public_key=bitvmx_protocol_setup_properties_dto.prover_signature_public_key,
         )
 
-        wrong_hash_challenge_scripts_list = (
-            self.trigger_wrong_hash_challenge_script_generator_service(
-                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
-            )
+        wrong_hash_challenge_scripts_list = self.trigger_wrong_hash_challenge_script_list_generator_service(
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+            ],
+            trace_words_lengths=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
+                ::-1
+            ],
+            amount_of_bits_wrong_step_search=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            hash_search_public_keys_list=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.hash_search_public_keys_list,
+            trace_prover_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
+            amount_of_nibbles_hash=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+            amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
-        wrong_hash_challenge_scripts = BitcoinScriptList(wrong_hash_challenge_scripts_list)
 
         return BitVMXBitcoinScriptsDTO(
             hash_result_script=hash_result_script,
@@ -178,5 +185,5 @@ class BitVMXBitcoinScriptsGeneratorService:
             trace_script=trace_script,
             trigger_challenge_scripts=trigger_challenge_scripts,
             execution_challenge_script_list=execution_challenge_script_list,
-            wrong_hash_challenge_scripts=wrong_hash_challenge_scripts,
+            wrong_hash_challenge_script_list=wrong_hash_challenge_scripts_list,
         )

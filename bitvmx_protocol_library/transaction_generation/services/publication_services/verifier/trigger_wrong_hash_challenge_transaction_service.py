@@ -59,7 +59,9 @@ class TriggerWrongHashChallengeTransactionService:
         wrong_hash_control_block = ControlBlock(
             bitvmx_protocol_setup_properties_dto.unspendable_public_key,
             scripts=trigger_challenge_taptree,
-            index=bitvmx_bitcoin_scripts_dto.trigger_wrong_hash_challenge_index(0),
+            index=bitvmx_bitcoin_scripts_dto.trigger_wrong_hash_challenge_index(
+                choice=bitvmx_protocol_verifier_dto.first_wrong_step
+            ),
             is_odd=trigger_challenge_scripts_address.is_odd(),
         )
 
@@ -84,6 +86,11 @@ class TriggerWrongHashChallengeTransactionService:
         private_key = PrivateKey(
             b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.verifier_signature_private_key)
         )
+        current_script = bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list[
+            bitvmx_bitcoin_scripts_dto.trigger_wrong_hash_challenge_index(
+                bitvmx_protocol_verifier_dto.first_wrong_step
+            )
+        ]
         wrong_hash_challenge_signature = private_key.sign_taproot_input(
             bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_wrong_hash_challenge_tx,
             0,
@@ -95,7 +102,7 @@ class TriggerWrongHashChallengeTransactionService:
                 + bitvmx_protocol_setup_properties_dto.step_fees_satoshis * 4
             ],
             script_path=True,
-            tapleaf_script=bitvmx_bitcoin_scripts_dto.wrong_hash_challenge_scripts[0],
+            tapleaf_script=current_script,
             sighash=TAPROOT_SIGHASH_ALL,
             tweak=False,
         )
@@ -108,7 +115,7 @@ class TriggerWrongHashChallengeTransactionService:
                 trigger_challenge_witness
                 + trigger_execution_challenge_signature
                 + [
-                    bitvmx_bitcoin_scripts_dto.wrong_hash_challenge_scripts[0].to_hex(),
+                    current_script.to_hex(),
                     wrong_hash_control_block.to_hex(),
                 ]
             )

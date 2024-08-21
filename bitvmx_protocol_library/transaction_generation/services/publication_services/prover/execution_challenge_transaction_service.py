@@ -14,7 +14,7 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
-from bitvmx_protocol_library.script_generation.services.execution_challenge_script_list_generator_service import (
+from bitvmx_protocol_library.script_generation.services.script_list_generator_services.prover.execution_challenge_script_list_generator_service import (
     ExecutionChallengeScriptListGeneratorService,
 )
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (

@@ -390,7 +390,7 @@ class BitVMXExecutionScriptList(BaseModel):
         self.taproot_address_is_odd = is_odd
         return P2trAddress(witness_program=pubkey.hex(), is_odd=is_odd)
 
-    def get_control_block_hex(self, public_key: PublicKey, index: int, is_odd: bool):
+    def get_control_block_hex(self, public_key: PublicKey, index: int, is_odd: bool) -> str:
 
         leaf_version = bytes([(1 if is_odd else 0) + LEAF_VERSION_TAPSCRIPT])
         pub_key = bytes.fromhex(public_key.to_x_only_hex())
