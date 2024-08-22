@@ -72,7 +72,7 @@ class TriggerWrongHashChallengeScriptGeneratorService:
                 )
                 script.append(int(wrong_hash_choice_array[counter], 2))
                 script.append("OP_EQUALVERIFY")
-                if bin_wrong_choice[counter] != ("1" * amount_of_bits_wrong_step_search):
+                if wrong_hash_choice_array[counter] != ("1" * amount_of_bits_wrong_step_search):
                     break
                 counter -= 1
 
@@ -99,6 +99,8 @@ class TriggerWrongHashChallengeScriptGeneratorService:
                 script.append(int(nibble, 16))
         else:
             bin_correct_choice = bin(choice - 1)[2:]
+            while len(bin_correct_choice) % amount_of_bits_wrong_step_search != 0:
+                bin_correct_choice = "0" + bin_correct_choice
             correct_hash_choice_array = [
                 bin_correct_choice[i : i + amount_of_bits_wrong_step_search].zfill(
                     amount_of_bits_wrong_step_search

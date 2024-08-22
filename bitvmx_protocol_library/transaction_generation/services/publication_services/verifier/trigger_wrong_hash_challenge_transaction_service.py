@@ -152,13 +152,10 @@ class TriggerWrongHashChallengeTransactionService:
         amount_of_bits_wrong_step_search = (
             bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
         )
-        if bitvmx_protocol_verifier_dto.first_wrong_step == 0:
-            bin_wrong_choice = bin(bitvmx_protocol_verifier_dto.first_wrong_step)[2:].zfill(
-                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
-                * bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
-            )
-        else:
-            bin_wrong_choice = bin(bitvmx_protocol_verifier_dto.first_wrong_step)[2:]
+        bin_wrong_choice = bin(bitvmx_protocol_verifier_dto.first_wrong_step)[2:].zfill(
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+            * bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+        )
         wrong_hash_choice_array = [
             bin_wrong_choice[i : i + amount_of_bits_wrong_step_search].zfill(
                 amount_of_bits_wrong_step_search

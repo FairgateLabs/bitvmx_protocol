@@ -76,6 +76,9 @@ class BitVMXWrongHashScriptList(BaseModel):
             while splitted_bin[-1] == "1" * self.amount_of_bits_wrong_step_search:
                 splitted_bin = splitted_bin[:-1]
                 index += self.amount_of_base_scripts
+            if len(splitted_bin) == 0:
+                # This case corresponds to the one where all bits are 1
+                raise NotImplementedError
             index += int(splitted_bin[-1], 2)
             return index
         elif last_char == "0" * self.amount_of_bits_wrong_step_search:
