@@ -16,7 +16,7 @@ class CommitSearchChoiceScriptGeneratorService:
         script = BitcoinScript()
 
         self.verify_input_single_word_from_public_keys(
-            script, public_keys, amount_of_bits, to_alt_stack=True
+            script=script, public_keys=public_keys, amount_of_bits=amount_of_bits, to_alt_stack=True
         )
 
         # script.append("OP_CODESEPARATOR")

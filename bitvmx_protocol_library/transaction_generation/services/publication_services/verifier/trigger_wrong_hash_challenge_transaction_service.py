@@ -78,7 +78,15 @@ class TriggerWrongHashChallengeTransactionService:
             bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
         )
 
-        correct_hash_witness = self._get_correct_hash_witness(
+        if bitvmx_protocol_verifier_dto.first_wrong_step > 0:
+            correct_hash_witness = self._get_correct_hash_witness(
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
+            )
+        else:
+            correct_hash_witness = []
+
+        choices_witness = self._get_choice_witness(
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
         )
@@ -108,7 +116,9 @@ class TriggerWrongHashChallengeTransactionService:
         )
 
         trigger_execution_challenge_signature = [wrong_hash_challenge_signature]
-        trigger_challenge_witness = correct_hash_witness + write_trace_witness + wrong_hash_witness
+        trigger_challenge_witness = (
+            correct_hash_witness + write_trace_witness + wrong_hash_witness + choices_witness
+        )
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_wrong_hash_challenge_tx.witnesses.append(
             TxWitnessInput(
@@ -132,6 +142,58 @@ class TriggerWrongHashChallengeTransactionService:
         return (
             bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_wrong_hash_challenge_tx
         )
+
+    def _get_choice_witness(
+        self,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
+        bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
+    ) -> List[str]:
+        choice_witness = []
+        amount_of_bits_wrong_step_search = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+        )
+        if bitvmx_protocol_verifier_dto.first_wrong_step == 0:
+            bin_wrong_choice = bin(bitvmx_protocol_verifier_dto.first_wrong_step)[2:].zfill(
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+                * bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+            )
+        else:
+            bin_wrong_choice = bin(bitvmx_protocol_verifier_dto.first_wrong_step)[2:]
+        wrong_hash_choice_array = [
+            bin_wrong_choice[i : i + amount_of_bits_wrong_step_search].zfill(
+                amount_of_bits_wrong_step_search
+            )
+            for i in range(0, len(bin_wrong_choice), amount_of_bits_wrong_step_search)
+        ]
+        counter = -1
+        while -counter <= len(wrong_hash_choice_array):
+            if counter == -1:
+                # Trace case
+                trace_tx = transaction_info_service(
+                    tx_id=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trace_tx.get_txid()
+                )
+                previous_witness = trace_tx.inputs[0].witness
+                while len(previous_witness[0]) == 128:
+                    previous_witness = previous_witness[1:]
+                choice_witness = previous_witness[4:8] + choice_witness
+            else:
+                # Hash case
+                hash_tx = transaction_info_service(
+                    tx_id=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list[
+                        counter + 1
+                    ].get_txid()
+                )
+                previous_witness = hash_tx.inputs[0].witness
+                while len(previous_witness[0]) == 128:
+                    previous_witness = previous_witness[1:]
+                choice_witness = previous_witness[4:8] + choice_witness
+                # choice_witness.extend(previous_witness[4:8])
+            if (wrong_hash_choice_array[counter] != ("1" * amount_of_bits_wrong_step_search)) and (
+                bitvmx_protocol_verifier_dto.first_wrong_step != 0
+            ):
+                break
+            counter -= 1
+        return choice_witness
 
     def _get_trace_witness(
         self, bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO
