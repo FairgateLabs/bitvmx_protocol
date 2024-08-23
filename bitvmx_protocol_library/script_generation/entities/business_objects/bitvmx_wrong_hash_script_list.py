@@ -40,7 +40,25 @@ class BitVMXWrongHashScriptList(BaseModel):
             suffix_bin = "1" * self.amount_of_bits_wrong_step_search * i
             for j in range(0, self.amount_of_base_scripts):
                 prefix_bin = bin(j)[2:].zfill(self.amount_of_bits_wrong_step_search)
-                print(int(prefix_bin + suffix_bin, 2))
+                print("Ended in *1 : " + str(int(prefix_bin + suffix_bin, 2)))
+                script_list.append(
+                    trigger_wrong_hash_challenge_script_generator_service(
+                        signature_public_keys=self.signature_public_keys,
+                        trace_words_lengths=self.trace_words_lengths,
+                        amount_of_bits_wrong_step_search=self.amount_of_bits_wrong_step_search,
+                        hash_search_public_keys_list=self.hash_search_public_keys_list,
+                        choice_search_prover_public_keys_list=self.choice_search_prover_public_keys_list,
+                        trace_prover_public_keys=self.trace_prover_public_keys,
+                        amount_of_nibbles_hash=self.amount_of_nibbles_hash,
+                        amount_of_bits_per_digit_checksum=self.amount_of_bits_per_digit_checksum,
+                        bin_wrong_choice=prefix_bin + suffix_bin,
+                    )
+                )
+        for i in range(1, len(self.choice_search_prover_public_keys_list)):
+            suffix_bin = "0" * self.amount_of_bits_wrong_step_search * i
+            for j in range(1, self.amount_of_base_scripts + 1):
+                prefix_bin = bin(j)[2:].zfill(self.amount_of_bits_wrong_step_search)
+                print("Ended in *0 : " + str(int(prefix_bin + suffix_bin, 2)))
                 script_list.append(
                     trigger_wrong_hash_challenge_script_generator_service(
                         signature_public_keys=self.signature_public_keys,
@@ -82,7 +100,17 @@ class BitVMXWrongHashScriptList(BaseModel):
             index += int(splitted_bin[-1], 2)
             return index
         elif last_char == "0" * self.amount_of_bits_wrong_step_search:
-            raise NotImplementedError
+            index = self.amount_of_base_scripts * len(self.hash_search_public_keys_list)
+            splitted_bin = splitted_bin[:-1]
+            while splitted_bin[-1] == "0" * self.amount_of_bits_wrong_step_search:
+                splitted_bin = splitted_bin[:-1]
+                index += self.amount_of_base_scripts
+            if len(splitted_bin) == 0:
+                raise Exception(
+                    "We should never get to this point since the 0 is considered at the beginning"
+                )
+            index += int(splitted_bin[-1], 2)
+            return index - 1
         else:
             return int(last_char, 2)
 

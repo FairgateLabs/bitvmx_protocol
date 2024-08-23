@@ -50,8 +50,12 @@ class TriggerWrongHashChallengeScriptGeneratorService:
             )
             for i in range(0, len(bin_wrong_choice), amount_of_bits_wrong_step_search)
         ]
-
         counter = -1
+        # Character we need to discard at the end of the array
+        if wrong_hash_choice_array[counter] == ("0" * amount_of_bits_wrong_step_search):
+            suffix_character = "0"
+        else:
+            suffix_character = "1"
         if choice == 0:
             for choice_list in reversed(choice_search_prover_public_keys_list):
                 self.verify_input_single_word_from_public_keys(
@@ -72,7 +76,9 @@ class TriggerWrongHashChallengeScriptGeneratorService:
                 )
                 script.append(int(wrong_hash_choice_array[counter], 2))
                 script.append("OP_EQUALVERIFY")
-                if wrong_hash_choice_array[counter] != ("1" * amount_of_bits_wrong_step_search):
+                if wrong_hash_choice_array[counter] != (
+                    suffix_character * amount_of_bits_wrong_step_search
+                ):
                     break
                 counter -= 1
 
@@ -101,6 +107,7 @@ class TriggerWrongHashChallengeScriptGeneratorService:
             bin_correct_choice = bin(choice - 1)[2:]
             while len(bin_correct_choice) % amount_of_bits_wrong_step_search != 0:
                 bin_correct_choice = "0" + bin_correct_choice
+            bin_correct_choice = "0" * amount_of_bits_wrong_step_search + bin_correct_choice
             correct_hash_choice_array = [
                 bin_correct_choice[i : i + amount_of_bits_wrong_step_search].zfill(
                     amount_of_bits_wrong_step_search
@@ -153,8 +160,6 @@ class TriggerWrongHashChallengeScriptGeneratorService:
         wrong_hash_step_iteration = -1
         while binary_choice_array[wrong_hash_step_iteration] == "1" * len(binary_choice_array[0]):
             wrong_hash_step_iteration -= 1
-        # TODO
-        # We should add the verification for every choice until different from "11"
         wrong_hash_index = int(binary_choice_array[wrong_hash_step_iteration], 2)
         self.verify_input_nibble_message_from_public_keys(
             script,
