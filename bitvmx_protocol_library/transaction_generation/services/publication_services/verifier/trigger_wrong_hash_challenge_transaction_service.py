@@ -261,7 +261,8 @@ class TriggerWrongHashChallengeTransactionService:
         # In the publication trace, there is the confirmation for the last choice, we also need to erase that
         # The amount of hashes to discard is 4 because we sign a single word. Then we have the hash and the value.
         # Hence, 8 elements. We'll never use more than a nibble to encode the choices.
-        hash_witness = hash_witness[8:]
+        if hash_step_iteration > 0:
+            hash_witness = hash_witness[8:]
         hash_length = (
             len(
                 bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.hash_search_public_keys_list[
@@ -281,9 +282,11 @@ class TriggerWrongHashChallengeTransactionService:
             - hash_index
             - 1
         )
-        return hash_witness[
+        current_hash_witness = hash_witness[
             hash_length * hash_index_in_witness : hash_length * (hash_index_in_witness + 1)
         ]
+        assert len(current_hash_witness) == hash_length
+        return current_hash_witness
 
     def _get_wrong_hash_witness(
         self,
