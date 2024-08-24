@@ -30,6 +30,7 @@ class TriggerWrongHashChallengeScriptGeneratorService:
         hash_search_public_keys_list: List[List[List[str]]],
         choice_search_prover_public_keys_list: List[List[List[str]]],
         trace_prover_public_keys: List[List[str]],
+        hash_result_public_keys: List[str],
         amount_of_nibbles_hash: int,
         amount_of_bits_per_digit_checksum: int,
         bin_wrong_choice: str,
@@ -87,6 +88,7 @@ class TriggerWrongHashChallengeScriptGeneratorService:
             script=script,
             binary_choice_array=wrong_hash_choice_array,
             hash_search_public_keys_list=hash_search_public_keys_list,
+            hash_result_public_keys=hash_result_public_keys,
             amount_of_nibbles_hash=amount_of_nibbles_hash,
             amount_of_bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
         )
@@ -120,6 +122,7 @@ class TriggerWrongHashChallengeScriptGeneratorService:
                 script=script,
                 binary_choice_array=correct_hash_choice_array,
                 hash_search_public_keys_list=hash_search_public_keys_list,
+                hash_result_public_keys=hash_result_public_keys,
                 amount_of_nibbles_hash=amount_of_nibbles_hash,
                 amount_of_bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
             )
@@ -154,16 +157,27 @@ class TriggerWrongHashChallengeScriptGeneratorService:
         script: BitcoinScript,
         binary_choice_array: List[str],
         hash_search_public_keys_list: List[List[List[str]]],
+        hash_result_public_keys: List[str],
         amount_of_nibbles_hash: int,
         amount_of_bits_per_digit_checksum: int,
     ):
         wrong_hash_step_iteration = -1
-        while binary_choice_array[wrong_hash_step_iteration] == "1" * len(binary_choice_array[0]):
+        while -wrong_hash_step_iteration < len(binary_choice_array) and binary_choice_array[
+            wrong_hash_step_iteration
+        ] == "1" * len(binary_choice_array[0]):
             wrong_hash_step_iteration -= 1
         wrong_hash_index = int(binary_choice_array[wrong_hash_step_iteration], 2)
+        if "".join(binary_choice_array) == "1" * len(hash_search_public_keys_list) * len(
+            binary_choice_array[0]
+        ):
+            winternitz_keys = hash_result_public_keys
+        else:
+            winternitz_keys = hash_search_public_keys_list[wrong_hash_step_iteration][
+                wrong_hash_index
+            ]
         self.verify_input_nibble_message_from_public_keys(
             script,
-            hash_search_public_keys_list[wrong_hash_step_iteration][wrong_hash_index],
+            winternitz_keys,
             amount_of_nibbles_hash,
             amount_of_bits_per_digit_checksum,
             to_alt_stack=True,

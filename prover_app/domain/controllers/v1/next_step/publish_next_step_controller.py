@@ -17,7 +17,7 @@ from prover_app.domain.persistences.interfaces.bitvmx_protocol_setup_properties_
 
 
 async def _trigger_next_step_verifier(setup_uuid: str, verifier_list: List[str]):
-    async with httpx.AsyncClient(timeout=1200.0) as client:
+    async with httpx.AsyncClient(timeout=3000.0) as client:
         call_verifiers_coroutines = []
         for verifier_host in verifier_list:
             url = f"{verifier_host}/next_step"

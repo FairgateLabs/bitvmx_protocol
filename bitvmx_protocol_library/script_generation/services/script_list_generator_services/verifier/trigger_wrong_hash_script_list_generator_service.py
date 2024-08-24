@@ -23,6 +23,7 @@ class TriggerWrongHashScriptListGeneratorService:
         hash_search_public_keys_list: List[List[List[str]]],
         choice_search_prover_public_keys_list: List[List[List[str]]],
         trace_prover_public_keys: List[List[str]],
+        hash_result_public_keys: List[str],
         amount_of_nibbles_hash: int,
         amount_of_bits_per_digit_checksum: int,
     ) -> BitVMXWrongHashScriptList:
@@ -33,6 +34,7 @@ class TriggerWrongHashScriptListGeneratorService:
             hash_search_public_keys_list=hash_search_public_keys_list,
             choice_search_prover_public_keys_list=choice_search_prover_public_keys_list,
             trace_prover_public_keys=trace_prover_public_keys,
+            hash_result_public_keys=hash_result_public_keys,
             amount_of_nibbles_hash=amount_of_nibbles_hash,
             amount_of_bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
         )

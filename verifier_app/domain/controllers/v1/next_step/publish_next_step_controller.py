@@ -27,7 +27,7 @@ async def _trigger_next_step_prover(setup_uuid: str, prover_host: str):
 
     # Be careful, this body is the prover one -> app library
     # Make the POST request
-    async with httpx.AsyncClient(timeout=1200.0) as client:
+    async with httpx.AsyncClient(timeout=3000.0) as client:
         await client.post(url, headers=headers, json={"setup_uuid": setup_uuid})
 
 
