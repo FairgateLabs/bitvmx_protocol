@@ -14,8 +14,8 @@ class BitVMXWrapper:
         # self.fail_step = "1234567890"
         self.fail_step = "256"
         # self.fail_step = None
-        self.fail_type = "--fail-execute"
-        # self.fail_type = "--fail-hash"
+        # self.fail_type = "--fail-execute"
+        self.fail_type = "--fail-hash"
         self.contains_fail = (
             self.fail_actor is not None
             and self.fail_actor in self.base_path

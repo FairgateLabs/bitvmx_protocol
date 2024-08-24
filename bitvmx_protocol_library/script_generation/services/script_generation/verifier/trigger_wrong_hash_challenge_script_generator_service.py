@@ -149,7 +149,7 @@ class TriggerWrongHashChallengeScriptGeneratorService:
         for i in range(64 - 1):
             script.append("OP_ADD")
         script.append(64)
-        script.append("OP_EQUAL")
+        script.append("OP_LESSTHAN")
         return script
 
     def _add_hash_to_stack(
