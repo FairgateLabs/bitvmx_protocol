@@ -8,9 +8,9 @@ class VerifySignatureService:
     def __init__(self, unspendable_public_key: PublicKey):
         self.unspendable_public_key = unspendable_public_key
 
-    def __call__(self, tx, script, amount, public_key_hex, signature):
+    def __call__(self, tx, script, script_address, amount, public_key_hex, signature):
 
-        script_address = self.unspendable_public_key.get_taproot_address([[script]])
+        # script_address = self.unspendable_public_key.get_taproot_address([[script]])
         tx_digest = tx.get_transaction_taproot_digest(
             0,
             [script_address.to_script_pub_key()],

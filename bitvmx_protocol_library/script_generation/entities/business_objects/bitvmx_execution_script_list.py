@@ -14,7 +14,7 @@ from bitcoinutils.utils import (
 )
 from pydantic import BaseModel
 
-from bitvmx_protocol_library.script_generation.services.script_generation.execution_challenge_script_from_key_generator_service import (
+from bitvmx_protocol_library.script_generation.services.script_generation.prover.execution_challenge_script_from_key_generator_service import (
     ExecutionChallengeScriptFromKeyGeneratorService,
 )
 from bitvmx_protocol_library.script_generation.services.split_list_for_merkle_tree_service import (
@@ -390,7 +390,7 @@ class BitVMXExecutionScriptList(BaseModel):
         self.taproot_address_is_odd = is_odd
         return P2trAddress(witness_program=pubkey.hex(), is_odd=is_odd)
 
-    def get_control_block_hex(self, public_key: PublicKey, index: int, is_odd: bool):
+    def get_control_block_hex(self, public_key: PublicKey, index: int, is_odd: bool) -> str:
 
         leaf_version = bytes([(1 if is_odd else 0) + LEAF_VERSION_TAPSCRIPT])
         pub_key = bytes.fromhex(public_key.to_x_only_hex())

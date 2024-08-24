@@ -1,3 +1,5 @@
+from typing import Dict, List
+
 from bitcoinutils.keys import PublicKey
 
 from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin_script import (
@@ -12,13 +14,13 @@ class ExecutionChallengeScriptFromKeyGeneratorService:
 
     def __call__(
         self,
-        key,
-        signature_public_keys,
-        public_keys,
-        trace_words_lengths,
-        bits_per_digit_checksum,
-        instruction_dict,
-        trace_to_script_mapping,
+        key: str,
+        signature_public_keys: List[str],
+        public_keys: List[List[str]],
+        trace_words_lengths: List[int],
+        bits_per_digit_checksum: int,
+        instruction_dict: Dict[str, str],
+        trace_to_script_mapping: List[int],
     ):
         script = BitcoinScript()
         trace_to_script_mapping = reversed(trace_to_script_mapping)

@@ -16,7 +16,7 @@ async def _trigger_next_step_prover(next_step_post_view_input: NextStepPostV1Inp
 
     # Be careful, this body is the prover one -> app library
     # Make the POST request
-    async with httpx.AsyncClient(timeout=1200.0) as client:
+    async with httpx.AsyncClient(timeout=3000.0) as client:
         await client.post(url, headers=headers, json=json.loads(next_step_post_view_input.json()))
 
 

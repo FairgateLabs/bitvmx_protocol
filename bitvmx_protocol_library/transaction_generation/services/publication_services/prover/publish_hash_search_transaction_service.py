@@ -15,11 +15,11 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
-from bitvmx_protocol_library.script_generation.services.script_generation.commit_search_choice_script_generator_service import (
-    CommitSearchChoiceScriptGeneratorService,
-)
-from bitvmx_protocol_library.script_generation.services.script_generation.commit_search_hashes_script_generator_service import (
+from bitvmx_protocol_library.script_generation.services.script_generation.prover.commit_search_hashes_script_generator_service import (
     CommitSearchHashesScriptGeneratorService,
+)
+from bitvmx_protocol_library.script_generation.services.script_generation.verifier.commit_search_choice_script_generator_service import (
+    CommitSearchChoiceScriptGeneratorService,
 )
 from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
     GenerateWitnessFromInputNibblesService,

@@ -28,6 +28,8 @@ class BitVMXProtocolSetupPropertiesDTO(BaseModel):
     verifier_address_dict: Dict[str, str]
     prover_destination_address: str
     prover_signature_public_key: str
+    verifier_destination_address: str
+    verifier_signature_public_key: str
     seed_unspendable_public_key: str
     prover_destroyed_public_key: str
     verifier_destroyed_public_key: str

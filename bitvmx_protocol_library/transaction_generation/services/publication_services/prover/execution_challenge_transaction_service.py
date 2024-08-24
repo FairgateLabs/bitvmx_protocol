@@ -14,7 +14,7 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
-from bitvmx_protocol_library.script_generation.services.execution_challenge_script_list_generator_service import (
+from bitvmx_protocol_library.script_generation.services.script_list_generator_services.prover.execution_challenge_script_list_generator_service import (
     ExecutionChallengeScriptListGeneratorService,
 )
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
@@ -62,6 +62,7 @@ class ExecutionChallengeTransactionService:
                     i
                 ]
             )
+            # We need to skip the double amount of digits because the verifier cross signed them (so they are repeated)
             current_verifier_witness = trigger_execution_challenge_witness[
                 processed_values
                 + 2 * current_keys_length : processed_values

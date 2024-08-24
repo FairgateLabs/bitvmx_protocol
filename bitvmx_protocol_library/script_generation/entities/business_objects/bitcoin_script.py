@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union
+from typing import Any, List, Optional, Union
 
 from bitcoinutils.keys import PublicKey
 from bitcoinutils.script import Script
@@ -38,6 +38,16 @@ class BitcoinScript(Script):
             .from_raw(scriptrawhex=scriptrawhex, has_segwit=has_segwit)
             .script
         )
+
+    @staticmethod
+    def from_int_list(script_list: List[int], has_segwit: bool = False):
+        script_hex = ""
+        for elem in script_list:
+            hex_string = hex(elem)[2:]
+            if len(hex_string) == 1:
+                hex_string = "0" + hex_string
+            script_hex += hex_string
+        return BitcoinScript.from_raw(scriptrawhex=script_hex, has_segwit=has_segwit)
 
     def to_p2sh_script_pub_key(self) -> "Script":
         return BitcoinScript(super().to_p2sh_script_pub_key().script)

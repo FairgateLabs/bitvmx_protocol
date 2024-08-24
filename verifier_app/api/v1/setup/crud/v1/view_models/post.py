@@ -10,3 +10,5 @@ class SetupPostV1Input(BaseModel):
 
 class SetupPostV1Output(BaseModel):
     public_key: str
+    verifier_signature_public_key: str
+    verifier_destination_address: str

@@ -10,7 +10,7 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
-from bitvmx_protocol_library.script_generation.services.script_generation.execution_trace_script_generator_service import (
+from bitvmx_protocol_library.script_generation.services.script_generation.prover.execution_trace_script_generator_service import (
     ExecutionTraceScriptGeneratorService,
 )
 from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
@@ -58,7 +58,7 @@ class PublishTraceTransactionService:
                 -1
             ].get_txid()
         )
-        previous_choice_transaction_info = transaction_info_service(previous_choice_tx)
+        previous_choice_transaction_info = transaction_info_service(tx_id=previous_choice_tx)
         previous_witness = previous_choice_transaction_info.inputs[0].witness
         trace_witness += previous_witness[len(trace_signatures) + 0 : len(trace_signatures) + 4]
         current_choice = (

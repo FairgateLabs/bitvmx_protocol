@@ -21,9 +21,12 @@ class VerifierWrongHashChallengeDetectionService:
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
         execution_trace = bitvmx_protocol_verifier_dto.published_execution_trace
-        previous_step_hash = bitvmx_protocol_verifier_dto.published_hashes_dict[
-            bitvmx_protocol_verifier_dto.first_wrong_step - 1
-        ]
+        if bitvmx_protocol_verifier_dto.first_wrong_step > 0:
+            previous_step_hash = bitvmx_protocol_verifier_dto.published_hashes_dict[
+                bitvmx_protocol_verifier_dto.first_wrong_step - 1
+            ]
+        else:
+            previous_step_hash = byte_sha256(bytes.fromhex("ff")).hex().zfill(64)
         write_trace = (
             execution_trace.write_address
             + execution_trace.write_value
@@ -33,6 +36,15 @@ class VerifierWrongHashChallengeDetectionService:
         next_step_hash = (
             byte_sha256(bytes.fromhex(previous_step_hash + write_trace)).hex().zfill(64)
         )
+        print(
+            "Checking correct hash challenge. Previous hash (correct): "
+            + previous_step_hash
+            + ", write trace: "
+            + write_trace
+            + ", next hash(incorrect): "
+            + next_step_hash
+        )
+        # This should be erased when the script works
         if (
             bitvmx_protocol_verifier_dto.published_hashes_dict[
                 bitvmx_protocol_verifier_dto.first_wrong_step

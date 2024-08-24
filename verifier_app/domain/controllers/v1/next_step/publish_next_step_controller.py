@@ -27,7 +27,7 @@ async def _trigger_next_step_prover(setup_uuid: str, prover_host: str):
 
     # Be careful, this body is the prover one -> app library
     # Make the POST request
-    async with httpx.AsyncClient(timeout=1200.0) as client:
+    async with httpx.AsyncClient(timeout=3000.0) as client:
         await client.post(url, headers=headers, json={"setup_uuid": setup_uuid})
 
 
@@ -141,6 +141,7 @@ class PublishNextStepController:
                 )
                 last_confirmed_step_tx = trigger_challenge_transaction_service(
                     bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                    bitvmx_protocol_verifier_private_dto=bitvmx_protocol_verifier_private_dto,
                     bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
                 )
                 bitvmx_protocol_verifier_dto.last_confirmed_step_tx_id = (
@@ -193,7 +194,6 @@ class PublishNextStepController:
             TransactionVerifierStepType.TRIGGER_PROTOCOL,
             TransactionVerifierStepType.SEARCH_STEP_CHOICE,
             TransactionVerifierStepType.TRIGGER_EXECUTION_CHALLENGE,
-            TransactionVerifierStepType.TRIGGER_WRONG_HASH_CHALLENGE,
         ]:
             asyncio.create_task(
                 _trigger_next_step_prover(

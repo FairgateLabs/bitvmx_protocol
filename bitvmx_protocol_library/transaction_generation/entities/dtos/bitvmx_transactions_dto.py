@@ -15,6 +15,7 @@ class BitVMXTransactionsDTO(BaseModel):
     search_choice_tx_list: List[Transaction]
     trace_tx: Transaction
     trigger_execution_challenge_tx: Transaction
+    trigger_wrong_hash_challenge_tx: Transaction
     execution_challenge_tx: Transaction
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -36,7 +37,7 @@ class BitVMXTransactionsDTO(BaseModel):
             return input
         return Transaction.from_raw(rawtxhex=input)
 
-    def __init__(self, **data: Dict):
+    def __init__(self, **data):
         for field_name, field_type in self.__annotations__.items():
             if field_type == Transaction:
                 data[field_name] = BitVMXTransactionsDTO.transform_transaction_input(
@@ -93,6 +94,12 @@ class BitVMXTransactionsDTO(BaseModel):
         trigger_execution_challenge_tx: Transaction,
     ) -> str:
         return BitVMXTransactionsDTO.transaction_to_str(trigger_execution_challenge_tx)
+
+    @field_serializer("trigger_wrong_hash_challenge_tx", when_used="always")
+    def serialize_trigger_wrong_hash_challenge_tx(
+        trigger_wrong_hash_challenge_tx: Transaction,
+    ) -> str:
+        return BitVMXTransactionsDTO.transaction_to_str(trigger_wrong_hash_challenge_tx)
 
     @field_serializer("execution_challenge_tx", when_used="always")
     def serialize_execution_challenge_tx(execution_challenge_tx: Transaction) -> str:

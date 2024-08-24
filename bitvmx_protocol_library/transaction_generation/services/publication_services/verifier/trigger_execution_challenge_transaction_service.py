@@ -7,7 +7,13 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
     BitVMXProtocolVerifierDTO,
 )
-from bitvmx_protocol_library.script_generation.services.script_generation.trigger_generic_challenge_script_generator_service import (
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_private_dto import (
+    BitVMXProtocolVerifierPrivateDTO,
+)
+from bitvmx_protocol_library.script_generation.services.bitvmx_bitcoin_scripts_generator_service import (
+    BitVMXBitcoinScriptsGeneratorService,
+)
+from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_generic_challenge_script_generator_service import (
     TriggerGenericChallengeScriptGeneratorService,
 )
 from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
@@ -26,10 +32,12 @@ class TriggerExecutionChallengeTransactionService:
         self.generate_witness_from_input_nibbles_service = GenerateWitnessFromInputNibblesService(
             verifier_private_key
         )
+        self.bitvmx_bitcoin_scripts_generator_service = BitVMXBitcoinScriptsGeneratorService()
 
     def __call__(
         self,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
+        bitvmx_protocol_verifier_private_dto: BitVMXProtocolVerifierPrivateDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
 
@@ -91,17 +99,14 @@ class TriggerExecutionChallengeTransactionService:
                 bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             )
 
-        trigger_execution_script = self.verifier_challenge_execution_script_generator_service(
-            bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
-            bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
-            bitvmx_protocol_setup_properties_dto.signature_public_keys,
-            trace_words_lengths,
-            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+        bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys,
         )
 
         # TODO: we should load this address from protocol dict as we add more challenges
-        trigger_challenge_taptree = [[trigger_execution_script]]
-        challenge_scripts_address = (
+        trigger_challenge_taptree = bitvmx_bitcoin_scripts_dto.trigger_challenge_taptree()
+        trigger_challenge_scripts_address = (
             bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
                 trigger_challenge_taptree
             )
@@ -110,8 +115,8 @@ class TriggerExecutionChallengeTransactionService:
         challenge_scripts_control_block = ControlBlock(
             bitvmx_protocol_setup_properties_dto.unspendable_public_key,
             scripts=trigger_challenge_taptree,
-            index=0,
-            is_odd=challenge_scripts_address.is_odd(),
+            index=bitvmx_bitcoin_scripts_dto.trigger_challenge_index(0),
+            is_odd=trigger_challenge_scripts_address.is_odd(),
         )
 
         trigger_challenge_witness = []
@@ -150,7 +155,7 @@ class TriggerExecutionChallengeTransactionService:
                 trigger_execution_challenge_signature
                 + trigger_challenge_witness
                 + [
-                    trigger_execution_script.to_hex(),
+                    trigger_challenge_taptree[0].to_hex(),
                     challenge_scripts_control_block.to_hex(),
                 ]
             )
