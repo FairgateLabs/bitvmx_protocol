@@ -1,5 +1,6 @@
 import secrets
 import uuid
+from time import time
 from typing import List
 
 import requests
@@ -86,6 +87,7 @@ class CreateSetupController:
     ) -> str:
         setup_uuid = str(uuid.uuid4())
         prover_uuid = str(uuid.uuid4())
+        init_time = time()
 
         funding_tx = self.transaction_info_service(tx_id=funding_tx_id)
         initial_amount_of_satoshis = funding_tx.outputs[funding_index].value - step_fees_satoshis
@@ -143,7 +145,7 @@ class CreateSetupController:
         generate_prover_public_keys_service = self.generate_prover_public_keys_service_class(
             winternitz_private_key
         )
-
+        print("Public keys generated: " + str(time() - init_time))
         bitvmx_prover_winternitz_public_keys_dto = generate_prover_public_keys_service(
             bitvmx_protocol_properties_dto=bitvmx_protocol_properties_dto,
         )
@@ -194,14 +196,16 @@ class CreateSetupController:
                     **public_keys_response_json["bitvmx_verifier_winternitz_public_keys_dto"]
                 )
             )
-
+        print("Verifier public keys generated: " + str(time() - init_time))
         # Scripts building #
 
         # One call per verifier should be done
-        bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
-            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-            signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys,
+        bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto = (
+            self.bitvmx_bitcoin_scripts_generator_service(
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            )
         )
+        print("Bitcoin scripts generated: " + str(time() - init_time))
 
         # We need to know the origin of the funds or change the signature to only sign the output (it's possible and gives more flexibility)
 
@@ -213,7 +217,7 @@ class CreateSetupController:
                 bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             )
         )
-
+        print("Transactions built: " + str(time() - init_time))
         # Signature computation
 
         # One call per verifier should be done
@@ -221,10 +225,9 @@ class CreateSetupController:
             private_key=prover_destroyed_private_key, destroyed_public_key=unspendable_public_key
         )
         bitvmx_signatures_dto = generate_signatures_service(
-            bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
-
+        print("Signatures generated: " + str(time() - init_time))
         hash_result_signatures = [bitvmx_signatures_dto.hash_result_signature]
         search_hash_signatures = [
             [signature] for signature in bitvmx_signatures_dto.search_hash_signatures
@@ -257,7 +260,7 @@ class CreateSetupController:
             hash_result_signatures.append(bitvmx_verifier_signatures_dto.hash_result_signature)
             trace_signatures.append(bitvmx_verifier_signatures_dto.trace_signature)
             verifier_signatures_dto_dict[verifier_uuid] = bitvmx_verifier_signatures_dto
-
+        print("Verifier signatures sent: " + str(time() - init_time))
         hash_result_signatures.reverse()
         for signature_list in search_hash_signatures:
             signature_list.reverse()
@@ -281,7 +284,6 @@ class CreateSetupController:
                 hash_result_signature=bitvmx_verifier_signatures_dto.hash_result_signature,
                 search_hash_signatures=bitvmx_verifier_signatures_dto.search_hash_signatures,
                 trace_signature=bitvmx_verifier_signatures_dto.trace_signature,
-                bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
                 bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             )
 

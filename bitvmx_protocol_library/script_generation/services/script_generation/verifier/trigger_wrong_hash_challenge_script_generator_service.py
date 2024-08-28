@@ -21,6 +21,7 @@ class TriggerWrongHashChallengeScriptGeneratorService:
     def __init__(self):
         self.verify_input_nibble_message_from_public_keys = VerifyDigitSignatureNibblesService()
         self.verify_input_single_word_from_public_keys = VerifyDigitSignatureSingleWordService()
+        self.cached_sha_scripts = {}
 
     def __call__(
         self,
@@ -136,10 +137,13 @@ class TriggerWrongHashChallengeScriptGeneratorService:
         for _ in range(amount_of_input_hash_nibbles_trace):
             script.append("OP_FROMALTSTACK")
         amount_of_input_hash_nibbles = amount_of_nibbles_hash + amount_of_input_hash_nibbles_trace
-        sha_256_script_int_opcodes = pybitvmbinding.sha_256_script(
-            int(amount_of_input_hash_nibbles / 2)
-        )
-        sha_256_script = BitcoinScript.from_int_list(sha_256_script_int_opcodes)
+        current_length = int(amount_of_input_hash_nibbles / 2)
+        if current_length in self.cached_sha_scripts:
+            sha_256_script = self.cached_sha_scripts[current_length]
+        else:
+            sha_256_script_int_opcodes = pybitvmbinding.sha_256_script(current_length)
+            sha_256_script = BitcoinScript.from_int_list(sha_256_script_int_opcodes)
+            self.cached_sha_scripts[current_length] = sha_256_script
         script += sha_256_script
         for i in range(64):
             script.append(i)
