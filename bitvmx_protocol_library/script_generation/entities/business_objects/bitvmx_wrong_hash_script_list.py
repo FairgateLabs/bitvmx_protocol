@@ -74,6 +74,19 @@ class BitVMXWrongHashScriptList(BaseModel):
                         bin_wrong_choice=prefix_bin + suffix_bin,
                     )
                 )
+        print(
+            "Value equal to "
+            + "1" * self.amount_of_bits_wrong_step_search * len(self.hash_search_public_keys_list)
+            + " : "
+            + str(
+                int(
+                    "1"
+                    * self.amount_of_bits_wrong_step_search
+                    * len(self.hash_search_public_keys_list),
+                    2,
+                )
+            )
+        )
         script_list.append(
             trigger_wrong_hash_challenge_script_generator_service(
                 signature_public_keys=self.signature_public_keys,
@@ -116,9 +129,6 @@ class BitVMXWrongHashScriptList(BaseModel):
             while splitted_bin[-1] == "1" * self.amount_of_bits_wrong_step_search:
                 splitted_bin = splitted_bin[:-1]
                 index += self.amount_of_base_scripts
-            if len(splitted_bin) == 0:
-                # This case corresponds to the one where all bits are 1
-                raise NotImplementedError
             index += int(splitted_bin[-1], 2)
             return index
         elif last_char == "0" * self.amount_of_bits_wrong_step_search:

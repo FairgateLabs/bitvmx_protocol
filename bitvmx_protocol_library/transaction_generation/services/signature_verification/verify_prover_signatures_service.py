@@ -3,9 +3,6 @@ from bitcoinutils.keys import PublicKey
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
-from bitvmx_protocol_library.script_generation.entities.dtos.bitvmx_bitcoin_scripts_dto import (
-    BitVMXBitcoinScriptsDTO,
-)
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_prover_signatures_dto import (
     BitVMXProverSignaturesDTO,
 )
@@ -26,14 +23,15 @@ class VerifyProverSignaturesService:
         self,
         public_key: str,
         bitvmx_prover_signatures_dto: BitVMXProverSignaturesDTO,
-        bitvmx_bitcoin_scripts_dto: BitVMXBitcoinScriptsDTO,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
     ):
 
         funding_result_output_amount = (
             bitvmx_protocol_setup_properties_dto.funding_amount_of_satoshis
         )
-        script = bitvmx_bitcoin_scripts_dto.trigger_protocol_script
+        script = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_protocol_script
+        )
         script_address = self.unspendable_public_key.get_taproot_address([[script]])
 
         self.verify_signature_service(
@@ -47,7 +45,9 @@ class VerifyProverSignaturesService:
         )
 
         for i in range(len(bitvmx_prover_signatures_dto.search_choice_signatures)):
-            script = bitvmx_bitcoin_scripts_dto.choice_search_scripts[i]
+            script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_scripts[
+                i
+            ]
             script_address = self.unspendable_public_key.get_taproot_address([[script]])
             self.verify_signature_service(
                 tx=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_choice_tx_list[
@@ -61,8 +61,10 @@ class VerifyProverSignaturesService:
                 signature=bitvmx_prover_signatures_dto.search_choice_signatures[i],
             )
 
-        script = bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts[0]
-        script_address = bitvmx_bitcoin_scripts_dto.trigger_challenge_address(
+        script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts[
+            0
+        ]
+        script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_address(
             destroyed_public_key=self.unspendable_public_key
         )
 

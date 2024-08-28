@@ -13,6 +13,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_prover_w
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_verifier_winternitz_public_keys_dto import (
     BitVMXVerifierWinternitzPublicKeysDTO,
 )
+from bitvmx_protocol_library.script_generation.entities.dtos.bitvmx_bitcoin_scripts_dto import (
+    BitVMXBitcoinScriptsDTO,
+)
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_transactions_dto import (
     BitVMXTransactionsDTO,
 )
@@ -34,6 +37,7 @@ class BitVMXProtocolSetupPropertiesDTO(BaseModel):
     prover_destroyed_public_key: str
     verifier_destroyed_public_key: str
     bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO
+    bitvmx_bitcoin_scripts_dto: Optional[BitVMXBitcoinScriptsDTO] = None
     bitvmx_transactions_dto: Optional[BitVMXTransactionsDTO] = None
     bitvmx_prover_winternitz_public_keys_dto: Optional[BitVMXProverWinternitzPublicKeysDTO] = None
     bitvmx_verifier_winternitz_public_keys_dto: Optional[BitVMXVerifierWinternitzPublicKeysDTO] = (
@@ -44,6 +48,10 @@ class BitVMXProtocolSetupPropertiesDTO(BaseModel):
         if "bitvmx_transactions_dto" in data and data["bitvmx_transactions_dto"] is not None:
             data["bitvmx_transactions_dto"] = BitVMXTransactionsDTO(
                 **data["bitvmx_transactions_dto"]
+            )
+        if "bitvmx_bitcoin_scripts_dto" in data and data["bitvmx_bitcoin_scripts_dto"] is not None:
+            data["bitvmx_bitcoin_scripts_dto"] = BitVMXBitcoinScriptsDTO(
+                **data["bitvmx_bitcoin_scripts_dto"]
             )
         super().__init__(**data)
 

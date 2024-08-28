@@ -46,20 +46,17 @@ class TriggerWrongHashChallengeTransactionService:
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
 
-        bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
-            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-            signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys,
+        trigger_challenge_taptree = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_taptree()
         )
-
-        trigger_challenge_taptree = bitvmx_bitcoin_scripts_dto.trigger_challenge_taptree()
-        trigger_challenge_scripts_address = bitvmx_bitcoin_scripts_dto.trigger_challenge_address(
+        trigger_challenge_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_address(
             bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
 
         wrong_hash_control_block = ControlBlock(
             bitvmx_protocol_setup_properties_dto.unspendable_public_key,
             scripts=trigger_challenge_taptree,
-            index=bitvmx_bitcoin_scripts_dto.trigger_wrong_hash_challenge_index(
+            index=bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_wrong_hash_challenge_index(
                 choice=bitvmx_protocol_verifier_dto.first_wrong_step
             ),
             is_odd=trigger_challenge_scripts_address.is_odd(),
@@ -94,8 +91,8 @@ class TriggerWrongHashChallengeTransactionService:
         private_key = PrivateKey(
             b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.verifier_signature_private_key)
         )
-        current_script = bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list[
-            bitvmx_bitcoin_scripts_dto.trigger_wrong_hash_challenge_index(
+        current_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list[
+            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_wrong_hash_challenge_index(
                 bitvmx_protocol_verifier_dto.first_wrong_step
             )
         ]

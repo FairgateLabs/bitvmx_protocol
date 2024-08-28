@@ -1,7 +1,8 @@
-from typing import List
+import json
+from typing import Dict, List
 
 from bitcoinutils.keys import P2trAddress, PublicKey
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin_script import (
     BitcoinScript,
@@ -26,18 +27,61 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     trigger_challenge_scripts: BitcoinScriptList
     execution_challenge_script_list: BitVMXExecutionScriptList
     wrong_hash_challenge_script_list: BitVMXWrongHashScriptList
+    cached_trigger_challenge_address: Dict[str, str] = Field(default_factory=dict)
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    def __init__(self, **data):
+        for field_name, field_type in self.__annotations__.items():
+            if field_type == BitcoinScript:
+                if not isinstance(data[field_name], BitcoinScript):
+                    data[field_name] = BitcoinScript(json.loads(data[field_name]))
+            elif field_type == List[BitcoinScript]:
+                if not isinstance(data[field_name], list) or not all(
+                    isinstance(item, BitcoinScript) for item in data[field_name]
+                ):
+                    data[field_name] = list(
+                        map(
+                            lambda elem: BitcoinScript(json.loads(elem)),
+                            json.loads(data[field_name]),
+                        )
+                    )
+            elif field_type == BitcoinScriptList:
+                if not isinstance(data[field_name], BitcoinScriptList):
+                    data[field_name] = BitcoinScriptList(
+                        list(
+                            map(
+                                lambda elem: BitcoinScript(json.loads(elem)),
+                                json.loads(data[field_name]),
+                            )
+                        )
+                    )
+            elif field_type == BitVMXExecutionScriptList:
+                if not isinstance(data[field_name], BitVMXExecutionScriptList):
+                    data[field_name] = BitVMXExecutionScriptList(**data[field_name])
+            elif field_type == BitVMXWrongHashScriptList:
+                if not isinstance(data[field_name], BitVMXWrongHashScriptList):
+                    data[field_name] = BitVMXWrongHashScriptList(**data[field_name])
+            elif field_type == Dict[str, str]:
+                pass
+            else:
+                raise TypeError(f"Unexpected type {field_type} for field {field_name}")
+        super().__init__(**data)
 
     @property
     def trigger_challenge_scripts_list(self) -> BitcoinScriptList:
         return self.trigger_challenge_scripts + self.wrong_hash_challenge_script_list.script_list()
 
     def trigger_challenge_address(self, destroyed_public_key: PublicKey) -> P2trAddress:
-        return self.trigger_challenge_scripts_list.get_taproot_address(
+        if destroyed_public_key.to_hex() in self.cached_trigger_challenge_address:
+            return P2trAddress(self.cached_trigger_challenge_address[destroyed_public_key.to_hex()])
+        trigger_challenge_address = self.trigger_challenge_scripts_list.get_taproot_address(
             public_key=destroyed_public_key
         )
+        self.cached_trigger_challenge_address[destroyed_public_key.to_hex()] = (
+            trigger_challenge_address.to_string()
+        )
+        return trigger_challenge_address
 
     def trigger_challenge_taptree(self):
         return self.trigger_challenge_scripts_list.to_scripts_tree()
@@ -49,3 +93,52 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return len(
             self.trigger_challenge_scripts
         ) + self.wrong_hash_challenge_script_list.list_index_from_choice(choice=choice)
+
+    @staticmethod
+    def bitcoin_script_to_str(script: BitcoinScript) -> str:
+        return json.dumps(script.script)
+
+    @field_serializer("hash_result_script", when_used="always")
+    def serialize_hash_result_script(hash_result_script: BitcoinScript) -> str:
+        return BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=hash_result_script)
+
+    @field_serializer("trigger_protocol_script", when_used="always")
+    def serialize_trigger_protocol_script(trigger_protocol_script: BitcoinScript) -> str:
+        return BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=trigger_protocol_script)
+
+    @field_serializer("trace_script", when_used="always")
+    def serialize_trace_script(trace_script: BitcoinScript) -> str:
+        return BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=trace_script)
+
+    @field_serializer("hash_search_scripts", when_used="always")
+    def serialize_hash_search_scripts(hash_search_scripts: List[BitcoinScript]) -> str:
+        return json.dumps(
+            list(
+                map(
+                    lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
+                    hash_search_scripts,
+                )
+            )
+        )
+
+    @field_serializer("choice_search_scripts", when_used="always")
+    def serialize_choice_search_scripts(choice_search_scripts: List[BitcoinScript]) -> str:
+        return json.dumps(
+            list(
+                map(
+                    lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
+                    choice_search_scripts,
+                )
+            )
+        )
+
+    @field_serializer("trigger_challenge_scripts", when_used="always")
+    def serialize_trigger_challenge_scripts(trigger_challenge_scripts: BitcoinScriptList) -> str:
+        return json.dumps(
+            list(
+                map(
+                    lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
+                    trigger_challenge_scripts.script_list,
+                )
+            )
+        )

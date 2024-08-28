@@ -11,7 +11,7 @@ class BitVMXProtocolProverPrivateDTOPersistenceInterface(ABC):
     def create(
         self,
         setup_uuid: str,
-        bitvmx_protocol_verifier_private_dto: BitVMXProtocolProverPrivateDTO,
+        bitvmx_protocol_prover_private_dto: BitVMXProtocolProverPrivateDTO,
     ) -> bool:
         pass
 

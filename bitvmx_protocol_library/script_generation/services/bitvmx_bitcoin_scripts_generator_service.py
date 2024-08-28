@@ -1,5 +1,3 @@
-from typing import List
-
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
@@ -60,9 +58,8 @@ class BitVMXBitcoinScriptsGeneratorService:
     def __call__(
         self,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
-        signature_public_keys: List[str],
     ) -> BitVMXBitcoinScriptsDTO:
-        assert signature_public_keys == bitvmx_protocol_setup_properties_dto.signature_public_keys
+        signature_public_keys = bitvmx_protocol_setup_properties_dto.signature_public_keys
         trace_words_lengths = (
             bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
                 ::-1

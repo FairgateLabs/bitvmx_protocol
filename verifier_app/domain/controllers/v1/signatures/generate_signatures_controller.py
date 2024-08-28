@@ -1,3 +1,5 @@
+from time import time
+
 from bitcoinutils.keys import PrivateKey
 from bitcoinutils.setup import NETWORK
 
@@ -54,6 +56,7 @@ class GenerateSignaturesController:
         setup_uuid: str,
         bitvmx_prover_signatures_dto: BitVMXProverSignaturesDTO,
     ) -> BitVMXVerifierSignaturesDTO:
+        init_time = time()
         if self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
             assert NETWORK == "testnet"
         else:
@@ -70,19 +73,12 @@ class GenerateSignaturesController:
             self.bitvmx_protocol_setup_properties_dto_persistence.get(setup_uuid=setup_uuid)
         )
 
-        # Scripts construction
-        bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
-            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-            signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys,
-        )
-
         verify_prover_signatures_service = self.verify_prover_signatures_service_class(
             bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
         verify_prover_signatures_service(
             public_key=bitvmx_protocol_setup_properties_dto.prover_destroyed_public_key,
             bitvmx_prover_signatures_dto=bitvmx_prover_signatures_dto,
-            bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
 
@@ -90,7 +86,6 @@ class GenerateSignaturesController:
             destroyed_private_key, bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
         bitvmx_signatures_dto = generate_signatures_service(
-            bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
 
@@ -126,5 +121,5 @@ class GenerateSignaturesController:
         self.bitvmx_protocol_verifier_dto_persistence.create(
             setup_uuid=setup_uuid, bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto
         )
-
+        print("Signatures controller total time: " + str(time() - init_time))
         return bitvmx_signatures_dto.verifier_signatures_dto

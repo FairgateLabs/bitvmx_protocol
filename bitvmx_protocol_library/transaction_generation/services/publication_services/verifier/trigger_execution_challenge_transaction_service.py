@@ -101,7 +101,6 @@ class TriggerExecutionChallengeTransactionService:
 
         bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-            signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys,
         )
 
         # TODO: we should load this address from protocol dict as we add more challenges
