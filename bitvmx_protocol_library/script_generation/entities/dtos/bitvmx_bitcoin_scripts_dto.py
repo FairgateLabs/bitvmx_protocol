@@ -28,6 +28,8 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     execution_challenge_script_list: BitVMXExecutionScriptList
     wrong_hash_challenge_script_list: BitVMXWrongHashScriptList
     cached_trigger_challenge_address: Dict[str, str] = Field(default_factory=dict)
+    hash_read_search_scripts: List[BitcoinScript]
+    choice_read_search_scripts: List[BitcoinScript]
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -70,7 +72,11 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
 
     @property
     def trigger_challenge_scripts_list(self) -> BitcoinScriptList:
-        return self.trigger_challenge_scripts + self.wrong_hash_challenge_script_list.script_list()
+        return (
+            self.trigger_challenge_scripts
+            + self.wrong_hash_challenge_script_list.script_list()
+            + BitcoinScriptList(self.choice_read_search_scripts[0])
+        )
 
     def trigger_challenge_address(self, destroyed_public_key: PublicKey) -> P2trAddress:
         if destroyed_public_key.to_hex() in self.cached_trigger_challenge_address:
@@ -93,6 +99,9 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return len(
             self.trigger_challenge_scripts
         ) + self.wrong_hash_challenge_script_list.list_index_from_choice(choice=choice)
+
+    def trigger_read_search_challenge_idnex(self):
+        return len(self.trigger_challenge_scripts) + len(self.wrong_hash_challenge_script_list)
 
     @staticmethod
     def bitcoin_script_to_str(script: BitcoinScript) -> str:
@@ -139,6 +148,30 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
                 map(
                     lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
                     trigger_challenge_scripts.script_list,
+                )
+            )
+        )
+
+    @field_serializer("hash_read_search_scripts", when_used="always")
+    def serialize_hash_read_search_scripts(hash_read_search_scripts: List[BitcoinScript]) -> str:
+        return json.dumps(
+            list(
+                map(
+                    lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
+                    hash_read_search_scripts,
+                )
+            )
+        )
+
+    @field_serializer("choice_read_search_scripts", when_used="always")
+    def serialize_choice_read_search_scripts(
+        choice_read_search_scripts: List[BitcoinScript],
+    ) -> str:
+        return json.dumps(
+            list(
+                map(
+                    lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
+                    choice_read_search_scripts,
                 )
             )
         )

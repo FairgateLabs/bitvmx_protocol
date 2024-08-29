@@ -17,6 +17,8 @@ class BitVMXTransactionsDTO(BaseModel):
     trigger_execution_challenge_tx: Transaction
     trigger_wrong_hash_challenge_tx: Transaction
     execution_challenge_tx: Transaction
+    read_search_hash_tx_list: List[Transaction]
+    read_search_choice_tx_list: List[Transaction]
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -104,3 +106,25 @@ class BitVMXTransactionsDTO(BaseModel):
     @field_serializer("execution_challenge_tx", when_used="always")
     def serialize_execution_challenge_tx(execution_challenge_tx: Transaction) -> str:
         return BitVMXTransactionsDTO.transaction_to_str(execution_challenge_tx)
+
+    @field_serializer("read_search_hash_tx_list", when_used="always")
+    def serialize_read_search_hash_tx_list(
+        read_search_hash_tx_list: List[Transaction],
+    ) -> List[str]:
+        return list(
+            map(
+                lambda transaction: BitVMXTransactionsDTO.transaction_to_str(transaction),
+                read_search_hash_tx_list,
+            )
+        )
+
+    @field_serializer("read_search_choice_tx_list", when_used="always")
+    def serialize_read_search_choice_tx_list(
+        read_search_choice_tx_list: List[Transaction],
+    ) -> List[str]:
+        return list(
+            map(
+                lambda transaction: BitVMXTransactionsDTO.transaction_to_str(transaction),
+                read_search_choice_tx_list,
+            )
+        )

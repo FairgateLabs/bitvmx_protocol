@@ -121,9 +121,6 @@ class BitVMXBitcoinScriptsGeneratorService:
             )
             choice_search_scripts.append(current_choice_script)
 
-        hash_search_scripts = hash_search_scripts
-        choice_search_scripts = choice_search_scripts
-
         trace_script = self.execution_trace_script_generator_service(
             signature_public_keys,
             bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
@@ -176,6 +173,56 @@ class BitVMXBitcoinScriptsGeneratorService:
             amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
+        hash_read_search_scripts = []
+        choice_read_search_scripts = []
+        for iter_count in range(
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+            - 1
+        ):
+            # Hash
+            current_hash_read_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.hash_read_search_public_keys_list[
+                iter_count
+            ]
+            if iter_count > 0:
+                previous_read_choice_verifier_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_read_search_verifier_public_keys_list[
+                    iter_count - 1
+                ]
+                current_read_choice_prover_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.choice_read_search_prover_public_keys_list[
+                    iter_count - 1
+                ]
+                current_read_search_script = self.commit_search_hashes_script_generator_service(
+                    signature_public_keys,
+                    current_hash_read_public_keys,
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+                    current_read_choice_prover_public_keys[0],
+                    previous_read_choice_verifier_public_keys[0],
+                )
+            else:
+                current_read_search_script = self.commit_search_hashes_script_generator_service(
+                    signature_public_keys,
+                    current_hash_read_public_keys,
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+                )
+
+            hash_read_search_scripts.append(current_read_search_script)
+
+        for iter_count in range(
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+        ):
+            # Choice
+            current_read_choice_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list[
+                iter_count
+            ]
+            current_read_choice_script = self.commit_search_choice_script_generator_service(
+                signature_public_keys,
+                current_read_choice_public_keys[0],
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            )
+            choice_read_search_scripts.append(current_read_choice_script)
+
         return BitVMXBitcoinScriptsDTO(
             hash_result_script=hash_result_script,
             trigger_protocol_script=trigger_protocol_script,
@@ -185,4 +232,6 @@ class BitVMXBitcoinScriptsGeneratorService:
             trigger_challenge_scripts=trigger_challenge_scripts,
             execution_challenge_script_list=execution_challenge_script_list,
             wrong_hash_challenge_script_list=wrong_hash_challenge_scripts_list,
+            hash_read_search_scripts=hash_read_search_scripts,
+            choice_read_search_scripts=choice_read_search_scripts,
         )

@@ -89,9 +89,57 @@ class GenerateProverPublicKeysService:
                 list(map(lambda key_list: key_list[-1], keys_list_of_lists))
             )
 
+        current_step += 2
+
+        hash_read_search_public_keys_list = []
+        choice_read_search_prover_public_keys_list = []
+        for iter_count in range(
+            bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations - 1
+        ):
+            current_iteration_read_hash_keys = []
+
+            for word_count in range(
+                bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
+            ):
+                current_iteration_read_hash_keys.append(
+                    self.prover_winternitz_keys_nibbles_service(
+                        step=current_step + 2 * iter_count,
+                        case=word_count,
+                        n0=bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+                    )
+                )
+            current_iteration_read_hash_public_keys = []
+            for keys_list_of_lists in current_iteration_read_hash_keys:
+                current_iteration_read_hash_public_keys.append(
+                    list(map(lambda key_list: key_list[-1], keys_list_of_lists))
+                )
+            hash_read_search_public_keys_list.append(current_iteration_read_hash_public_keys)
+
+        for iter_count in range(
+            bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+        ):
+            current_iteration_prover_read_choice_keys = []
+            current_iteration_prover_read_choice_keys.append(
+                self.prover_winternitz_keys_single_word_service(
+                    step=current_step + 2 * iter_count + 1,
+                    case=0,
+                    amount_of_bits=bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+                )
+            )
+            current_iteration_prover_choice_public_keys = []
+            for keys_list_of_lists in current_iteration_prover_read_choice_keys:
+                current_iteration_prover_choice_public_keys.append(
+                    list(map(lambda key_list: key_list[-1], keys_list_of_lists))
+                )
+            choice_read_search_prover_public_keys_list.append(
+                current_iteration_prover_choice_public_keys
+            )
+
         return BitVMXProverWinternitzPublicKeysDTO(
             hash_result_public_keys=hash_result_public_keys,
             hash_search_public_keys_list=hash_search_public_keys_list,
             choice_search_prover_public_keys_list=choice_search_prover_public_keys_list,
             trace_prover_public_keys=trace_prover_public_keys,
+            hash_read_search_public_keys_list=hash_read_search_public_keys_list,
+            choice_read_search_prover_public_keys_list=choice_read_search_prover_public_keys_list,
         )

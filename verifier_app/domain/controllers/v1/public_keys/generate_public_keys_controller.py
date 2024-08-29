@@ -100,7 +100,7 @@ class GeneratePublicKeysController:
                 bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             )
         )
-        print("Call crete protocol setup properties time: " + str(time() - init_time))
+        print("Call create protocol setup properties time: " + str(time() - init_time))
         self.bitvmx_protocol_setup_properties_dto_persistence.create(
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
         )

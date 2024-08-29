@@ -17,6 +17,7 @@ class BitVMXProtocolVerifierDTO(BaseModel):
     last_confirmed_step: Optional[TransactionVerifierStepType] = None
     last_confirmed_step_tx_id: Optional[str] = None
     search_choices: List[int] = Field(default_factory=list)
+    read_search_choices: List[int] = Field(default_factory=list)
     published_hashes_dict: Dict[int, str] = Field(default_factory=dict)
     prover_trace_witness: Optional[List[str]] = None
     published_execution_trace: Optional[ExecutionTraceDTO] = None
