@@ -16,6 +16,9 @@ from bitvmx_protocol_library.script_generation.services.script_generation.prover
 from bitvmx_protocol_library.script_generation.services.script_generation.prover.hash_result_script_generator_service import (
     HashResultScriptGeneratorService,
 )
+from bitvmx_protocol_library.script_generation.services.script_generation.verifier.commit_read_search_choice_script_generator_service import (
+    CommitReadSearchChoiceScriptGeneratorService,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.verifier.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
 )
@@ -53,6 +56,9 @@ class BitVMXBitcoinScriptsGeneratorService:
         )
         self.trigger_wrong_hash_script_list_generator_service = (
             TriggerWrongHashScriptListGeneratorService()
+        )
+        self.commit_read_search_choice_script_generator_service = (
+            CommitReadSearchChoiceScriptGeneratorService()
         )
 
     def __call__(
@@ -183,29 +189,21 @@ class BitVMXBitcoinScriptsGeneratorService:
             current_hash_read_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.hash_read_search_public_keys_list[
                 iter_count
             ]
-            if iter_count > 0:
-                previous_read_choice_verifier_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_read_search_verifier_public_keys_list[
-                    iter_count - 1
-                ]
-                current_read_choice_prover_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.choice_read_search_prover_public_keys_list[
-                    iter_count - 1
-                ]
-                current_read_search_script = self.commit_search_hashes_script_generator_service(
-                    signature_public_keys,
-                    current_hash_read_public_keys,
-                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
-                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
-                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
-                    current_read_choice_prover_public_keys[0],
-                    previous_read_choice_verifier_public_keys[0],
-                )
-            else:
-                current_read_search_script = self.commit_search_hashes_script_generator_service(
-                    signature_public_keys,
-                    current_hash_read_public_keys,
-                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
-                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
-                )
+            previous_read_choice_verifier_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_read_search_verifier_public_keys_list[
+                iter_count
+            ]
+            current_read_choice_prover_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.choice_read_search_prover_public_keys_list[
+                iter_count
+            ]
+            current_read_search_script = self.commit_search_hashes_script_generator_service(
+                signature_public_keys,
+                current_hash_read_public_keys,
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+                current_read_choice_prover_public_keys[0],
+                previous_read_choice_verifier_public_keys[0],
+            )
 
             hash_read_search_scripts.append(current_read_search_script)
 
@@ -213,10 +211,10 @@ class BitVMXBitcoinScriptsGeneratorService:
             bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
         ):
             # Choice
-            current_read_choice_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list[
+            current_read_choice_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_read_search_verifier_public_keys_list[
                 iter_count
             ]
-            current_read_choice_script = self.commit_search_choice_script_generator_service(
+            current_read_choice_script = self.commit_read_search_choice_script_generator_service(
                 signature_public_keys,
                 current_read_choice_public_keys[0],
                 bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,

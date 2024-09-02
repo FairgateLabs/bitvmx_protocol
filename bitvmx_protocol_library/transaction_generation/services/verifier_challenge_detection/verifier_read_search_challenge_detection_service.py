@@ -19,5 +19,5 @@ class VerifierReadSearchChallengeDetectionService:
     ):
         return (
             PublishChoiceReadSearchTransactionService,
-            TransactionVerifierStepType.SEARCH_READ_STEP_CHOICE,
+            TransactionVerifierStepType.READ_SEARCH_STEP_CHOICE,
         )

@@ -75,7 +75,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return (
             self.trigger_challenge_scripts
             + self.wrong_hash_challenge_script_list.script_list()
-            + BitcoinScriptList(self.choice_read_search_scripts[0])
+            + BitcoinScriptList(self.choice_read_search_scripts)
         )
 
     def trigger_challenge_address(self, destroyed_public_key: PublicKey) -> P2trAddress:
@@ -100,8 +100,10 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             self.trigger_challenge_scripts
         ) + self.wrong_hash_challenge_script_list.list_index_from_choice(choice=choice)
 
-    def trigger_read_search_challenge_idnex(self):
-        return len(self.trigger_challenge_scripts) + len(self.wrong_hash_challenge_script_list)
+    def trigger_read_search_challenge_index(self, index: int):
+        return (
+            len(self.trigger_challenge_scripts) + len(self.wrong_hash_challenge_script_list) + index
+        )
 
     @staticmethod
     def bitcoin_script_to_str(script: BitcoinScript) -> str:

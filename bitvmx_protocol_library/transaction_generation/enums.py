@@ -12,6 +12,6 @@ class TransactionProverStepType(Enum):
 class TransactionVerifierStepType(Enum):
     TRIGGER_PROTOCOL = "trigger_protocol"
     SEARCH_STEP_CHOICE = "search_step_choice"
-    SEARCH_READ_STEP_CHOICE = "search_read_step_choice"
+    READ_SEARCH_STEP_CHOICE = "read_search_step_choice"
     TRIGGER_EXECUTION_CHALLENGE = "trigger_challenge"
     TRIGGER_WRONG_HASH_CHALLENGE = "trigger_wrong_hash"

@@ -131,7 +131,6 @@ class PublishNextStepController:
                     bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
                 )
             )
-            # As of now, this only holds for single step challenges
             if challenge_transaction_service is not None and transaction_step_type is not None:
                 winternitz_verifier_private_key = PrivateKey(
                     b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.winternitz_private_key)

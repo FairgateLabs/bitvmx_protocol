@@ -17,6 +17,7 @@ class BitVMXProtocolProverDTO(BaseModel):
     last_confirmed_step_tx_id: Optional[str] = None
     search_choices: List[int] = Field(default_factory=list)
     published_hashes_dict: Dict[int, str] = Field(default_factory=dict)
+    published_read_hashes_dict: Dict[int, str] = Field(default_factory=dict)
 
     @field_serializer("last_confirmed_step", when_used="always")
     def serialize_last_confirmed_step(

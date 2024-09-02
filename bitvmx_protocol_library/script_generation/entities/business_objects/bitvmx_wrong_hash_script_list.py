@@ -147,7 +147,10 @@ class BitVMXWrongHashScriptList(BaseModel):
             return int(last_char, 2)
 
     def __len__(self):
-        return 2 * len(self.choice_search_prover_public_keys_list)
+        return (
+            self.amount_of_base_scripts * (2 * len(self.choice_search_prover_public_keys_list) - 1)
+            + 1
+        )
 
     def __getitem__(self, choice: int) -> List[str]:
         raise NotImplementedError
