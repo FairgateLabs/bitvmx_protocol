@@ -154,7 +154,7 @@ class TriggerExecutionChallengeTransactionService:
                 trigger_execution_challenge_signature
                 + trigger_challenge_witness
                 + [
-                    trigger_challenge_taptree[0].to_hex(),
+                    bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list[0].to_hex(),
                     challenge_scripts_control_block.to_hex(),
                 ]
             )

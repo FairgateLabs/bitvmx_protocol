@@ -15,12 +15,9 @@ class CommitReadSearchChoiceScriptGeneratorService:
     def __call__(self, signature_public_keys, public_keys, amount_of_bits):
         script = BitcoinScript()
 
-        # self.verify_input_single_word_from_public_keys(
-        #     script=script, public_keys=public_keys, amount_of_bits=amount_of_bits, to_alt_stack=True
-        # )
-
-        script.extend(["OP_2DROP"])
-        script.extend(["OP_2DROP"])
+        self.verify_input_single_word_from_public_keys(
+            script=script, public_keys=public_keys, amount_of_bits=amount_of_bits, to_alt_stack=True
+        )
 
         # script.append("OP_CODESEPARATOR")
 

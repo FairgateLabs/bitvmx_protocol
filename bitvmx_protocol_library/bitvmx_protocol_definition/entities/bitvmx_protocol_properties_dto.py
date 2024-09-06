@@ -53,6 +53,11 @@ class BitVMXProtocolPropertiesDTO(BaseModel):
         return [8, 8, 8] + [8, 8, 8] + [8, 2, 8] + [8, 8] + [8, 2]
 
     @property
+    def write_trace_words_lengths(self):
+        # Write 1, Write PC
+        return [8, 8] + [8, 2]
+
+    @property
     def amount_of_trace_steps(self):
         return (
             2**self.amount_of_bits_wrong_step_search

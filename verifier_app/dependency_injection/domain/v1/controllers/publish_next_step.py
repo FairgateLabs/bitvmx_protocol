@@ -1,6 +1,9 @@
 from dependency_injector import containers, providers
 
 from bitvmx_protocol_library.config import common_protocol_properties
+from bitvmx_protocol_library.transaction_generation.services.publication_services.verifier.publish_choice_read_search_transaction_service import (
+    PublishChoiceReadSearchTransactionService,
+)
 from bitvmx_protocol_library.transaction_generation.services.publication_services.verifier.publish_choice_search_transaction_service import (
     PublishChoiceSearchTransactionService,
 )
@@ -31,6 +34,7 @@ class PublishNextStepControllers(containers.DeclarativeContainer):
         trigger_protocol_transaction_service=TriggerProtocolTransactionService(),
         verifier_challenge_detection_service=VerifierChallengeDetectionService(),
         publish_choice_search_transaction_service_class=PublishChoiceSearchTransactionService,
+        publish_choice_read_search_transaction_service_class=PublishChoiceReadSearchTransactionService,
         protocol_properties=protocol_properties,
         common_protocol_properties=common_protocol_properties,
         bitvmx_protocol_verifier_private_dto_persistence=BitVMXProtocolVerifierPrivateDTOPersistences.bitvmx,

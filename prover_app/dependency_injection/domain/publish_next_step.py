@@ -3,6 +3,9 @@ from dependency_injector import containers, providers
 from bitvmx_protocol_library.transaction_generation.services.publication_services.prover.execution_challenge_transaction_service import (
     ExecutionChallengeTransactionService,
 )
+from bitvmx_protocol_library.transaction_generation.services.publication_services.prover.publish_hash_read_search_transaction_service import (
+    PublishHashReadSearchTransactionService,
+)
 from bitvmx_protocol_library.transaction_generation.services.publication_services.prover.publish_hash_search_transaction_service import (
     PublishHashSearchTransactionService,
 )
@@ -37,6 +40,7 @@ class PublishNextStepControllers(containers.DeclarativeContainer):
         publish_hash_search_transaction_service_class=PublishHashSearchTransactionService,
         publish_trace_transaction_service_class=PublishTraceTransactionService,
         execution_challenge_transaction_service_class=ExecutionChallengeTransactionService,
+        publish_hash_read_search_transaction_service_class=PublishHashReadSearchTransactionService,
         bitvmx_protocol_setup_properties_dto_persistence=BitVMXProtocolSetupPropertiesDTOPersistences.bitvmx,
         bitvmx_protocol_prover_private_dto_persistence=BitVMXProtocolProverPrivateDTOPersistences.bitvmx,
         bitvmx_protocol_prover_dto_persistence=BitVMXProtocolProverDTOPersistences.bitvmx,

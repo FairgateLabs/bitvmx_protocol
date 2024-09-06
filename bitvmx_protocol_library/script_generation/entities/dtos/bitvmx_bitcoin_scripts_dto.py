@@ -89,6 +89,20 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         )
         return trigger_challenge_address
 
+    def choice_read_search_scripts_address(
+        self, destroyed_public_key: PublicKey, iteration: int
+    ) -> P2trAddress:
+        assert iteration > 0
+        return self.choice_read_search_script_list(iteration=iteration).get_taproot_address(
+            destroyed_public_key
+        )
+
+    def choice_read_search_script_index(self) -> int:
+        return 0
+
+    def choice_read_search_script_list(self, iteration: int) -> BitcoinScriptList:
+        return BitcoinScriptList(self.choice_read_search_scripts[iteration])
+
     def trigger_challenge_taptree(self):
         return self.trigger_challenge_scripts_list.to_scripts_tree()
 

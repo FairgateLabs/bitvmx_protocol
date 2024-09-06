@@ -13,6 +13,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_private_dto import (
     BitVMXProtocolVerifierPrivateDTO,
 )
+from bitvmx_protocol_library.script_generation.services.bitvmx_bitcoin_scripts_generator_service import (
+    BitVMXBitcoinScriptsGeneratorService,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.verifier.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
 )
@@ -34,6 +37,7 @@ class PublishChoiceReadSearchTransactionService:
             GenerateWitnessFromInputSingleWordService(verifier_private_key)
         )
         self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
+        self.bitvmx_bitcoin_scripts_generator_service = BitVMXBitcoinScriptsGeneratorService()
 
     def __call__(
         self,
@@ -85,7 +89,9 @@ class PublishChoiceReadSearchTransactionService:
         ]
         iteration = 0
         for i in range(len(bitvmx_protocol_verifier_dto.read_search_choices)):
-            assert bitvmx_protocol_verifier_dto.read_search_choices[i] == split_target_step_bin[i]
+            assert bitvmx_protocol_verifier_dto.read_search_choices[i] == int(
+                split_target_step_bin[i], 2
+            )
             iteration += 1
 
         read_search_choice_signatures = bitvmx_protocol_verifier_dto.read_search_choice_signatures
@@ -106,6 +112,12 @@ class PublishChoiceReadSearchTransactionService:
             case=0,
             input_number=current_choice,
             amount_of_bits=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+        )
+
+        bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto = (
+            self.bitvmx_bitcoin_scripts_generator_service(
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            )
         )
 
         if iteration == 0:
@@ -163,8 +175,61 @@ class PublishChoiceReadSearchTransactionService:
                 iteration
             ]
         else:
-            current_read_choice_search_scripts_address = None
-            raise Exception("Not implemented")
+            current_choice_read_search_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_scripts_address(
+                destroyed_public_key=bitvmx_protocol_setup_properties_dto.unspendable_public_key,
+                iteration=iteration,
+            )
+            current_choice_read_search_script_index = (
+                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_script_index()
+            )
+            current_choice_read_search_taptree = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_script_list(
+                iteration=iteration
+            ).to_scripts_tree()
+            current_choice_read_search_control_block = ControlBlock(
+                bitvmx_protocol_setup_properties_dto.unspendable_public_key,
+                scripts=current_choice_read_search_taptree,
+                index=current_choice_read_search_script_index,
+                is_odd=current_choice_read_search_scripts_address.is_odd(),
+            )
+            current_choice_read_search_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_script_list(
+                iteration=iteration
+            )[
+                0
+            ]
+
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_choice_tx_list[
+                iteration
+            ].witnesses.append(
+                TxWitnessInput(
+                    read_search_choice_signatures[iteration]
+                    + choice_read_search_witness
+                    + [
+                        current_choice_read_search_script.to_hex(),
+                        current_choice_read_search_control_block.to_hex(),
+                    ]
+                )
+            )
+
+            broadcast_transaction_service(
+                transaction=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_choice_tx_list[
+                    iteration
+                ].serialize()
+            )
+
+            bitvmx_protocol_verifier_dto.read_search_choices.append(current_choice)
+
+            print(
+                "Search read choice iteration transaction "
+                + str(iteration)
+                + ": "
+                + bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_choice_tx_list[
+                    iteration
+                ].get_txid()
+            )
+
+            return bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_choice_tx_list[
+                iteration
+            ]
 
     def _get_target_step(self, bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO):
         return 240
