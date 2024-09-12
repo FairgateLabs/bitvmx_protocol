@@ -10,4 +10,4 @@ class BitVMXProverWinternitzPublicKeysDTO(BaseModel):
     trace_prover_public_keys: List[List[str]]
     hash_read_search_public_keys_list: List[List[List[str]]]
     choice_read_search_prover_public_keys_list: List[List[List[str]]]
-    # read_trace_prover_public_keys: List[List[str]]
+    read_trace_prover_public_keys: List[List[str]]

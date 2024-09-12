@@ -19,6 +19,8 @@ class BitVMXTransactionsDTO(BaseModel):
     execution_challenge_tx: Transaction
     read_search_hash_tx_list: List[Transaction]
     read_search_choice_tx_list: List[Transaction]
+    read_trace_tx: Transaction
+    trigger_read_challenge_tx: Transaction
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -128,3 +130,13 @@ class BitVMXTransactionsDTO(BaseModel):
                 read_search_choice_tx_list,
             )
         )
+
+    @field_serializer("read_trace_tx", when_used="always")
+    def serialize_read_trace_tx(read_trace_tx: Transaction) -> str:
+        return BitVMXTransactionsDTO.transaction_to_str(read_trace_tx)
+
+    @field_serializer("trigger_read_challenge_tx", when_used="always")
+    def serialize_trigger_read_challenge_tx(
+        trigger_read_challenge_tx: Transaction,
+    ) -> str:
+        return BitVMXTransactionsDTO.transaction_to_str(trigger_read_challenge_tx)

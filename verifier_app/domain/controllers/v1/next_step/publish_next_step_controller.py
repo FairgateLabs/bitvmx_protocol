@@ -37,6 +37,7 @@ class PublishNextStepController:
         self,
         trigger_protocol_transaction_service,
         verifier_challenge_detection_service,
+        verifier_read_challenge_detection_service,
         publish_choice_search_transaction_service_class,
         publish_choice_read_search_transaction_service_class,
         protocol_properties,
@@ -47,6 +48,7 @@ class PublishNextStepController:
     ):
         self.trigger_protocol_transaction_service = trigger_protocol_transaction_service
         self.verifier_challenge_detection_service = verifier_challenge_detection_service
+        self.verifier_read_challenge_detection_service = verifier_read_challenge_detection_service
         self.publish_choice_search_transaction_service_class = (
             publish_choice_search_transaction_service_class
         )
@@ -129,9 +131,28 @@ class PublishNextStepController:
                 -1
             ].get_txid()
         ):
-            raise Exception(
-                "Not implemented -> Here we should be able to solve the discrepancy since an exact step has been chosen"
+            read_challenge_transaction_service, transaction_step_type = (
+                self.verifier_read_challenge_detection_service(
+                    bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                    bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
+                )
             )
+            if read_challenge_transaction_service is not None and transaction_step_type is not None:
+                winternitz_verifier_private_key = PrivateKey(
+                    b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.winternitz_private_key)
+                )
+                trigger_read_challenge_transaction_service = read_challenge_transaction_service(
+                    winternitz_verifier_private_key
+                )
+                last_confirmed_step_tx = trigger_read_challenge_transaction_service(
+                    bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                    bitvmx_protocol_verifier_private_dto=bitvmx_protocol_verifier_private_dto,
+                    bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
+                )
+                bitvmx_protocol_verifier_dto.last_confirmed_step_tx_id = (
+                    last_confirmed_step_tx.get_txid()
+                )
+                bitvmx_protocol_verifier_dto.last_confirmed_step = transaction_step_type
         elif (
             bitvmx_protocol_verifier_dto.last_confirmed_step
             is TransactionVerifierStepType.READ_SEARCH_STEP_CHOICE

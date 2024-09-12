@@ -79,3 +79,13 @@ class BitVMXProtocolProverDTO(BaseModel):
             )
             read_search_hash_signatures_list.append(current_signatures_list)
         return read_search_hash_signatures_list
+
+    @property
+    def read_trace_signatures(self):
+        read_trace_signatures_list = []
+        for elem in reversed(sorted(self.verifier_public_keys.keys())):
+            read_trace_signatures_list.append(
+                self.verifier_signatures_dtos[elem].read_trace_signature
+            )
+        read_trace_signatures_list.append(self.prover_signatures_dto.read_trace_signature)
+        return read_trace_signatures_list

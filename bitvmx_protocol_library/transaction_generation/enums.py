@@ -7,6 +7,7 @@ class TransactionProverStepType(Enum):
     SEARCH_READ_STEP_HASH = "search_read_step_hash"
     TRACE = "trace"
     EXECUTION_CHALLENGE = "execution_challenge"
+    READ_TRACE = "read_trace"
 
 
 class TransactionVerifierStepType(Enum):
@@ -15,3 +16,4 @@ class TransactionVerifierStepType(Enum):
     READ_SEARCH_STEP_CHOICE = "read_search_step_choice"
     TRIGGER_EXECUTION_CHALLENGE = "trigger_challenge"
     TRIGGER_WRONG_HASH_CHALLENGE = "trigger_wrong_hash"
+    TRIGGER_READ_SEARCH_CHALLENGE = "trigger_read_search_challenge"

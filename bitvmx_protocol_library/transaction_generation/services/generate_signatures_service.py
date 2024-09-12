@@ -267,6 +267,35 @@ class GenerateSignaturesService:
             )
             read_search_choice_signatures.append(current_read_search_choice_signature)
 
+        read_trace_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script.get_taproot_address(
+            self.destroyed_public_key
+        )
+        read_trace_signature = self.private_key.sign_taproot_input(
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_trace_tx,
+            0,
+            [read_trace_script_address.to_script_pub_key()],
+            [
+                funding_result_output_amount
+                - (
+                    2
+                    + 2
+                    * len(
+                        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list
+                    )
+                    + 2
+                    + 2
+                    * len(
+                        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_hash_tx_list
+                    )
+                )
+                * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
+            ],
+            script_path=True,
+            tapleaf_script=bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script,
+            sighash=TAPROOT_SIGHASH_ALL,
+            tweak=False,
+        )
+
         return BitVMXSignaturesDTO(
             hash_result_signature=hash_result_signature,
             trigger_protocol_signature=trigger_protocol_signature,
@@ -276,4 +305,5 @@ class GenerateSignaturesService:
             trigger_execution_challenge_signature=trigger_execution_challenge_signature,
             read_search_hash_signatures=read_search_hash_signatures,
             read_search_choice_signatures=read_search_choice_signatures,
+            read_trace_signature=read_trace_signature,
         )

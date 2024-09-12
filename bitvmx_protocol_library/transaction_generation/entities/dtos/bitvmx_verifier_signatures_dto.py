@@ -8,3 +8,4 @@ class BitVMXVerifierSignaturesDTO(BaseModel):
     search_hash_signatures: List[str]
     trace_signature: str
     read_search_hash_signatures: List[str]
+    read_trace_signature: str

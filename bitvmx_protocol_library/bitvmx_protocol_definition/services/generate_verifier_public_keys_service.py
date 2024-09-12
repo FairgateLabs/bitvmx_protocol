@@ -84,8 +84,27 @@ class GenerateVerifierPublicKeysService:
 
             choice_read_search_verifier_public_keys_list.append(current_iteration_public_keys)
 
+        current_step += 2 * bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+
+        write_trace_words_lengths = bitvmx_protocol_properties_dto.write_trace_words_lengths
+        write_trace_words_lengths.reverse()
+
+        read_trace_verifier_keys = []
+        for i in range(len(write_trace_words_lengths)):
+            read_trace_verifier_keys.append(
+                self.verifier_winternitz_keys_nibbles_service(
+                    step=current_step, case=i, n0=write_trace_words_lengths[i]
+                )
+            )
+        read_trace_verifier_public_keys = []
+        for keys_list_of_lists in read_trace_verifier_keys:
+            read_trace_verifier_public_keys.append(
+                list(map(lambda key_list: key_list[-1], keys_list_of_lists))
+            )
+
         return BitVMXVerifierWinternitzPublicKeysDTO(
             choice_search_verifier_public_keys_list=choice_search_verifier_public_keys_list,
             trace_verifier_public_keys=trace_verifier_public_keys,
             choice_read_search_verifier_public_keys_list=choice_read_search_verifier_public_keys_list,
+            read_trace_verifier_public_keys=read_trace_verifier_public_keys,
         )

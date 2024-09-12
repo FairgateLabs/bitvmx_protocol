@@ -43,6 +43,7 @@ class PublishNextStepController:
         publish_trace_transaction_service_class,
         execution_challenge_transaction_service_class,
         publish_hash_read_search_transaction_service_class,
+        publish_read_trace_transaction_service_class,
         bitvmx_protocol_setup_properties_dto_persistence: BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
         bitvmx_protocol_prover_private_dto_persistence: BitVMXProtocolProverPrivateDTOPersistenceInterface,
         bitvmx_protocol_prover_dto_persistence: BitVMXProtocolProverDTOPersistenceInterface,
@@ -58,6 +59,9 @@ class PublishNextStepController:
         )
         self.publish_hash_read_search_transaction_service_class = (
             publish_hash_read_search_transaction_service_class
+        )
+        self.publish_read_trace_transaction_service_class = (
+            publish_read_trace_transaction_service_class
         )
         self.bitvmx_protocol_setup_properties_dto_persistence = (
             bitvmx_protocol_setup_properties_dto_persistence
@@ -234,7 +238,16 @@ class PublishNextStepController:
                 -1
             ].get_txid()
         ):
-            pass
+            publish_read_trace_transaction_service = (
+                self.publish_read_trace_transaction_service_class(wintertniz_private_key)
+            )
+            last_confirmed_step_tx = publish_read_trace_transaction_service(
+                setup_uuid=setup_uuid,
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto,
+            )
+            bitvmx_protocol_prover_dto.last_confirmed_step_tx_id = last_confirmed_step_tx.get_txid()
+            bitvmx_protocol_prover_dto.last_confirmed_step = TransactionProverStepType.READ_TRACE
 
         self.bitvmx_protocol_prover_dto_persistence.update(
             setup_uuid=setup_uuid, bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto
@@ -245,6 +258,7 @@ class PublishNextStepController:
             TransactionProverStepType.SEARCH_STEP_HASH,
             TransactionProverStepType.TRACE,
             TransactionProverStepType.SEARCH_READ_STEP_HASH,
+            TransactionProverStepType.READ_TRACE,
         ]:
             asyncio.create_task(
                 _trigger_next_step_verifier(

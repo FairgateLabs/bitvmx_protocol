@@ -25,6 +25,7 @@ class VerifyVerifierSignaturesService:
         search_hash_signatures: List[str],
         trace_signature: str,
         read_search_hash_signatures: List[str],
+        read_trace_signature: str,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
     ):
 
@@ -101,3 +102,33 @@ class VerifyVerifierSignaturesService:
                 public_key_hex=public_key,
                 signature=read_search_hash_signatures[i],
             )
+
+        read_trace_script = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script
+        )
+        read_trace_script_address = read_trace_script.get_taproot_address(
+            self.unspendable_public_key
+        )
+        self.verify_signature_service(
+            tx=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_trace_tx,
+            script=read_trace_script,
+            script_address=read_trace_script_address,
+            amount=(
+                funding_result_output_amount
+                - (
+                    2
+                    + 2
+                    * len(
+                        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list
+                    )
+                    + 2
+                    + 2
+                    * len(
+                        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_hash_tx_list
+                    )
+                )
+                * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
+            ),
+            public_key_hex=public_key,
+            signature=read_trace_signature,
+        )

@@ -30,6 +30,8 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     cached_trigger_challenge_address: Dict[str, str] = Field(default_factory=dict)
     hash_read_search_scripts: List[BitcoinScript]
     choice_read_search_scripts: List[BitcoinScript]
+    read_trace_script: BitcoinScript
+    trigger_read_challenge_scripts: BitcoinScriptList
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -188,6 +190,23 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
                 map(
                     lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
                     choice_read_search_scripts,
+                )
+            )
+        )
+
+    @field_serializer("read_trace_script", when_used="always")
+    def serialize_read_trace_script(read_trace_script: BitcoinScript) -> str:
+        return BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=read_trace_script)
+
+    @field_serializer("trigger_read_challenge_scripts", when_used="always")
+    def serialize_trigger_read_challenge_scripts(
+        trigger_read_challenge_scripts: BitcoinScriptList,
+    ) -> str:
+        return json.dumps(
+            list(
+                map(
+                    lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
+                    trigger_read_challenge_scripts.script_list,
                 )
             )
         )

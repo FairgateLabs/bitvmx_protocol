@@ -12,6 +12,9 @@ from bitvmx_protocol_library.transaction_generation.services.publication_service
 from bitvmx_protocol_library.transaction_generation.services.publication_services.prover.publish_hash_transaction_service import (
     PublishHashTransactionService,
 )
+from bitvmx_protocol_library.transaction_generation.services.publication_services.prover.publish_read_trace_transaction_service import (
+    PublishReadTraceTransactionService,
+)
 from bitvmx_protocol_library.transaction_generation.services.publication_services.prover.publish_trace_transaction_service import (
     PublishTraceTransactionService,
 )
@@ -41,6 +44,7 @@ class PublishNextStepControllers(containers.DeclarativeContainer):
         publish_trace_transaction_service_class=PublishTraceTransactionService,
         execution_challenge_transaction_service_class=ExecutionChallengeTransactionService,
         publish_hash_read_search_transaction_service_class=PublishHashReadSearchTransactionService,
+        publish_read_trace_transaction_service_class=PublishReadTraceTransactionService,
         bitvmx_protocol_setup_properties_dto_persistence=BitVMXProtocolSetupPropertiesDTOPersistences.bitvmx,
         bitvmx_protocol_prover_private_dto_persistence=BitVMXProtocolProverPrivateDTOPersistences.bitvmx,
         bitvmx_protocol_prover_dto_persistence=BitVMXProtocolProverDTOPersistences.bitvmx,
