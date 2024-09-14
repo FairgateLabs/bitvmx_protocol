@@ -218,7 +218,7 @@ class PublishHashReadSearchTransactionService:
             * (
                 bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
                 - iteration
-                - 1
+                - 2
             )
         )
         index_list = []

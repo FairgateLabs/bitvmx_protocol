@@ -110,36 +110,17 @@ class VerifierChallengeDetectionService:
         )
         bitvmx_protocol_verifier_dto.first_wrong_step = first_wrong_step
 
-        real_execution_trace = self.execution_trace_query_service(
+        real_execution_trace_series = self.execution_trace_query_service(
             setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid, index=first_wrong_step
         )
-        real_trace_values = real_execution_trace[:13].to_list()
-        real_trace_values.reverse()
-        trace_array = []
-        for j in range(len(trace_words_lengths)):
-            word_length = trace_words_lengths[j]
-            trace_array.append(hex(int(real_trace_values[j]))[2:].zfill(word_length))
-        real_trace = ExecutionTraceDTO(
-            read_1_address=trace_array[12],
-            read_1_value=trace_array[11],
-            read_1_last_step=trace_array[10],
-            read_2_address=trace_array[9],
-            read_2_value=trace_array[8],
-            read_2_last_step=trace_array[7],
-            read_PC_address=trace_array[6],
-            read_micro=trace_array[5],
-            opcode=trace_array[4],
-            write_address=trace_array[3],
-            write_value=trace_array[2],
-            write_PC_address=trace_array[1],
-            write_micro=trace_array[0],
+        bitvmx_protocol_verifier_dto.real_execution_trace = ExecutionTraceDTO.from_pandas_series(
+            execution_trace=real_execution_trace_series, trace_words_lengths=trace_words_lengths
         )
-        bitvmx_protocol_verifier_dto.real_execution_trace = real_trace
 
         for verifier_challenge_detection_service in self.verifier_challenge_detection_services:
             trigger_challenge_transaction_service, transaction_step_type = (
                 verifier_challenge_detection_service(
-                    setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid,
+                    bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                     bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
                 )
             )

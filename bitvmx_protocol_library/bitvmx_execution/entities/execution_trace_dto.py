@@ -1,5 +1,6 @@
 from typing import List
 
+import pandas as pd
 from pydantic import BaseModel
 
 
@@ -23,7 +24,7 @@ class ExecutionTraceDTO(BaseModel):
     write_micro: str
 
     @staticmethod
-    def from_trace_values_list(trace_values_list: List[str]):
+    def from_trace_values_list(trace_values_list: List[str]) -> "ExecutionTraceDTO":
         reversed_trace_values_list = list(map(lambda x: x[::-1], trace_values_list))
         return ExecutionTraceDTO(
             read_1_address=reversed_trace_values_list[12],
@@ -39,4 +40,30 @@ class ExecutionTraceDTO(BaseModel):
             write_value=reversed_trace_values_list[2],
             write_PC_address=reversed_trace_values_list[1],
             write_micro=reversed_trace_values_list[0],
+        )
+
+    @staticmethod
+    def from_pandas_series(
+        execution_trace: pd.core.series.Series, trace_words_lengths: List[int]
+    ) -> "ExecutionTraceDTO":
+        trace_values = execution_trace[:13].to_list()
+        trace_values.reverse()
+        trace_array = []
+        for j in range(len(trace_words_lengths)):
+            word_length = trace_words_lengths[j]
+            trace_array.append(hex(int(trace_values[j]))[2:].zfill(word_length))
+        return ExecutionTraceDTO(
+            read_1_address=trace_array[12],
+            read_1_value=trace_array[11],
+            read_1_last_step=trace_array[10],
+            read_2_address=trace_array[9],
+            read_2_value=trace_array[8],
+            read_2_last_step=trace_array[7],
+            read_PC_address=trace_array[6],
+            read_micro=trace_array[5],
+            opcode=trace_array[4],
+            write_address=trace_array[3],
+            write_value=trace_array[2],
+            write_PC_address=trace_array[1],
+            write_micro=trace_array[0],
         )

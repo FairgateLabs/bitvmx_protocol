@@ -21,9 +21,12 @@ class BitVMXProtocolVerifierDTO(BaseModel):
     published_hashes_dict: Dict[int, str] = Field(default_factory=dict)
     published_read_hashes_dict: Dict[int, str] = Field(default_factory=dict)
     prover_trace_witness: Optional[List[str]] = None
+    prover_read_trace_witness: Optional[List[str]] = None
     published_execution_trace: Optional[ExecutionTraceDTO] = None
+    published_read_execution_trace: Optional[ExecutionTraceDTO] = None
     real_execution_trace: Optional[ExecutionTraceDTO] = None
     first_wrong_step: Optional[int] = None
+    read_revealed_step: Optional[int] = None
 
     @field_serializer("last_confirmed_step", when_used="always")
     def serialize_last_confirmed_step(

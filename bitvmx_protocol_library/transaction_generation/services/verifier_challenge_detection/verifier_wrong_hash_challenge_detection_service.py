@@ -1,3 +1,6 @@
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
+    BitVMXProtocolSetupPropertiesDTO,
+)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
     BitVMXProtocolVerifierDTO,
 )
@@ -17,7 +20,7 @@ class VerifierWrongHashChallengeDetectionService:
 
     def __call__(
         self,
-        setup_uuid: str,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
         execution_trace = bitvmx_protocol_verifier_dto.published_execution_trace

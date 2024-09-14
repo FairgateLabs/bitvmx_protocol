@@ -24,6 +24,7 @@ from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_
 )
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
+    transaction_info_service,
 )
 
 
@@ -65,8 +66,13 @@ class PublishChoiceReadSearchTransactionService:
                 bitvmx_protocol_verifier_dto.published_read_hashes_dict[current_step] = (
                     bitvmx_protocol_verifier_dto.published_hashes_dict[current_step]
                 )
-        target_step = self._get_target_step(
-            bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto
+
+        iteration = len(bitvmx_protocol_verifier_dto.read_search_choices)
+
+        target_step, new_published_hashes_dict = self._get_target_step(
+            iteration=iteration,
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
         )
         total_amount_of_choice_bits = (
             bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
@@ -87,12 +93,11 @@ class PublishChoiceReadSearchTransactionService:
                 bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
             )
         ]
-        iteration = 0
-        for i in range(len(bitvmx_protocol_verifier_dto.read_search_choices)):
+
+        for i in range(iteration):
             assert bitvmx_protocol_verifier_dto.read_search_choices[i] == int(
                 split_target_step_bin[i], 2
             )
-            iteration += 1
 
         read_search_choice_signatures = bitvmx_protocol_verifier_dto.read_search_choice_signatures
 
@@ -161,7 +166,7 @@ class PublishChoiceReadSearchTransactionService:
             )
 
             bitvmx_protocol_verifier_dto.read_search_choices.append(current_choice)
-
+            bitvmx_protocol_verifier_dto.published_read_hashes_dict = new_published_hashes_dict
             print(
                 "Search read choice iteration transaction "
                 + str(iteration)
@@ -217,7 +222,7 @@ class PublishChoiceReadSearchTransactionService:
             )
 
             bitvmx_protocol_verifier_dto.read_search_choices.append(current_choice)
-
+            bitvmx_protocol_verifier_dto.published_read_hashes_dict = new_published_hashes_dict
             print(
                 "Search read choice iteration transaction "
                 + str(iteration)
@@ -231,5 +236,104 @@ class PublishChoiceReadSearchTransactionService:
                 iteration
             ]
 
-    def _get_target_step(self, bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO):
-        return 240
+    def _get_target_step(
+        self,
+        iteration,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
+        bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
+    ):
+        previous_published_read_hashes_dict = (
+            bitvmx_protocol_verifier_dto.published_read_hashes_dict.copy()
+        )
+
+        if iteration > 0:
+            previous_hash_read_search_txid = bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_hash_tx_list[
+                iteration - 1
+            ].get_txid()
+            previous_hash_read_search_tx = transaction_info_service(previous_hash_read_search_txid)
+            previous_hash_read_search_witness = previous_hash_read_search_tx.inputs[0].witness
+
+            published_read_hashes = []
+            # This offset is due to the cross signed choices
+            choice_offset = 8
+            for j in range(
+                2
+                ** bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                - 1
+            ):
+                hash_witness_portion = previous_hash_read_search_witness[
+                    len(bitvmx_protocol_setup_properties_dto.signature_public_keys)
+                    + (
+                        bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash_with_checksum
+                        * j
+                        * 2
+                    )
+                    + choice_offset : len(
+                        bitvmx_protocol_setup_properties_dto.signature_public_keys
+                    )
+                    + 2
+                    * bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash
+                    + bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash_with_checksum
+                    * j
+                    * 2
+                    + choice_offset
+                ]
+                published_read_hashes.append(
+                    "".join(
+                        [
+                            (hex_repr[1] if len(hex_repr) == 2 else "0")
+                            for hex_repr in reversed(hash_witness_portion[1::2])
+                        ]
+                    )
+                )
+            published_read_hashes.reverse()
+            prefix = ""
+            for read_search_choice in bitvmx_protocol_verifier_dto.read_search_choices:
+                prefix += bin(read_search_choice)[2:].zfill(
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                )
+            suffix = (
+                "1"
+                * bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                * (
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+                    - iteration
+                    - 1
+                )
+            )
+            index_list = []
+            for j in range(
+                2
+                ** bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                - 1
+            ):
+                index_list.append(
+                    int(
+                        prefix
+                        + bin(j)[2:].zfill(
+                            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                        )
+                        + suffix,
+                        2,
+                    )
+                )
+
+            for j in range(len(index_list)):
+                previous_published_read_hashes_dict[index_list[j]] = published_read_hashes[j]
+
+            index_list.append(
+                int(
+                    prefix
+                    + bin(
+                        2
+                        ** bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                        - 1
+                    )[2:].zfill(
+                        bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                    )
+                    + suffix,
+                    2,
+                )
+            )
+
+        return 240, previous_published_read_hashes_dict
