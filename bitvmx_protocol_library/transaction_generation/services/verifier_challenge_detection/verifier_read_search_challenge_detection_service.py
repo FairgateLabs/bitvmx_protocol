@@ -38,12 +38,25 @@ class VerifierReadSearchChallengeDetectionService:
         trace = ExecutionTraceDTO.from_pandas_series(
             execution_trace=first_wrong_step_trace_series, trace_words_lengths=trace_words_lengths
         )
-        if (
-            trace.read_1_address != published_execution_trace.read_1_address
-            or trace.read_2_address != published_execution_trace.read_2_address
-            or trace.read_1_value != published_execution_trace.read_1_value
-            or trace.read_2_value != published_execution_trace.read_2_value
-        ):
+        # I'm pretty sure we need to put the address here since some opcodes are affected by this
+        if trace.read_1_value != published_execution_trace.read_1_value:
+            if published_execution_trace.read_1_last_step < trace.read_1_last_step:
+                bitvmx_protocol_verifier_dto.read_search_target = trace.read_1_last_step
+            else:
+                bitvmx_protocol_verifier_dto.read_search_target = (
+                    published_execution_trace.read_1_last_step
+                )
+            return (
+                PublishChoiceReadSearchTransactionService,
+                TransactionVerifierStepType.READ_SEARCH_STEP_CHOICE,
+            )
+        elif trace.read_2_value != published_execution_trace.read_2_value:
+            if published_execution_trace.read_2_last_step < trace.read_2_last_step:
+                bitvmx_protocol_verifier_dto.read_search_target = trace.read_2_last_step
+            else:
+                bitvmx_protocol_verifier_dto.read_search_target = (
+                    published_execution_trace.read_2_last_step
+                )
             return (
                 PublishChoiceReadSearchTransactionService,
                 TransactionVerifierStepType.READ_SEARCH_STEP_CHOICE,

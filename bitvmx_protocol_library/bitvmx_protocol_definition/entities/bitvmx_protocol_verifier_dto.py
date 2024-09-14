@@ -27,6 +27,7 @@ class BitVMXProtocolVerifierDTO(BaseModel):
     real_execution_trace: Optional[ExecutionTraceDTO] = None
     first_wrong_step: Optional[int] = None
     read_revealed_step: Optional[int] = None
+    read_search_target: Optional[int] = None
 
     @field_serializer("last_confirmed_step", when_used="always")
     def serialize_last_confirmed_step(

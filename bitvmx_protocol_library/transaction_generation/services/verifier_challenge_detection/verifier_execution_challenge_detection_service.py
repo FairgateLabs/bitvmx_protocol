@@ -43,6 +43,8 @@ class VerifierExecutionChallengeDetectionService:
             or first_wrong_step_trace.write_micro != execution_trace.write_micro
             or first_wrong_step_trace.write_value != execution_trace.write_value
             or first_wrong_step_trace.write_address != execution_trace.write_address
+            or first_wrong_step_trace.read_1_address != execution_trace.read_1_address
+            or first_wrong_step_trace.read_2_address != execution_trace.read_2_address
         ):
             # No need to check the opcode, the instruction is mapped to the address
             return (
