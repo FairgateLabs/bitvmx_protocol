@@ -28,6 +28,10 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     execution_challenge_script_list: BitVMXExecutionScriptList
     wrong_hash_challenge_script_list: BitVMXWrongHashScriptList
     cached_trigger_challenge_address: Dict[str, str] = Field(default_factory=dict)
+    hash_read_search_scripts: List[BitcoinScript]
+    choice_read_search_scripts: List[BitcoinScript]
+    read_trace_script: BitcoinScript
+    trigger_read_challenge_scripts: BitcoinScriptList
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -70,7 +74,11 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
 
     @property
     def trigger_challenge_scripts_list(self) -> BitcoinScriptList:
-        return self.trigger_challenge_scripts + self.wrong_hash_challenge_script_list.script_list()
+        return (
+            self.trigger_challenge_scripts
+            + self.wrong_hash_challenge_script_list.script_list()
+            + BitcoinScriptList(self.choice_read_search_scripts)
+        )
 
     def trigger_challenge_address(self, destroyed_public_key: PublicKey) -> P2trAddress:
         if destroyed_public_key.to_hex() in self.cached_trigger_challenge_address:
@@ -83,6 +91,20 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         )
         return trigger_challenge_address
 
+    def choice_read_search_scripts_address(
+        self, destroyed_public_key: PublicKey, iteration: int
+    ) -> P2trAddress:
+        assert iteration > 0
+        return self.choice_read_search_script_list(iteration=iteration).get_taproot_address(
+            destroyed_public_key
+        )
+
+    def choice_read_search_script_index(self) -> int:
+        return 0
+
+    def choice_read_search_script_list(self, iteration: int) -> BitcoinScriptList:
+        return BitcoinScriptList(self.choice_read_search_scripts[iteration])
+
     def trigger_challenge_taptree(self):
         return self.trigger_challenge_scripts_list.to_scripts_tree()
 
@@ -93,6 +115,11 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return len(
             self.trigger_challenge_scripts
         ) + self.wrong_hash_challenge_script_list.list_index_from_choice(choice=choice)
+
+    def trigger_read_search_challenge_index(self, index: int):
+        return (
+            len(self.trigger_challenge_scripts) + len(self.wrong_hash_challenge_script_list) + index
+        )
 
     @staticmethod
     def bitcoin_script_to_str(script: BitcoinScript) -> str:
@@ -139,6 +166,47 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
                 map(
                     lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
                     trigger_challenge_scripts.script_list,
+                )
+            )
+        )
+
+    @field_serializer("hash_read_search_scripts", when_used="always")
+    def serialize_hash_read_search_scripts(hash_read_search_scripts: List[BitcoinScript]) -> str:
+        return json.dumps(
+            list(
+                map(
+                    lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
+                    hash_read_search_scripts,
+                )
+            )
+        )
+
+    @field_serializer("choice_read_search_scripts", when_used="always")
+    def serialize_choice_read_search_scripts(
+        choice_read_search_scripts: List[BitcoinScript],
+    ) -> str:
+        return json.dumps(
+            list(
+                map(
+                    lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
+                    choice_read_search_scripts,
+                )
+            )
+        )
+
+    @field_serializer("read_trace_script", when_used="always")
+    def serialize_read_trace_script(read_trace_script: BitcoinScript) -> str:
+        return BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=read_trace_script)
+
+    @field_serializer("trigger_read_challenge_scripts", when_used="always")
+    def serialize_trigger_read_challenge_scripts(
+        trigger_read_challenge_scripts: BitcoinScriptList,
+    ) -> str:
+        return json.dumps(
+            list(
+                map(
+                    lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
+                    trigger_read_challenge_scripts.script_list,
                 )
             )
         )

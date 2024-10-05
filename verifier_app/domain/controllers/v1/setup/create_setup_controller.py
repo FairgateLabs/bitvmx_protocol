@@ -40,8 +40,16 @@ class CreateSetupController:
             setup_uuid=setup_uuid,
             bitvmx_protocol_verifier_private_dto=bitvmx_protocol_verifier_private_dto,
         )
+
+        if network == BitcoinNetwork.MUTINYNET:
+            verifier_destination_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
+        else:
+            verifier_destination_address = (
+                signature_private_key.get_public_key().get_segwit_address().to_string()
+            )
+
         return (
             private_key.get_public_key().to_hex(),
             signature_private_key.get_public_key().to_hex(),
-            signature_private_key.get_public_key().get_segwit_address().to_string(),
+            verifier_destination_address,
         )

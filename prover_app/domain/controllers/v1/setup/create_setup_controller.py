@@ -284,6 +284,8 @@ class CreateSetupController:
                 hash_result_signature=bitvmx_verifier_signatures_dto.hash_result_signature,
                 search_hash_signatures=bitvmx_verifier_signatures_dto.search_hash_signatures,
                 trace_signature=bitvmx_verifier_signatures_dto.trace_signature,
+                read_trace_signature=bitvmx_verifier_signatures_dto.read_trace_signature,
+                read_search_hash_signatures=bitvmx_verifier_signatures_dto.read_search_hash_signatures,
                 bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             )
 

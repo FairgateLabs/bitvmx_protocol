@@ -17,10 +17,17 @@ class BitVMXProtocolVerifierDTO(BaseModel):
     last_confirmed_step: Optional[TransactionVerifierStepType] = None
     last_confirmed_step_tx_id: Optional[str] = None
     search_choices: List[int] = Field(default_factory=list)
+    read_search_choices: List[int] = Field(default_factory=list)
     published_hashes_dict: Dict[int, str] = Field(default_factory=dict)
+    published_read_hashes_dict: Dict[int, str] = Field(default_factory=dict)
     prover_trace_witness: Optional[List[str]] = None
+    prover_read_trace_witness: Optional[List[str]] = None
     published_execution_trace: Optional[ExecutionTraceDTO] = None
+    published_read_execution_trace: Optional[ExecutionTraceDTO] = None
+    real_execution_trace: Optional[ExecutionTraceDTO] = None
     first_wrong_step: Optional[int] = None
+    read_revealed_step: Optional[int] = None
+    read_search_target: Optional[int] = None
 
     @field_serializer("last_confirmed_step", when_used="always")
     def serialize_last_confirmed_step(
@@ -69,6 +76,24 @@ class BitVMXProtocolVerifierDTO(BaseModel):
             self.prover_signatures_dto.trigger_execution_challenge_signature
         )
         return trigger_execution_challenge_signatures_list
+
+    @property
+    def read_search_choice_signatures(self) -> List[List[str]]:
+        read_search_choice_signatures_list = []
+        amount_of_iterations = len(
+            list(self.verifier_signatures_dtos.values())[0].read_search_choice_signatures
+        )
+        for i in range(amount_of_iterations):
+            current_signatures_list = []
+            for elem in reversed(sorted(self.verifier_public_keys.keys())):
+                current_signatures_list.append(
+                    self.verifier_signatures_dtos[elem].read_search_choice_signatures[i]
+                )
+            current_signatures_list.append(
+                self.prover_signatures_dto.read_search_choice_signatures[i]
+            )
+            read_search_choice_signatures_list.append(current_signatures_list)
+        return read_search_choice_signatures_list
 
     @property
     def amount_of_signatures(self) -> int:

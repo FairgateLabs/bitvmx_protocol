@@ -1,4 +1,7 @@
 from bitvmx_protocol_library.bitvmx_execution.entities.execution_trace_dto import ExecutionTraceDTO
+from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
+    ExecutionTraceQueryService,
+)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
@@ -7,6 +10,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 )
 from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection.verifier_execution_challenge_detection_service import (
     VerifierExecutionChallengeDetectionService,
+)
+from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection.verifier_read_search_challenge_detection_service import (
+    VerifierReadSearchChallengeDetectionService,
 )
 from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection.verifier_wrong_hash_challenge_detection_service import (
     VerifierWrongHashChallengeDetectionService,
@@ -19,9 +25,11 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 class VerifierChallengeDetectionService:
     def __init__(self):
         self.verifier_challenge_detection_services = [
+            VerifierReadSearchChallengeDetectionService(),
             VerifierWrongHashChallengeDetectionService(),
             VerifierExecutionChallengeDetectionService(),
         ]
+        self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
 
     def __call__(
         self,
@@ -102,10 +110,17 @@ class VerifierChallengeDetectionService:
         )
         bitvmx_protocol_verifier_dto.first_wrong_step = first_wrong_step
 
+        real_execution_trace_series = self.execution_trace_query_service(
+            setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid, index=first_wrong_step
+        )
+        bitvmx_protocol_verifier_dto.real_execution_trace = ExecutionTraceDTO.from_pandas_series(
+            execution_trace=real_execution_trace_series, trace_words_lengths=trace_words_lengths
+        )
+
         for verifier_challenge_detection_service in self.verifier_challenge_detection_services:
             trigger_challenge_transaction_service, transaction_step_type = (
                 verifier_challenge_detection_service(
-                    setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid,
+                    bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                     bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
                 )
             )

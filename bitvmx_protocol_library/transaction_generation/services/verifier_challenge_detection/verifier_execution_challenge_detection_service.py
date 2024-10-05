@@ -1,5 +1,9 @@
+from bitvmx_protocol_library.bitvmx_execution.entities.execution_trace_dto import ExecutionTraceDTO
 from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
     ExecutionTraceQueryService,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
+    BitVMXProtocolSetupPropertiesDTO,
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
     BitVMXProtocolVerifierDTO,
@@ -18,22 +22,29 @@ class VerifierExecutionChallengeDetectionService:
 
     def __call__(
         self,
-        setup_uuid: str,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
         execution_trace = bitvmx_protocol_verifier_dto.published_execution_trace
-        first_wrong_step_trace = self.execution_trace_query_service(
-            setup_uuid=setup_uuid, index=bitvmx_protocol_verifier_dto.first_wrong_step
+        first_wrong_step_trace_series = self.execution_trace_query_service(
+            setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid,
+            index=bitvmx_protocol_verifier_dto.first_wrong_step,
+        )
+        trace_words_lengths = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
+                ::-1
+            ]
+        )
+        first_wrong_step_trace = ExecutionTraceDTO.from_pandas_series(
+            execution_trace=first_wrong_step_trace_series, trace_words_lengths=trace_words_lengths
         )
         if (
-            hex(int(first_wrong_step_trace["write_pc"]))[2:].zfill(8)
-            != execution_trace.write_PC_address
-            or hex(int(first_wrong_step_trace["write_micro"]))[2:].zfill(2)
-            != execution_trace.write_micro
-            or hex(int(first_wrong_step_trace["write_value"]))[2:].zfill(8)
-            != execution_trace.write_value
-            or hex(int(first_wrong_step_trace["write_address"]))[2:].zfill(8)
-            != execution_trace.write_address
+            first_wrong_step_trace.write_PC_address != execution_trace.write_PC_address
+            or first_wrong_step_trace.write_micro != execution_trace.write_micro
+            or first_wrong_step_trace.write_value != execution_trace.write_value
+            or first_wrong_step_trace.write_address != execution_trace.write_address
+            or first_wrong_step_trace.read_1_address != execution_trace.read_1_address
+            or first_wrong_step_trace.read_2_address != execution_trace.read_2_address
         ):
             # No need to check the opcode, the instruction is mapped to the address
             return (

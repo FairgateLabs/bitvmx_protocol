@@ -1,3 +1,5 @@
+from typing import List
+
 from bitcoinutils.keys import PublicKey
 
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
@@ -20,8 +22,10 @@ class VerifyVerifierSignaturesService:
         self,
         public_key: str,
         hash_result_signature: str,
-        search_hash_signatures: str,
+        search_hash_signatures: List[str],
         trace_signature: str,
+        read_search_hash_signatures: List[str],
+        read_trace_signature: str,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
     ):
 
@@ -71,4 +75,60 @@ class VerifyVerifierSignaturesService:
             * bitvmx_protocol_setup_properties_dto.step_fees_satoshis,
             public_key_hex=public_key,
             signature=trace_signature,
+        )
+
+        for i in range(len(search_hash_signatures) - 1):
+            script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_read_search_scripts[
+                i
+            ]
+            script_address = self.unspendable_public_key.get_taproot_address([[script]])
+            self.verify_signature_service(
+                tx=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_hash_tx_list[
+                    i
+                ],
+                script=script,
+                script_address=script_address,
+                amount=funding_result_output_amount
+                - (
+                    2
+                    + 2
+                    * len(
+                        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list
+                    )
+                    + 2
+                    + 2 * i
+                )
+                * bitvmx_protocol_setup_properties_dto.step_fees_satoshis,
+                public_key_hex=public_key,
+                signature=read_search_hash_signatures[i],
+            )
+
+        read_trace_script = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script
+        )
+        read_trace_script_address = read_trace_script.get_taproot_address(
+            self.unspendable_public_key
+        )
+        self.verify_signature_service(
+            tx=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_trace_tx,
+            script=read_trace_script,
+            script_address=read_trace_script_address,
+            amount=(
+                funding_result_output_amount
+                - (
+                    2
+                    + 2
+                    * len(
+                        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list
+                    )
+                    + 2
+                    + 2
+                    * len(
+                        bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_hash_tx_list
+                    )
+                )
+                * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
+            ),
+            public_key_hex=public_key,
+            signature=read_trace_signature,
         )

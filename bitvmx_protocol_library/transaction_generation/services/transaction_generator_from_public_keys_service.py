@@ -187,6 +187,94 @@ class TransactionGeneratorFromPublicKeysService:
             [execution_challenge_txin], [execution_challenge_txout], has_segwit=True
         )
 
+        hash_read_search_scripts_addresses = list(
+            map(
+                lambda search_script: search_script.get_taproot_address(destroyed_public_key),
+                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_read_search_scripts,
+            )
+        )
+
+        choice_read_search_scripts_addresses = list(
+            map(
+                lambda choice_script: choice_script.get_taproot_address(destroyed_public_key),
+                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_scripts,
+            )
+        )
+
+        read_search_hash_tx_list = []
+        read_search_choice_tx_list = []
+
+        first_choice_txin = TxInput(trace_tx.get_txid(), 0)
+        first_choice_output_address = hash_read_search_scripts_addresses[0]
+        first_choice_txout = TxOutput(
+            trigger_challenge_output_amount,
+            first_choice_output_address.to_script_pub_key(),
+        )
+        read_search_choice_tx_list.append(
+            Transaction([first_choice_txin], [first_choice_txout], has_segwit=True)
+        )
+
+        previous_tx_id = read_search_choice_tx_list[-1].get_txid()
+        current_output_amount = trigger_challenge_output_amount
+
+        read_trace_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script.get_taproot_address(
+            destroyed_public_key
+        )
+
+        for i in range(len(hash_read_search_scripts_addresses)):
+            # HASH
+            current_txin = TxInput(previous_tx_id, 0)
+            current_output_amount -= bitvmx_protocol_setup_properties_dto.step_fees_satoshis
+            # The first one is contained in the trigger challenge taproot
+            current_output_address = choice_read_search_scripts_addresses[i + 1]
+            current_txout = TxOutput(
+                current_output_amount, current_output_address.to_script_pub_key()
+            )
+            current_tx = Transaction([current_txin], [current_txout], has_segwit=True)
+            read_search_hash_tx_list.append(current_tx)
+
+            # CHOICE
+            current_txin = TxInput(current_tx.get_txid(), 0)
+            current_output_amount -= bitvmx_protocol_setup_properties_dto.step_fees_satoshis
+            if i == len(hash_read_search_scripts_addresses) - 1:
+                # Return funds to faucet
+                current_output_address = read_trace_script_address
+            else:
+                current_output_address = hash_read_search_scripts_addresses[i + 1]
+            current_txout = TxOutput(
+                current_output_amount, current_output_address.to_script_pub_key()
+            )
+            current_tx = Transaction([current_txin], [current_txout], has_segwit=True)
+            read_search_choice_tx_list.append(current_tx)
+            previous_tx_id = current_tx.get_txid()
+
+        trigger_read_challenge_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_read_challenge_scripts.get_taproot_address(
+            public_key=destroyed_public_key
+        )
+
+        current_output_amount -= bitvmx_protocol_setup_properties_dto.step_fees_satoshis
+
+        read_trace_txin = TxInput(read_search_choice_tx_list[-1].get_txid(), 0)
+
+        read_trace_txout = TxOutput(
+            current_output_amount, trigger_read_challenge_scripts_address.to_script_pub_key()
+        )
+
+        read_trace_tx = Transaction([read_trace_txin], [read_trace_txout], has_segwit=True)
+
+        current_output_amount -= bitvmx_protocol_setup_properties_dto.step_fees_satoshis
+
+        trigger_read_challenge_destination_address = P2wpkhAddress.from_address(
+            address=bitvmx_protocol_setup_properties_dto.verifier_destination_address
+        )
+        trigger_read_challenge_txin = TxInput(read_trace_tx.get_txid(), 0)
+        trigger_read_challenge_txout = TxOutput(
+            current_output_amount, trigger_read_challenge_destination_address.to_script_pub_key()
+        )
+        trigger_read_challenge_tx = Transaction(
+            [trigger_read_challenge_txin], [trigger_read_challenge_txout], has_segwit=True
+        )
+
         return BitVMXTransactionsDTO(
             funding_tx=funding_tx,
             hash_result_tx=hash_result_tx,
@@ -197,4 +285,8 @@ class TransactionGeneratorFromPublicKeysService:
             trigger_execution_challenge_tx=trigger_execution_challenge_tx,
             trigger_wrong_hash_challenge_tx=trigger_wrong_hash_tx,
             execution_challenge_tx=execution_challenge_tx,
+            read_search_hash_tx_list=read_search_hash_tx_list,
+            read_search_choice_tx_list=read_search_choice_tx_list,
+            read_trace_tx=read_trace_tx,
+            trigger_read_challenge_tx=trigger_read_challenge_tx,
         )
