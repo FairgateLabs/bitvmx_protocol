@@ -34,6 +34,7 @@ class SetupPostViewControllerV1:
 
         setup_uuid = await self.create_setup_controller(
             max_amount_of_steps=setup_post_view_input.max_amount_of_steps,
+            amount_of_input_words=setup_post_view_input.amount_of_input_words,
             amount_of_bits_wrong_step_search=setup_post_view_input.amount_of_bits_wrong_step_search,
             amount_of_bits_per_digit_checksum=setup_post_view_input.amount_of_bits_per_digit_checksum,
             verifier_list=verifier_list,

@@ -232,7 +232,11 @@ class PublishHashSearchTransactionService:
         hash_dict = {}
         for index in index_list:
             hash_list.append(
-                self.execution_trace_query_service(setup_uuid=setup_uuid, index=index)["step_hash"]
+                self.execution_trace_query_service(
+                    setup_uuid=setup_uuid,
+                    index=index,
+                    input_hex=bitvmx_protocol_prover_dto.input_hex,
+                )["step_hash"]
             )
             hash_dict[index] = hash_list[-1]
         return hash_dict

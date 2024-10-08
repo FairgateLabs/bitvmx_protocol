@@ -29,6 +29,7 @@ class VerifierExecutionChallengeDetectionService:
         first_wrong_step_trace_series = self.execution_trace_query_service(
             setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid,
             index=bitvmx_protocol_verifier_dto.first_wrong_step,
+            input_hex=bitvmx_protocol_verifier_dto.input_hex,
         )
         trace_words_lengths = (
             bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[

@@ -9,6 +9,7 @@ from bitvmx_protocol_library.winternitz_keys_handling.services.compute_max_check
 
 class BitVMXProtocolPropertiesDTO(BaseModel):
     max_amount_of_steps: int
+    amount_of_input_words: int
     amount_of_bits_wrong_step_search: int
     amount_of_bits_per_digit_checksum: int
     amount_of_nibbles_hash_with_checksum: int = None
@@ -28,6 +29,14 @@ class BitVMXProtocolPropertiesDTO(BaseModel):
     @property
     def amount_of_nibbles_hash(self) -> int:
         return 64
+
+    @property
+    def amount_of_bytes_halt_step(self) -> int:
+        return 8
+
+    @property
+    def amount_of_nibbles_halt_step(self) -> int:
+        return self.amount_of_bytes_halt_step * 2
 
     @property
     def d0(self) -> int:

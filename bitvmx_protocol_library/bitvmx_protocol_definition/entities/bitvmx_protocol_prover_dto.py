@@ -13,6 +13,8 @@ class BitVMXProtocolProverDTO(BaseModel):
     verifier_public_keys: Dict[str, str]
     prover_signatures_dto: BitVMXVerifierSignaturesDTO
     verifier_signatures_dtos: Dict[str, BitVMXVerifierSignaturesDTO]
+    input_hex: Optional[str] = None
+    halt_step: Optional[str] = None
     last_confirmed_step: Optional[TransactionProverStepType] = None
     last_confirmed_step_tx_id: Optional[str] = None
     search_choices: List[int] = Field(default_factory=list)

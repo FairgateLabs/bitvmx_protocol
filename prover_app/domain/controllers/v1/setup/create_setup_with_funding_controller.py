@@ -23,6 +23,7 @@ class CreateSetupWithFundingController:
     async def __call__(
         self,
         max_amount_of_steps: int,
+        amount_of_input_words: int,
         amount_of_bits_wrong_step_search: int,
         amount_of_bits_per_digit_checksum: int,
         verifier_list: List[str],
@@ -50,6 +51,7 @@ class CreateSetupWithFundingController:
         headers = {"accept": "application/json", "Content-Type": "application/json"}
         setup_post_v1_input = SetupPostV1Input(
             max_amount_of_steps=max_amount_of_steps,
+            amount_of_input_words=amount_of_input_words,
             amount_of_bits_wrong_step_search=amount_of_bits_wrong_step_search,
             funding_tx_id=funding_tx_id,
             funding_index=funding_index,
