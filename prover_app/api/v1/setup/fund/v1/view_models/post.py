@@ -10,6 +10,7 @@ class SetupFundPostV1Input(BaseModel):
     secret_origin_of_funds: str
     # Debug this field (not that important since the optimal is 4)
     amount_of_bits_per_digit_checksum: Optional[conint(ge=4, le=4)] = 4
+    amount_of_input_words: conint(ge=0)
 
     @field_validator("max_amount_of_steps")
     def check_positive_amount_of_steps(cls, max_amount_of_steps):

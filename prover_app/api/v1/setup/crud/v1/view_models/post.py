@@ -15,6 +15,7 @@ class SetupPostV1Input(BaseModel):
     prover_destination_address: str
     prover_signature_private_key: str
     prover_signature_public_key: str
+    amount_of_input_words: conint(ge=0)
 
     @field_validator("max_amount_of_steps")
     def check_positive_amount_of_steps(cls, max_amount_of_steps):

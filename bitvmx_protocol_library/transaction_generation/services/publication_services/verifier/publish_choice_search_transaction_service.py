@@ -211,7 +211,9 @@ class PublishChoiceSearchTransactionService:
         for j in range(len(index_list)):
             index = index_list[j]
             current_hash = self.execution_trace_query_service(
-                setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid, index=index
+                setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid,
+                index=index,
+                input_hex=bitvmx_protocol_verifier_dto.input_hex,
             )["step_hash"]
             if not current_hash == previous_published_hashes_dict[index]:
                 return j, previous_published_hashes_dict

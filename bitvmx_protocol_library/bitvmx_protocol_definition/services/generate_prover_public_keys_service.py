@@ -33,6 +33,19 @@ class GenerateProverPublicKeysService:
         )
         hash_result_public_keys = list(map(lambda key_list: key_list[-1], hash_result_keys))
 
+        halt_step_keys = self.prover_winternitz_keys_nibbles_service(
+            step=1, case=1, n0=bitvmx_protocol_properties_dto.amount_of_nibbles_halt_step
+        )
+        halt_step_public_keys = list(map(lambda key_list: key_list[-1], halt_step_keys))
+
+        if bitvmx_protocol_properties_dto.amount_of_input_words > 0:
+            input_public_keys = []
+            for i in range(bitvmx_protocol_properties_dto.amount_of_input_words):
+                input_keys = self.prover_winternitz_keys_nibbles_service(step=1, case=2 + i, n0=8)
+                input_public_keys.append(list(map(lambda key_list: key_list[-1], input_keys)))
+        else:
+            input_public_keys = []
+
         hash_search_public_keys_list = []
         choice_search_prover_public_keys_list = []
         for iter_count in range(
@@ -157,6 +170,8 @@ class GenerateProverPublicKeysService:
 
         return BitVMXProverWinternitzPublicKeysDTO(
             hash_result_public_keys=hash_result_public_keys,
+            input_public_keys=input_public_keys,
+            halt_step_public_keys=halt_step_public_keys,
             hash_search_public_keys_list=hash_search_public_keys_list,
             choice_search_prover_public_keys_list=choice_search_prover_public_keys_list,
             trace_prover_public_keys=trace_prover_public_keys,

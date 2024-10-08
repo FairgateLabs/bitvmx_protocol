@@ -11,6 +11,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection.verifier_execution_challenge_detection_service import (
     VerifierExecutionChallengeDetectionService,
 )
+from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection.verifier_read_input_equivocation_challenge_detection_service import (
+    VerifierReadInputEquivocationChallengeDetectionService,
+)
 from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection.verifier_read_search_challenge_detection_service import (
     VerifierReadSearchChallengeDetectionService,
 )
@@ -25,9 +28,10 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 class VerifierChallengeDetectionService:
     def __init__(self):
         self.verifier_challenge_detection_services = [
-            VerifierReadSearchChallengeDetectionService(),
-            VerifierWrongHashChallengeDetectionService(),
             VerifierExecutionChallengeDetectionService(),
+            VerifierReadInputEquivocationChallengeDetectionService(),
+            VerifierWrongHashChallengeDetectionService(),
+            VerifierReadSearchChallengeDetectionService(),
         ]
         self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
 
@@ -111,7 +115,9 @@ class VerifierChallengeDetectionService:
         bitvmx_protocol_verifier_dto.first_wrong_step = first_wrong_step
 
         real_execution_trace_series = self.execution_trace_query_service(
-            setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid, index=first_wrong_step
+            setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid,
+            index=first_wrong_step,
+            input_hex=bitvmx_protocol_verifier_dto.input_hex,
         )
         bitvmx_protocol_verifier_dto.real_execution_trace = ExecutionTraceDTO.from_pandas_series(
             execution_trace=real_execution_trace_series, trace_words_lengths=trace_words_lengths

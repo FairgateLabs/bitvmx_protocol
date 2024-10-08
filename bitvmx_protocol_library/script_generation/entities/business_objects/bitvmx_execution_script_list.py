@@ -35,7 +35,11 @@ def _get_tag_hashed_merkle_root(
 ):
 
     if not splitted_key_list:
-        return b""
+        if shared_list:
+            shared_list[0] = b""
+            return
+        else:
+            return b""
     execution_challenge_script_from_key_generator_service = (
         ExecutionChallengeScriptFromKeyGeneratorService()
     )
@@ -49,11 +53,19 @@ def _get_tag_hashed_merkle_root(
             instruction_dict,
             trace_to_script_mapping,
         )
-        return tapleaf_tagged_hash(current_script)
+        if shared_list:
+            shared_list[0] = tapleaf_tagged_hash(current_script)
+            return
+        else:
+            return tapleaf_tagged_hash(current_script)
     # list
     else:
         if len(splitted_key_list) == 0:
-            return b""
+            if shared_list:
+                shared_list[0] = b""
+                return
+            else:
+                return b""
         elif len(splitted_key_list) == 1:
             if depth < 4:
                 manager = Manager()

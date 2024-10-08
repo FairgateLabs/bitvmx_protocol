@@ -1,5 +1,6 @@
 import os
 import re
+from typing import Optional
 
 import pandas as pd
 
@@ -45,14 +46,18 @@ class ExecutionTraceQueryService:
             "step_hash",
         ]
 
-    def get_overflow_trace(self, setup_uuid: str, last_step: int, index: int):
+    def get_overflow_trace(
+        self, setup_uuid: str, last_step: int, index: int, input_hex: Optional[str]
+    ):
         assert index > last_step
         write_address_hex = "f" * 8
         write_value_hex = "f" * 8
         write_pc_hex = "f" * 8
         write_micro_hex = "f" * 2
         write_trace = write_address_hex + write_value_hex + write_pc_hex + write_micro_hex
-        result = self.bitvmx_wrapper.get_execution_trace(setup_uuid, last_step)
+        result = self.bitvmx_wrapper.get_execution_trace(
+            setup_uuid=setup_uuid, index=last_step, input_hex=input_hex
+        )
         step_hash = result.replace("\n", "").split(";")[-1]
         step_dict = {
             "read1_address": "f" * 8,
@@ -73,16 +78,20 @@ class ExecutionTraceQueryService:
         }
         return pd.DataFrame([step_dict]).iloc[0]
 
-    def get_step_trace(self, setup_uuid: str, index: int):
+    def get_step_trace(self, setup_uuid: str, index: int, input_hex: Optional[str]):
         last_step = self.get_last_step(setup_uuid=setup_uuid)
         headers = self.trace_header()
         if index > last_step:
-            trace = self.get_overflow_trace(setup_uuid=setup_uuid, last_step=last_step, index=index)
+            trace = self.get_overflow_trace(
+                setup_uuid=setup_uuid, last_step=last_step, index=index, input_hex=input_hex
+            )
             return trace
         else:
-            result = self.bitvmx_wrapper.get_execution_trace(setup_uuid=setup_uuid, index=index)
+            result = self.bitvmx_wrapper.get_execution_trace(
+                setup_uuid=setup_uuid, index=index, input_hex=input_hex
+            )
             return pd.DataFrame([result.replace("\n", "").split(";")], columns=headers).iloc[0]
 
-    def __call__(self, setup_uuid: str, index: int):
-        trace = self.get_step_trace(setup_uuid=setup_uuid, index=index + 1)
+    def __call__(self, setup_uuid: str, index: int, input_hex: Optional[str]):
+        trace = self.get_step_trace(setup_uuid=setup_uuid, index=index + 1, input_hex=input_hex)
         return trace

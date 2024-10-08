@@ -82,7 +82,9 @@ class PublishTraceTransactionService:
         print("First wrong step: " + str(first_wrong_step))
 
         current_trace = self.execution_trace_query_service(
-            setup_uuid=setup_uuid, index=first_wrong_step
+            setup_uuid=setup_uuid,
+            index=first_wrong_step,
+            input_hex=bitvmx_protocol_prover_dto.input_hex,
         )
         current_trace_values = current_trace[:13].to_list()
         current_trace_values.reverse()

@@ -29,6 +29,9 @@ class ExecutionTraceCommitmentGenerationService:
         pattern = (
             r"PC:\s*(0x[0-9A-Fa-f]+)\s*Micro:\s*(\d+)\s*Opcode:\s*(0x[0-9A-Fa-f]+)\s*Key:\s*(\w+)"
         )
+        commitment_lines = list(
+            filter(lambda current_line: current_line[0:3] == "PC:", commitment_lines)
+        )
         for line in commitment_lines:
             match = re.search(pattern, line)
             pc = match.group(1)[2:]

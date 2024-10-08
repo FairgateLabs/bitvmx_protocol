@@ -73,6 +73,7 @@ class CreateSetupController:
     async def __call__(
         self,
         max_amount_of_steps: int,
+        amount_of_input_words: int,
         amount_of_bits_wrong_step_search: int,
         amount_of_bits_per_digit_checksum: int,
         verifier_list: List[str],
@@ -93,6 +94,7 @@ class CreateSetupController:
         initial_amount_of_satoshis = funding_tx.outputs[funding_index].value - step_fees_satoshis
         bitvmx_protocol_properties_dto = BitVMXProtocolPropertiesDTO(
             max_amount_of_steps=max_amount_of_steps,
+            amount_of_input_words=amount_of_input_words,
             amount_of_bits_wrong_step_search=amount_of_bits_wrong_step_search,
             amount_of_bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
         )
