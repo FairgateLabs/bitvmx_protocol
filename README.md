@@ -26,6 +26,7 @@ To build the project, follow these steps:
 ## Execution
 <details>
 <summary>Show</summary>
+
 0. Create the following folders in the project's root:
 
    a. `prover_files`
