@@ -1,0 +1,3 @@
+VERIFIER_LIST=["http://host.docker.internal:8080/api/v1"]
+PROVER_HOST="http://0.0.0.0:80/api/v1"
+#DESTINATION_PROVER_ADDRESS=tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v

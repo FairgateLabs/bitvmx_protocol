@@ -1,0 +1,1 @@
+PROVER_HOST="http://host.docker.internal:8081/api/v1"
