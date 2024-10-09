@@ -86,6 +86,9 @@ Verifier microservice.
 ## Future Work
 <details>
 <summary>Show</summary>
-</details>
+- Complete the implementation of the remaining challenges
+- Add support for multiparty configuration
+- Implement the timeout transaction feature
+- Enable the option for child-pays-for-parent (CPFP) transactions
 
-// ... existing code ...
+</details>
