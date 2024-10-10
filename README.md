@@ -15,9 +15,10 @@ This Proof of Concept (PoC) implements the protocol through HTTP servers. This e
 
 To build the project, follow these steps:
 
-1. Follow the instructions in the BitVMX-CPU submodule and ensure that everything works correctly. In this step, you should obtain a valid `.elf` file that will be used in the following steps.
-2. Generate the commitment file for this `.elf` file, place it in `$PROJECT_ROOT/execution_files/{instruction_commitment_filename}.txt`, and set up the correct `.elf` and `.txt` names in `bitvmx_protocol_library/bitvmx_execution/services/execution_trace_generation_service.py`.
-3. Run the command `docker compose build` in the root of the repository.
+1. Init the submodule BitVMX-CPU with the command `git submodule update --init --recursive`
+2. Follow the instructions in the BitVMX-CPU submodule and ensure that everything works correctly. In this step, you should obtain a valid `.elf` file that will be used in the following steps.
+3. Generate the commitment file for this `.elf` file, place it in `$PROJECT_ROOT/execution_files/{instruction_commitment_filename}.txt`, and set up the correct `.elf` and `.txt` names in `bitvmx_protocol_library/bitvmx_execution/services/execution_trace_generation_service.py`.
+4. Run the command `docker compose build` in the root of the repository.
 
 ## Execution
 
