@@ -18,12 +18,13 @@ To build the project, follow these steps:
 
 1. Init the submodule BitVMX-CPU with the command `git submodule update --init --recursive`
 2. Follow the instructions in the BitVMX-CPU submodule and ensure that everything works correctly. In this step, you should obtain a valid `.elf` file that will be used in the following steps.
-3. Generate the commitment file for this `.elf` file, place it in `$PROJECT_ROOT/execution_files/{instruction_commitment_filename}.txt`, and set up the correct `.elf` and `.txt` names in `bitvmx_protocol_library/bitvmx_execution/services/execution_trace_generation_service.py`.
-4. Run the command `docker compose build` in the root of the repository.
+3. Generate the `instruction_mapping.txt` file and place it in the folder `$PROJECT_ROOT/execution_files`. This file is given in the repo on the folder `execution_files_example`.
+4. Generate the commitment file for this `.elf` file, place it in `$PROJECT_ROOT/execution_files/{instruction_commitment_filename}.txt`, and set up the correct `.elf` and `.txt` names in `bitvmx_protocol_library/bitvmx_execution/services/execution_trace_generation_service.py`.
+5. Run the command `docker compose build` in the root of the repository.
 
 ## Execution
 
-0. Create the following folders in the project's root:
+1. Create the following folders in the project's root:
 
    a. `prover_files`
 
@@ -31,23 +32,23 @@ To build the project, follow these steps:
 
    c. `execution_files` (this one can be renamed from the existing one that already contains a valid example)
 
-1. Rename the example environment files from `.example_env_{common/prover/verifier}` to `.env_{common/prover/verifier}`.
+2. Rename the example environment files from `.example_env_{common/prover/verifier}` to `.env_{common/prover/verifier}`.
 
-2. Start both microservices:
+3. Start both microservices:
 
    a. `docker compose up prover-backend`
    
    b. `docker compose up verifier-backend`
    
-3. Open the prover Swagger UI at `http://0.0.0.0:8081/docs`.
+4. Open the prover Swagger UI at `http://0.0.0.0:8081/docs`.
 
-4. Generate a setup by executing the endpoint (EP) `api/v1/setup/fund/`. This will both get some funds from the mutinynet faucet and perform the setup ceremony. At the end, you'll see the transaction that locks the funds.
+5. Generate a setup by executing the endpoint (EP) `api/v1/setup/fund/`. This will both get some funds from the mutinynet faucet and perform the setup ceremony. At the end, you'll see the transaction that locks the funds.
 
-5. Take the `setup_uuid` from the response and call the EP `/api/v1/input` to set the input in the prover's server.
+6. Take the `setup_uuid` from the response and call the EP `/api/v1/input` to set the input in the prover's server.
 
    Note: In a real-world scenario, the program will most likely contain a STARK verifier. The light client that will compute the proof to free the funds will run independently. Once the proof is generated, it is uploaded using this EP.
 
-6. Once the input is available, call the EP `/api/v1/next_step` with the correct `setup_uuid`. 
+7. Once the input is available, call the EP `/api/v1/next_step` with the correct `setup_uuid`. 
 
     Note: In a real-world scenario, the `next_step` function would be a cron job executed at regular intervals to check the blockchain for messages from the counterparty that need a response. However, to simplify the current implementation, the `/api/v1/next_step` EP is used as a trigger mechanism. Once this EP has been processed, the analogous EP in the verifier is called. This process is repeated, allowing the protocol to run much faster. Since everything is dockerized and packaged, changing this behavior is straightforward.
 
