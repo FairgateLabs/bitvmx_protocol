@@ -10,6 +10,8 @@ services:
       - type: bind
         source: .
         target: /bitvmx-backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8081:80"
     networks:
@@ -26,6 +28,8 @@ services:
       - type: bind
         source: .
         target: /bitvmx-backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8080:80"
     networks:
