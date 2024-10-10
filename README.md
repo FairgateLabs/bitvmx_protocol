@@ -10,6 +10,7 @@ This Proof of Concept (PoC) implements the protocol through HTTP servers. This e
 
 ⚠️ **WARNING:** Currently, deploying to the cloud is not advisable since the main component needs to hold some private keys during the setup phase.
 
+All tests have been performed on MacOS. We are aware of some problems when building on Windows.
 
 ## Build
 
