@@ -11,7 +11,7 @@ services:
         source: .
         target: /bitvmx-backend
     ports:
-      - "8080:80"
+      - "8081:80"
     networks:
       - bitvmx-net
 
@@ -27,7 +27,7 @@ services:
         source: .
         target: /bitvmx-backend
     ports:
-      - "8081:80"
+      - "8080:80"
     networks:
       - bitvmx-net
 
