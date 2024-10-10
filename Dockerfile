@@ -28,10 +28,10 @@ RUN mkdir /bitvmx-backend
 
 WORKDIR /bitvmx-backend
 
-COPY ./BitVMX-CPU-Internal ./BitVMX-CPU-Internal
+COPY ./BitVMX-CPU ./BitVMX-CPU
 COPY ./blockchain_query_services ./blockchain_query_services
 
-WORKDIR /bitvmx-backend/BitVMX-CPU-Internal
+WORKDIR /bitvmx-backend/BitVMX-CPU
 
 RUN cargo build
 

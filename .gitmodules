@@ -1,3 +1,3 @@
-[submodule "BitVMX-CPU-Internal"]
-	path = BitVMX-CPU-Internal
-	url = git@github.com:FairgateLabs/BitVMX-CPU-Internal.git
+[submodule "BitVMX-CPU"]
+	path = BitVMX-CPU
+	url = git@github.com:FairgateLabs/BitVMX-CPU.git
