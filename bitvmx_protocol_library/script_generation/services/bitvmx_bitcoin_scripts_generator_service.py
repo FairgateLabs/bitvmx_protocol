@@ -31,10 +31,12 @@ from bitvmx_protocol_library.script_generation.services.script_generation.verifi
 from bitvmx_protocol_library.script_generation.services.script_list_generator_services.prover.execution_challenge_script_list_generator_service import (
     ExecutionChallengeScriptListGeneratorService,
 )
-from bitvmx_protocol_library.script_generation.services.script_list_generator_services.verifier.trigger_constant_equivocation_challenge_scripts_generator_service import \
-    TriggerConstantEquivocationChallengeScriptsGeneratorService
-from bitvmx_protocol_library.script_generation.services.script_list_generator_services.verifier.trigger_input_equivocation_challenge_scripts_generator_service import \
-    TriggerInputEquivocationChallengeScriptsGeneratorService
+from bitvmx_protocol_library.script_generation.services.script_list_generator_services.verifier.trigger_constant_equivocation_challenge_scripts_generator_service import (
+    TriggerConstantEquivocationChallengeScriptsGeneratorService,
+)
+from bitvmx_protocol_library.script_generation.services.script_list_generator_services.verifier.trigger_input_equivocation_challenge_scripts_generator_service import (
+    TriggerInputEquivocationChallengeScriptsGeneratorService,
+)
 from bitvmx_protocol_library.script_generation.services.script_list_generator_services.verifier.trigger_read_challenge_scripts_generator_service import (
     TriggerReadChallengeScriptsGeneratorService,
 )
@@ -70,8 +72,12 @@ class BitVMXBitcoinScriptsGeneratorService:
         self.trigger_read_challenge_scripts_generator_service = (
             TriggerReadChallengeScriptsGeneratorService()
         )
-        self.trigger_input_equivocation_challenge_scripts_generator_service = TriggerInputEquivocationChallengeScriptsGeneratorService()
-        self.trigger_constant_equivocation_challenge_scripts_generator_service = TriggerConstantEquivocationChallengeScriptsGeneratorService()
+        self.trigger_input_equivocation_challenge_scripts_generator_service = (
+            TriggerInputEquivocationChallengeScriptsGeneratorService()
+        )
+        self.trigger_constant_equivocation_challenge_scripts_generator_service = (
+            TriggerConstantEquivocationChallengeScriptsGeneratorService()
+        )
 
     def __call__(
         self,
@@ -85,10 +91,13 @@ class BitVMXBitcoinScriptsGeneratorService:
         )
 
         hash_result_script = self.hash_result_script_generator(
-            signature_public_keys,
-            bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.hash_result_public_keys,
-            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
-            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            signature_public_keys=signature_public_keys,
+            hash_result_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.hash_result_public_keys,
+            halt_step_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.halt_step_public_keys,
+            input_public_keys_list=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.input_public_keys,
+            n0=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+            amount_of_nibbles_halt_step=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_halt_step,
+            bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
         trigger_protocol_script = self.trigger_protocol_script_generator(signature_public_keys)
@@ -280,6 +289,13 @@ class BitVMXBitcoinScriptsGeneratorService:
             amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
+        trigger_input_equivocation_challenge_scripts_generator_service = (
+            self.trigger_input_equivocation_challenge_scripts_generator_service()
+        )
+        trigger_constant_equivocation_challenge_scripts_generator_service = (
+            self.trigger_constant_equivocation_challenge_scripts_generator_service()
+        )
+
         return BitVMXBitcoinScriptsDTO(
             hash_result_script=hash_result_script,
             trigger_protocol_script=trigger_protocol_script,
@@ -289,6 +305,8 @@ class BitVMXBitcoinScriptsGeneratorService:
             trigger_challenge_scripts=trigger_challenge_scripts,
             execution_challenge_script_list=execution_challenge_script_list,
             wrong_hash_challenge_script_list=wrong_hash_challenge_scripts_list,
+            input_equivocation_challenge_scripts=trigger_input_equivocation_challenge_scripts_generator_service,
+            constants_equivocation_challenge_scripts=trigger_constant_equivocation_challenge_scripts_generator_service,
             hash_read_search_scripts=hash_read_search_scripts,
             choice_read_search_scripts=choice_read_search_scripts,
             read_trace_script=read_trace_script,

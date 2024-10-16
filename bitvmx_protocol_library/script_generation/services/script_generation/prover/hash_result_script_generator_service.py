@@ -23,7 +23,6 @@ class HashResultScriptGeneratorService:
         input_public_keys_list: List[List[str]],
         n0: int,
         amount_of_nibbles_halt_step: int,
-        amount_of_input_words: int,
         bits_per_digit_checksum: int,
     ):
         script = BitcoinScript()
