@@ -56,17 +56,19 @@ class VerifierReadInputEquivocationChallengeDetectionService:
         # If addresses are different, go through the execution path
         if (first_wrong_step_trace.read_1_value != execution_trace.read_1_value) and (
             first_wrong_step_trace.read_1_address == execution_trace.read_1_address
+        ) or (first_wrong_step_trace.read_2_value != execution_trace.read_2_value) and (
+            first_wrong_step_trace.read_2_address == execution_trace.read_2_address
         ):
             if (
                 int(static_addresses.input.address, 16)
                 <= int(first_wrong_step_trace.read_1_address, 16)
-                and int(static_addresses.input.address, 16)
-                >= int(first_wrong_step_trace.read_1_address, 16)
+                and int(static_addresses.input.address, 16) + bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_input_words * 4
+                > int(first_wrong_step_trace.read_1_address, 16)
             ) or (
                 int(static_addresses.input.address, 16)
                 <= int(first_wrong_step_trace.read_2_address, 16)
-                and int(static_addresses.input.address, 16)
-                >= int(first_wrong_step_trace.read_2_address, 16)
+                and int(static_addresses.input.address, 16) + bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_input_words * 4
+                > int(first_wrong_step_trace.read_2_address, 16)
             ):
                 return (
                     TriggerReadInputEquivocationChallengeTransactionService,

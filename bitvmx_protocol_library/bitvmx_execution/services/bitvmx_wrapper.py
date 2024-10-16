@@ -106,7 +106,7 @@ class BitVMXWrapper:
                     "--input-as-little",
                 ]
             )
-        if self.contains_fail:
+        if self.contains_fail and int(self.fail_step) <= index:
             command.extend([self.fail_type, self.fail_step])
 
         execution_directory = self.base_path + setup_uuid
@@ -118,6 +118,8 @@ class BitVMXWrapper:
             )
             print("Done executing command")
             execution_trace = result.stdout
+            # TODO: remove when bugs are fixed
+            execution_trace = list(filter(lambda x: x != "", execution_trace.split("\n")))[-1]
             return execution_trace
 
         except subprocess.CalledProcessError as e:

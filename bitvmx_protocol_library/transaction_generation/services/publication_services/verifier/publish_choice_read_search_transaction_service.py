@@ -129,9 +129,7 @@ class PublishChoiceReadSearchTransactionService:
             current_read_choice_search_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_address(
                 bitvmx_protocol_setup_properties_dto.unspendable_public_key
             )
-            current_read_choice_script_index = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_read_search_challenge_index(
-                index=0
-            )
+            current_read_choice_script_index = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_read_search_challenge_index()
             trigger_challenge_taptree = (
                 bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_taptree()
             )

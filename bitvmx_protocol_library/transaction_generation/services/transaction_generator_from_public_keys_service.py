@@ -262,14 +262,17 @@ class TransactionGeneratorFromPublicKeysService:
 
         read_trace_tx = Transaction([read_trace_txin], [read_trace_txout], has_segwit=True)
 
-        current_output_amount -= bitvmx_protocol_setup_properties_dto.step_fees_satoshis
+        trigger_read_challenge_output_amount = (
+            current_output_amount - 4 * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
+        )
 
         trigger_read_challenge_destination_address = P2wpkhAddress.from_address(
             address=bitvmx_protocol_setup_properties_dto.verifier_destination_address
         )
         trigger_read_challenge_txin = TxInput(read_trace_tx.get_txid(), 0)
         trigger_read_challenge_txout = TxOutput(
-            current_output_amount, trigger_read_challenge_destination_address.to_script_pub_key()
+            trigger_read_challenge_output_amount,
+            trigger_read_challenge_destination_address.to_script_pub_key(),
         )
         trigger_read_challenge_tx = Transaction(
             [trigger_read_challenge_txin], [trigger_read_challenge_txout], has_segwit=True
