@@ -16,5 +16,6 @@ class TransactionVerifierStepType(Enum):
     READ_SEARCH_STEP_CHOICE = "read_search_step_choice"
     TRIGGER_EXECUTION_CHALLENGE = "trigger_challenge"
     TRIGGER_WRONG_HASH_CHALLENGE = "trigger_wrong_hash"
-    TRIGGER_INPUT_EQUIVOCATION_CHALLENGE = "trigger_input_equivocation"
+    TRIGGER_INPUT_EQUIVOCATION_CHALLENGE_1 = "trigger_input_equivocation_1"
+    TRIGGER_INPUT_EQUIVOCATION_CHALLENGE_2 = "trigger_input_equivocation_2"
     TRIGGER_READ_SEARCH_CHALLENGE = "trigger_read_search_challenge"

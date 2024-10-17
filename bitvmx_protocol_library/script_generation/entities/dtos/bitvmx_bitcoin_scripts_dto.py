@@ -27,8 +27,10 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     trigger_challenge_scripts: BitcoinScriptList
     execution_challenge_script_list: BitVMXExecutionScriptList
     wrong_hash_challenge_script_list: BitVMXWrongHashScriptList
-    input_equivocation_challenge_scripts: BitcoinScriptList
-    constants_equivocation_challenge_scripts: BitcoinScriptList
+    input_1_equivocation_challenge_scripts: BitcoinScriptList
+    input_2_equivocation_challenge_scripts: BitcoinScriptList
+    constants_1_equivocation_challenge_scripts: BitcoinScriptList
+    constants_2_equivocation_challenge_scripts: BitcoinScriptList
     cached_trigger_challenge_address: Dict[str, str] = Field(default_factory=dict)
     hash_read_search_scripts: List[BitcoinScript]
     choice_read_search_scripts: List[BitcoinScript]
@@ -81,6 +83,10 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             self.trigger_challenge_scripts
             + self.wrong_hash_challenge_script_list.script_list()
             + BitcoinScriptList(self.choice_read_search_scripts[0])
+            + self.input_1_equivocation_challenge_scripts
+            + self.input_2_equivocation_challenge_scripts
+            + self.constants_1_equivocation_challenge_scripts
+            + self.constants_2_equivocation_challenge_scripts
         )
 
     def trigger_challenge_address(self, destroyed_public_key: PublicKey) -> P2trAddress:
@@ -141,11 +147,53 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             self.trigger_challenge_scripts
         ) + self.wrong_hash_challenge_script_list.list_index_from_choice(choice=choice)
 
-    def trigger_read_wrong_hash_challenge_index(self, choice: int):
-        return self.wrong_hash_challenge_script_list.list_index_from_choice(choice=choice)
-
     def trigger_read_search_challenge_index(self) -> int:
         return len(self.trigger_challenge_scripts) + len(self.wrong_hash_challenge_script_list)
+
+    def trigger_input_1_equivocation_challenge_index(self, address: str) -> int:
+        index_from_address = 0
+        return (
+            len(self.trigger_challenge_scripts)
+            + len(self.wrong_hash_challenge_script_list)
+            + 1
+            + index_from_address
+        )
+
+    def trigger_input_2_equivocation_challenge_index(self, address: str) -> int:
+        index_from_address = 0
+        return (
+            len(self.trigger_challenge_scripts)
+            + len(self.wrong_hash_challenge_script_list)
+            + 1
+            + len(self.input_1_equivocation_challenge_scripts)
+            + index_from_address
+        )
+
+    def trigger_constant_1_equivocation_challenge_index(self, address: str) -> int:
+        index_from_address = 0
+        return (
+            len(self.trigger_challenge_scripts)
+            + len(self.wrong_hash_challenge_script_list)
+            + 1
+            + len(self.input_1_equivocation_challenge_scripts)
+            + len(self.input_2_equivocation_challenge_scripts)
+            + index_from_address
+        )
+
+    def trigger_constant_2_equivocation_challenge_index(self, address: str) -> int:
+        index_from_address = 0
+        return (
+            len(self.trigger_challenge_scripts)
+            + len(self.wrong_hash_challenge_script_list)
+            + 1
+            + len(self.input_1_equivocation_challenge_scripts)
+            + len(self.input_2_equivocation_challenge_scripts)
+            + len(self.constants_1_equivocation_challenge_scripts)
+            + index_from_address
+        )
+
+    def trigger_read_wrong_hash_challenge_index(self, choice: int):
+        return self.wrong_hash_challenge_script_list.list_index_from_choice(choice=choice)
 
     @staticmethod
     def bitcoin_script_to_str(script: BitcoinScript) -> str:
@@ -196,28 +244,54 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             )
         )
 
-    @field_serializer("input_equivocation_challenge_scripts", when_used="always")
-    def serialize_input_equivocation_challenge_scripts(
-        input_equivocation_challenge_scripts: BitcoinScriptList,
+    @field_serializer("input_1_equivocation_challenge_scripts", when_used="always")
+    def serialize_input_1_equivocation_challenge_scripts(
+        input_1_equivocation_challenge_scripts: BitcoinScriptList,
     ) -> str:
         return json.dumps(
             list(
                 map(
                     lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
-                    input_equivocation_challenge_scripts.script_list,
+                    input_1_equivocation_challenge_scripts.script_list,
                 )
             )
         )
 
-    @field_serializer("constants_equivocation_challenge_scripts", when_used="always")
-    def serialize_constants_equivocation_challenge_scripts(
-        constants_equivocation_challenge_scripts: BitcoinScriptList,
+    @field_serializer("input_2_equivocation_challenge_scripts", when_used="always")
+    def serialize_input_2_equivocation_challenge_scripts(
+        input_2_equivocation_challenge_scripts: BitcoinScriptList,
     ) -> str:
         return json.dumps(
             list(
                 map(
                     lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
-                    constants_equivocation_challenge_scripts.script_list,
+                    input_2_equivocation_challenge_scripts.script_list,
+                )
+            )
+        )
+
+    @field_serializer("constants_1_equivocation_challenge_scripts", when_used="always")
+    def serialize_constants_1_equivocation_challenge_scripts(
+        constants_1_equivocation_challenge_scripts: BitcoinScriptList,
+    ) -> str:
+        return json.dumps(
+            list(
+                map(
+                    lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
+                    constants_1_equivocation_challenge_scripts.script_list,
+                )
+            )
+        )
+
+    @field_serializer("constants_2_equivocation_challenge_scripts", when_used="always")
+    def serialize_constants_2_equivocation_challenge_scripts(
+        constants_2_equivocation_challenge_scripts: BitcoinScriptList,
+    ) -> str:
+        return json.dumps(
+            list(
+                map(
+                    lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
+                    constants_2_equivocation_challenge_scripts.script_list,
                 )
             )
         )

@@ -289,10 +289,16 @@ class BitVMXBitcoinScriptsGeneratorService:
             amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
-        trigger_input_equivocation_challenge_scripts_generator_service = (
+        trigger_input_1_equivocation_challenge_scripts_generator_service = (
             self.trigger_input_equivocation_challenge_scripts_generator_service()
         )
-        trigger_constant_equivocation_challenge_scripts_generator_service = (
+        trigger_input_2_equivocation_challenge_scripts_generator_service = (
+            self.trigger_input_equivocation_challenge_scripts_generator_service()
+        )
+        trigger_constant_1_equivocation_challenge_scripts_generator_service = (
+            self.trigger_constant_equivocation_challenge_scripts_generator_service()
+        )
+        trigger_constant_2_equivocation_challenge_scripts_generator_service = (
             self.trigger_constant_equivocation_challenge_scripts_generator_service()
         )
 
@@ -305,8 +311,10 @@ class BitVMXBitcoinScriptsGeneratorService:
             trigger_challenge_scripts=trigger_challenge_scripts,
             execution_challenge_script_list=execution_challenge_script_list,
             wrong_hash_challenge_script_list=wrong_hash_challenge_scripts_list,
-            input_equivocation_challenge_scripts=trigger_input_equivocation_challenge_scripts_generator_service,
-            constants_equivocation_challenge_scripts=trigger_constant_equivocation_challenge_scripts_generator_service,
+            input_1_equivocation_challenge_scripts=trigger_input_1_equivocation_challenge_scripts_generator_service,
+            input_2_equivocation_challenge_scripts=trigger_input_2_equivocation_challenge_scripts_generator_service,
+            constants_1_equivocation_challenge_scripts=trigger_constant_1_equivocation_challenge_scripts_generator_service,
+            constants_2_equivocation_challenge_scripts=trigger_constant_2_equivocation_challenge_scripts_generator_service,
             hash_read_search_scripts=hash_read_search_scripts,
             choice_read_search_scripts=choice_read_search_scripts,
             read_trace_script=read_trace_script,
