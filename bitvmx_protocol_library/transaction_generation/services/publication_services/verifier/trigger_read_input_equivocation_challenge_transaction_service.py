@@ -1,5 +1,7 @@
 from abc import abstractmethod
 
+from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
+from bitcoinutils.keys import PrivateKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
@@ -31,7 +33,6 @@ class GenericTriggerReadInputEquivocationChallengeTransactionService:
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
 
-        trigger_input_equivocation_signatures = []
         trigger_input_equivocation_witness = []
 
         bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
@@ -72,10 +73,32 @@ class GenericTriggerReadInputEquivocationChallengeTransactionService:
             is_odd=trigger_challenge_scripts_address.is_odd(),
         )
 
+        private_key = PrivateKey(
+            b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.verifier_signature_private_key)
+        )
+
+        trigger_input_equivocation_signature = private_key.sign_taproot_input(
+            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_equivocation_tx,
+            0,
+            [trigger_challenge_scripts_address.to_script_pub_key()],
+            [
+                bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_equivocation_tx.outputs[
+                    0
+                ].amount
+                + bitvmx_protocol_setup_properties_dto.step_fees_satoshis
+            ],
+            script_path=True,
+            tapleaf_script=current_script,
+            sighash=TAPROOT_SIGHASH_ALL,
+            tweak=False,
+        )
+
+        trigger_input_equivocation_signatures = [trigger_input_equivocation_signature]
+
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_equivocation_tx.witnesses.append(
             TxWitnessInput(
-                trigger_input_equivocation_signatures
-                + trigger_input_equivocation_witness
+                trigger_input_equivocation_witness
+                + trigger_input_equivocation_signatures
                 + [
                     current_script.to_hex(),
                     trigger_input_equivocation_control_block.to_hex(),

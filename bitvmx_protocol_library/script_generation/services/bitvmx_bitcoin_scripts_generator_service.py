@@ -290,16 +290,32 @@ class BitVMXBitcoinScriptsGeneratorService:
         )
 
         trigger_input_1_equivocation_challenge_scripts_generator_service = (
-            self.trigger_input_equivocation_challenge_scripts_generator_service()
+            self.trigger_input_equivocation_challenge_scripts_generator_service(
+                signature_public_keys=[
+                    bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+                ],
+            )
         )
         trigger_input_2_equivocation_challenge_scripts_generator_service = (
-            self.trigger_input_equivocation_challenge_scripts_generator_service()
+            self.trigger_input_equivocation_challenge_scripts_generator_service(
+                signature_public_keys=[
+                    bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+                ],
+            )
         )
         trigger_constant_1_equivocation_challenge_scripts_generator_service = (
-            self.trigger_constant_equivocation_challenge_scripts_generator_service()
+            self.trigger_constant_equivocation_challenge_scripts_generator_service(
+                signature_public_keys=[
+                    bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+                ],
+            )
         )
         trigger_constant_2_equivocation_challenge_scripts_generator_service = (
-            self.trigger_constant_equivocation_challenge_scripts_generator_service()
+            self.trigger_constant_equivocation_challenge_scripts_generator_service(
+                signature_public_keys=[
+                    bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+                ],
+            )
         )
 
         return BitVMXBitcoinScriptsDTO(
