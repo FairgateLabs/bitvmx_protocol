@@ -67,6 +67,22 @@ class BitVMXProtocolPropertiesDTO(BaseModel):
         return [8, 8] + [8, 2]
 
     @property
+    def read_1_address_position(self):
+        return 0
+
+    @property
+    def read_1_value_position(self):
+        return 1
+
+    @property
+    def read_2_address_position(self):
+        return 4
+
+    @property
+    def read_2_value_position(self):
+        return 5
+
+    @property
     def amount_of_trace_steps(self):
         return (
             2**self.amount_of_bits_wrong_step_search
