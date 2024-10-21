@@ -162,7 +162,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             raise Exception("Input address out of input region")
 
     @staticmethod
-    def _get_index_from_address(address: str, base_input_address: str):
+    def get_index_from_address(address: str, base_input_address: str):
         int_address = int(address, 16)
         int_base_input_address = int(base_input_address, 16)
         return int((int_address - int_base_input_address) / 4)
@@ -175,7 +175,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             base_input_address=base_input_address,
             amount_of_input_words=amount_of_input_words,
         )
-        index_from_address = self._get_index_from_address(
+        index_from_address = self.get_index_from_address(
             address=address, base_input_address=base_input_address
         )
         return (
@@ -193,7 +193,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             base_input_address=base_input_address,
             amount_of_input_words=amount_of_input_words,
         )
-        index_from_address = self._get_index_from_address(
+        index_from_address = self.get_index_from_address(
             address=address, base_input_address=base_input_address
         )
         return (

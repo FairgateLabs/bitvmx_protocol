@@ -47,6 +47,8 @@ class TriggerInputEquivocationChallengeScriptsGeneratorService:
             input_length=amount_of_input_words
         )
 
+        int_base_input_address = int(static_addresses.input.address, 16)
+
         for i in range(amount_of_input_words):
 
             script = BitcoinScript()
@@ -61,10 +63,35 @@ class TriggerInputEquivocationChallengeScriptsGeneratorService:
                 public_keys=address_public_keys,
                 n0=address_amount_of_nibbles,
                 bits_per_digit_checksum=bits_per_digit_checksum,
+            )
+
+            int_current_address = int_base_input_address + i * 4
+            hex_current_address = hex(int_current_address)[2:].zfill(8)
+            for letter in reversed(hex_current_address):
+                script.append(int(letter, 16))
+                script.append("OP_EQUALVERIFY")
+
+            self.verify_input_nibble_message_from_public_keys(
+                script=script,
+                public_keys=publish_hash_value_public_keys[i],
+                n0=value_amount_of_nibbles,
+                bits_per_digit_checksum=bits_per_digit_checksum,
                 to_alt_stack=True,
             )
 
-            script.append(1)
+            self.verify_input_nibble_message_from_public_keys(
+                script=script,
+                public_keys=trace_value_public_keys,
+                n0=value_amount_of_nibbles,
+                bits_per_digit_checksum=bits_per_digit_checksum,
+            )
+
+            script.append(0)
+            for _ in range(value_amount_of_nibbles):
+                script.extend([1, "OP_ROLL", "OP_FROMALTSTACK", "OP_EQUAL", "OP_ADD"])
+
+            script.append(value_amount_of_nibbles)
+            script.append("OP_LESSTHAN")
 
             script_list.append(script)
 
