@@ -308,9 +308,15 @@ class BitVMXBitcoinScriptsGeneratorService:
             -1
             - bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.read_1_address_position
         ]
+        address_1_amount_of_nibbles = bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.read_1_address_position
+        ]
         value_1_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[
             -1
             - bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.read_1_value_position
+        ]
+        value_1_amount_of_nibbles = bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.read_1_value_position
         ]
 
         trigger_input_1_equivocation_challenge_scripts_generator_service = self.trigger_input_equivocation_challenge_scripts_generator_service(
@@ -320,16 +326,24 @@ class BitVMXBitcoinScriptsGeneratorService:
             base_input_address=static_addresses.input.address,
             amount_of_input_words=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_input_words,
             address_public_keys=address_1_public_keys,
+            address_amount_of_nibbles=address_1_amount_of_nibbles,
             value_public_keys=value_1_public_keys,
+            value_amount_of_nibbles=value_1_amount_of_nibbles,
         )
 
         address_2_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[
             -1
             - bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.read_2_address_position
         ]
+        address_2_amount_of_nibbles = bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.read_2_address_position
+        ]
         value_2_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[
             -1
             - bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.read_2_value_position
+        ]
+        value_2_amount_of_nibbles = bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.read_2_value_position
         ]
 
         trigger_input_2_equivocation_challenge_scripts_generator_service = self.trigger_input_equivocation_challenge_scripts_generator_service(
@@ -339,7 +353,9 @@ class BitVMXBitcoinScriptsGeneratorService:
             base_input_address=static_addresses.input.address,
             amount_of_input_words=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_input_words,
             address_public_keys=address_2_public_keys,
+            address_amount_of_nibbles=address_2_amount_of_nibbles,
             value_public_keys=value_2_public_keys,
+            value_amount_of_nibbles=value_2_amount_of_nibbles,
         )
         trigger_constant_1_equivocation_challenge_scripts_generator_service = (
             self.trigger_constant_equivocation_challenge_scripts_generator_service(

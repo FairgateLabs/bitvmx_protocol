@@ -5,6 +5,12 @@ from bitcoinutils.keys import PrivateKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
+from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_generation_service import (
+    ExecutionTraceGenerationService,
+)
+from bitvmx_protocol_library.bitvmx_execution.services.input_and_constant_addresses_generation_service import (
+    InputAndConstantAddressesGenerationService,
+)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
@@ -47,16 +53,32 @@ class GenericTriggerReadInputEquivocationChallengeTransactionService:
             )
         )
 
+        input_and_constant_addresses_generation_service = (
+            InputAndConstantAddressesGenerationService(
+                instruction_commitment=ExecutionTraceGenerationService.commitment_file()
+            )
+        )
+        amount_of_input_words = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_input_words
+        )
+        static_addresses = input_and_constant_addresses_generation_service(
+            input_length=amount_of_input_words
+        )
+
         if self.read_parameter() == 1:
             current_script_index = (
                 bitvmx_bitcoin_scripts_dto.trigger_input_1_equivocation_challenge_index(
-                    address=bitvmx_protocol_verifier_dto.published_execution_trace.read_1_address
+                    address=bitvmx_protocol_verifier_dto.published_execution_trace.read_1_address,
+                    base_input_address=static_addresses.input.address,
+                    amount_of_input_words=amount_of_input_words,
                 )
             )
         elif self.read_parameter() == 2:
             current_script_index = (
                 bitvmx_bitcoin_scripts_dto.trigger_input_2_equivocation_challenge_index(
-                    address=bitvmx_protocol_verifier_dto.published_execution_trace.read_2_address
+                    address=bitvmx_protocol_verifier_dto.published_execution_trace.read_2_address,
+                    base_input_address=static_addresses.input.address,
+                    amount_of_input_words=amount_of_input_words,
                 )
             )
         else:

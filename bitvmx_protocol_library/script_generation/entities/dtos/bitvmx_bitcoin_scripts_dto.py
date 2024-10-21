@@ -150,8 +150,34 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     def trigger_read_search_challenge_index(self) -> int:
         return len(self.trigger_challenge_scripts) + len(self.wrong_hash_challenge_script_list)
 
-    def trigger_input_1_equivocation_challenge_index(self, address: str) -> int:
-        index_from_address = 0
+    @staticmethod
+    def _check_input_range(address: str, base_input_address: str, amount_of_input_words: int):
+        int_address = int(address, 16)
+        int_base_input_address = int(base_input_address, 16)
+        if not ((int_address - int_base_input_address) % 4) == 0:
+            raise Exception("Input address not aligned with base input address")
+        if int_address < int_base_input_address or (
+            int_address >= (int_base_input_address + amount_of_input_words * 4)
+        ):
+            raise Exception("Input address out of input region")
+
+    @staticmethod
+    def _get_index_from_address(address: str, base_input_address: str):
+        int_address = int(address, 16)
+        int_base_input_address = int(base_input_address, 16)
+        return int((int_address - int_base_input_address) / 4)
+
+    def trigger_input_1_equivocation_challenge_index(
+        self, address: str, base_input_address: str, amount_of_input_words: int
+    ) -> int:
+        self._check_input_range(
+            address=address,
+            base_input_address=base_input_address,
+            amount_of_input_words=amount_of_input_words,
+        )
+        index_from_address = self._get_index_from_address(
+            address=address, base_input_address=base_input_address
+        )
         return (
             len(self.trigger_challenge_scripts)
             + len(self.wrong_hash_challenge_script_list)
@@ -159,8 +185,17 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             + index_from_address
         )
 
-    def trigger_input_2_equivocation_challenge_index(self, address: str) -> int:
-        index_from_address = 0
+    def trigger_input_2_equivocation_challenge_index(
+        self, address: str, base_input_address: str, amount_of_input_words: int
+    ) -> int:
+        self._check_input_range(
+            address=address,
+            base_input_address=base_input_address,
+            amount_of_input_words=amount_of_input_words,
+        )
+        index_from_address = self._get_index_from_address(
+            address=address, base_input_address=base_input_address
+        )
         return (
             len(self.trigger_challenge_scripts)
             + len(self.wrong_hash_challenge_script_list)
