@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import List
 
 from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
 from bitcoinutils.keys import PrivateKey
@@ -20,11 +21,15 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_private_dto import (
     BitVMXProtocolVerifierPrivateDTO,
 )
+from bitvmx_protocol_library.script_generation.entities.dtos.bitvmx_bitcoin_scripts_dto import (
+    BitVMXBitcoinScriptsDTO,
+)
 from bitvmx_protocol_library.script_generation.services.bitvmx_bitcoin_scripts_generator_service import (
     BitVMXBitcoinScriptsGeneratorService,
 )
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
+    transaction_info_service,
 )
 
 
@@ -39,7 +44,16 @@ class GenericTriggerReadInputEquivocationChallengeTransactionService:
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
 
-        trigger_input_equivocation_witness = []
+        trace_witness = self._get_trace_witness(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
+        )
+
+        trace_address_witness = self._get_address_witness(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            trace_witness=trace_witness,
+        )
+
+        trigger_input_equivocation_witness = trace_address_witness
 
         bitvmx_bitcoin_scripts_dto = self.bitvmx_bitcoin_scripts_generator_service(
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
@@ -65,24 +79,12 @@ class GenericTriggerReadInputEquivocationChallengeTransactionService:
             input_length=amount_of_input_words
         )
 
-        if self.read_parameter() == 1:
-            current_script_index = (
-                bitvmx_bitcoin_scripts_dto.trigger_input_1_equivocation_challenge_index(
-                    address=bitvmx_protocol_verifier_dto.published_execution_trace.read_1_address,
-                    base_input_address=static_addresses.input.address,
-                    amount_of_input_words=amount_of_input_words,
-                )
-            )
-        elif self.read_parameter() == 2:
-            current_script_index = (
-                bitvmx_bitcoin_scripts_dto.trigger_input_2_equivocation_challenge_index(
-                    address=bitvmx_protocol_verifier_dto.published_execution_trace.read_2_address,
-                    base_input_address=static_addresses.input.address,
-                    amount_of_input_words=amount_of_input_words,
-                )
-            )
-        else:
-            raise Exception("Case not recognized in input equivocation challenge")
+        current_script_index = self._trigger_input_equivocation_challenge_index(
+            bitvmx_bitcoin_scripts_dto=bitvmx_bitcoin_scripts_dto,
+            address=self._get_address(bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto),
+            base_input_address=static_addresses.input.address,
+            amount_of_input_words=amount_of_input_words,
+        )
 
         current_script = bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list[
             current_script_index
@@ -138,19 +140,108 @@ class GenericTriggerReadInputEquivocationChallengeTransactionService:
         return bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_equivocation_tx
 
     @abstractmethod
-    def read_parameter(self):
+    def _trigger_input_equivocation_challenge_index(
+        self,
+        bitvmx_bitcoin_scripts_dto: BitVMXBitcoinScriptsDTO,
+        address: str,
+        base_input_address: str,
+        amount_of_input_words: int,
+    ):
+        pass
+
+    def _get_trace_witness(
+        self, bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO
+    ):
+        trace_tx = transaction_info_service(
+            tx_id=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trace_tx.get_txid()
+        )
+        trace_witness = trace_tx.inputs[0].witness
+        while len(trace_witness[0]) == 128:
+            trace_witness = trace_witness[1:]
+        # Erase the previous step confirmation
+        trace_witness = trace_witness[8:]
+        return trace_witness
+
+    def _get_address_witness(
+        self,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
+        trace_witness: List[str],
+    ):
+        trace_words_public_keys = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys
+        )
+        address_position = self._get_address_position(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
+        )
+        current_index = 0
+        current_init = 0
+        while current_index < address_position:
+            current_init += len(trace_words_public_keys[-1 - current_index]) * 2
+            current_index += 1
+        return trace_witness[
+            current_init : current_init + (len(trace_words_public_keys[-1 - current_index]) * 2)
+        ]
+
+    @abstractmethod
+    def _get_address_position(
+        self, bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO
+    ):
+        pass
+
+    @abstractmethod
+    def _get_address(self, bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO):
         pass
 
 
 class TriggerReadInput1EquivocationChallengeTransactionService(
     GenericTriggerReadInputEquivocationChallengeTransactionService
 ):
-    def read_parameter(self):
-        return 1
+    def _get_address(self, bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO):
+        return bitvmx_protocol_verifier_dto.published_execution_trace.read_1_address
+
+    def _trigger_input_equivocation_challenge_index(
+        self,
+        bitvmx_bitcoin_scripts_dto: BitVMXBitcoinScriptsDTO,
+        address: str,
+        base_input_address: str,
+        amount_of_input_words: int,
+    ):
+        return bitvmx_bitcoin_scripts_dto.trigger_input_1_equivocation_challenge_index(
+            address=address,
+            base_input_address=base_input_address,
+            amount_of_input_words=amount_of_input_words,
+        )
+
+    def _get_address_position(
+        self, bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO
+    ):
+        return (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.read_1_address_position
+        )
 
 
 class TriggerReadInput2EquivocationChallengeTransactionService(
     GenericTriggerReadInputEquivocationChallengeTransactionService
 ):
-    def read_parameter(self):
-        return 2
+    def _get_address(self, bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO):
+        return bitvmx_protocol_verifier_dto.published_execution_trace.read_2_address
+
+    def _trigger_input_equivocation_challenge_index(
+        self,
+        bitvmx_bitcoin_scripts_dto: BitVMXBitcoinScriptsDTO,
+        address: str,
+        base_input_address: str,
+        amount_of_input_words: int,
+    ):
+        return bitvmx_bitcoin_scripts_dto.trigger_input_2_equivocation_challenge_index(
+            address=address,
+            base_input_address=base_input_address,
+            amount_of_input_words=amount_of_input_words,
+        )
+
+    def _get_address_position(
+        self, bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO
+    ):
+        return (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.read_2_address_position
+        )

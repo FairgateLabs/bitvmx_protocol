@@ -14,11 +14,14 @@ from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin
 from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin_script_list import (
     BitcoinScriptList,
 )
+from bitvmx_protocol_library.winternitz_keys_handling.scripts.verify_digit_signature_nibbles_service import (
+    VerifyDigitSignatureNibblesService,
+)
 
 
 class TriggerInputEquivocationChallengeScriptsGeneratorService:
     def __init__(self):
-        pass
+        self.verify_input_nibble_message_from_public_keys = VerifyDigitSignatureNibblesService()
 
     def __call__(
         self,
@@ -27,8 +30,10 @@ class TriggerInputEquivocationChallengeScriptsGeneratorService:
         amount_of_input_words: int,
         address_public_keys: List[str],
         address_amount_of_nibbles: int,
-        value_public_keys: List[str],
+        trace_value_public_keys: List[str],
+        publish_hash_value_public_keys: List[List[str]],
         value_amount_of_nibbles: int,
+        bits_per_digit_checksum: int,
     ) -> BitcoinScriptList:
 
         script_list = BitcoinScriptList()
@@ -50,6 +55,14 @@ class TriggerInputEquivocationChallengeScriptsGeneratorService:
                 script.extend(
                     [PublicKey(hex_str=signature_public_key).to_x_only_hex(), "OP_CHECKSIGVERIFY"]
                 )
+
+            self.verify_input_nibble_message_from_public_keys(
+                script=script,
+                public_keys=address_public_keys,
+                n0=address_amount_of_nibbles,
+                bits_per_digit_checksum=bits_per_digit_checksum,
+                to_alt_stack=True,
+            )
 
             script.append(1)
 

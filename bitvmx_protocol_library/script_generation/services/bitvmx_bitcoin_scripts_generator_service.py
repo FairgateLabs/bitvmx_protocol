@@ -327,8 +327,10 @@ class BitVMXBitcoinScriptsGeneratorService:
             amount_of_input_words=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_input_words,
             address_public_keys=address_1_public_keys,
             address_amount_of_nibbles=address_1_amount_of_nibbles,
-            value_public_keys=value_1_public_keys,
+            trace_value_public_keys=value_1_public_keys,
+            publish_hash_value_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.input_public_keys,
             value_amount_of_nibbles=value_1_amount_of_nibbles,
+            bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
         address_2_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[
@@ -354,8 +356,10 @@ class BitVMXBitcoinScriptsGeneratorService:
             amount_of_input_words=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_input_words,
             address_public_keys=address_2_public_keys,
             address_amount_of_nibbles=address_2_amount_of_nibbles,
-            value_public_keys=value_2_public_keys,
+            trace_value_public_keys=value_2_public_keys,
+            publish_hash_value_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.input_public_keys,
             value_amount_of_nibbles=value_2_amount_of_nibbles,
+            bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
         trigger_constant_1_equivocation_challenge_scripts_generator_service = (
             self.trigger_constant_equivocation_challenge_scripts_generator_service(

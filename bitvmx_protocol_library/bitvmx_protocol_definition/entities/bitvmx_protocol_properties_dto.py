@@ -76,11 +76,15 @@ class BitVMXProtocolPropertiesDTO(BaseModel):
 
     @property
     def read_2_address_position(self):
-        return 4
+        return 3
 
     @property
     def read_2_value_position(self):
-        return 5
+        return 4
+
+    @property
+    def amount_of_nibbles_input_word(self):
+        return 8
 
     @property
     def amount_of_trace_steps(self):
