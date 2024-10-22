@@ -15,6 +15,7 @@ class BitVMXTransactionsDTO(BaseModel):
     search_choice_tx_list: List[Transaction]
     trace_tx: Transaction
     trigger_execution_challenge_tx: Transaction
+    trigger_equivocation_tx: Transaction
     trigger_wrong_hash_challenge_tx: Transaction
     execution_challenge_tx: Transaction
     read_search_hash_tx_list: List[Transaction]
@@ -98,6 +99,12 @@ class BitVMXTransactionsDTO(BaseModel):
         trigger_execution_challenge_tx: Transaction,
     ) -> str:
         return BitVMXTransactionsDTO.transaction_to_str(trigger_execution_challenge_tx)
+
+    @field_serializer("trigger_equivocation_tx", when_used="always")
+    def serialize_trigger_equivocation_tx(
+        trigger_equivocation_tx: Transaction,
+    ) -> str:
+        return BitVMXTransactionsDTO.transaction_to_str(trigger_equivocation_tx)
 
     @field_serializer("trigger_wrong_hash_challenge_tx", when_used="always")
     def serialize_trigger_wrong_hash_challenge_tx(

@@ -47,11 +47,6 @@ class TriggerExecutionChallengeTransactionService:
             ]
         )
 
-        # Ugly hardcoding here that should be computed somehow but it depends a lot on the structure of the
-        # previous script
-        # -> Make static call that gets checked when the script gets generated
-        # prover_trigger_challenge_witness = previous_trace_witness[10:246]
-
         trigger_execution_challenge_signature = (
             bitvmx_protocol_verifier_dto.trigger_execution_challenge_signatures
         )

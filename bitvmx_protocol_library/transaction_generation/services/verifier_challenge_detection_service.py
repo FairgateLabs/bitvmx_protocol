@@ -28,8 +28,8 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 class VerifierChallengeDetectionService:
     def __init__(self):
         self.verifier_challenge_detection_services = [
-            VerifierExecutionChallengeDetectionService(),
             VerifierReadInputEquivocationChallengeDetectionService(),
+            VerifierExecutionChallengeDetectionService(),
             VerifierWrongHashChallengeDetectionService(),
             VerifierReadSearchChallengeDetectionService(),
         ]
