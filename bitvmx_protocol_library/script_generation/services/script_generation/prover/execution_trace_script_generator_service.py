@@ -33,18 +33,18 @@ class ExecutionTraceScriptGeneratorService:
 
         for i in range(len(public_keys)):
             self.verify_input_nibble_message_from_public_keys(
-                script,
-                public_keys[i],
-                trace_words_lengths[i],
-                bits_per_digit_checksum,
+                script=script,
+                public_keys=public_keys[i],
+                n0=trace_words_lengths[i],
+                bits_per_digit_checksum=bits_per_digit_checksum,
                 to_alt_stack=True,
             )
 
         self.confirm_single_word_script_generator_service(
-            script,
-            amount_of_bits_choice,
-            prover_choice_public_keys,
-            verifier_choice_public_keys,
+            script=script,
+            amount_of_bits_choice=amount_of_bits_choice,
+            prover_choice_public_keys=prover_choice_public_keys,
+            verifier_choice_public_keys=verifier_choice_public_keys,
         )
 
         for signature_public_key in reversed(signature_public_keys):

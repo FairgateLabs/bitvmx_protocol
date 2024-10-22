@@ -158,7 +158,7 @@ class TransactionGeneratorFromPublicKeysService:
 
         trigger_wrong_hash_txin = TxInput(trace_tx.get_txid(), 0)
         trigger_wrong_hash_output_address = P2wpkhAddress.from_address(
-            address=bitvmx_protocol_setup_properties_dto.prover_destination_address
+            address=bitvmx_protocol_setup_properties_dto.verifier_destination_address
         )
         trigger_wrong_hash_output_amount = (
             trace_output_amount - bitvmx_protocol_setup_properties_dto.step_fees_satoshis * 4
@@ -170,6 +170,21 @@ class TransactionGeneratorFromPublicKeysService:
 
         trigger_wrong_hash_tx = Transaction(
             [trigger_wrong_hash_txin], [trigger_wrong_hash_txout], has_segwit=True
+        )
+
+        trigger_equivocation_txin = TxInput(trace_tx.get_txid(), 0)
+        trigger_equivocation_output_address = P2wpkhAddress.from_address(
+            address=bitvmx_protocol_setup_properties_dto.verifier_destination_address
+        )
+        trigger_equivocation_output_amount = (
+            trace_output_amount - bitvmx_protocol_setup_properties_dto.step_fees_satoshis
+        )
+        trigger_equivocation_txout = TxOutput(
+            trigger_equivocation_output_amount,
+            trigger_equivocation_output_address.to_script_pub_key(),
+        )
+        trigger_equivocation_tx = Transaction(
+            [trigger_equivocation_txin], [trigger_equivocation_txout], has_segwit=True
         )
 
         execution_challenge_txin = TxInput(trigger_execution_challenge_tx.get_txid(), 0)
@@ -262,14 +277,17 @@ class TransactionGeneratorFromPublicKeysService:
 
         read_trace_tx = Transaction([read_trace_txin], [read_trace_txout], has_segwit=True)
 
-        current_output_amount -= bitvmx_protocol_setup_properties_dto.step_fees_satoshis
+        trigger_read_challenge_output_amount = (
+            current_output_amount - 4 * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
+        )
 
         trigger_read_challenge_destination_address = P2wpkhAddress.from_address(
             address=bitvmx_protocol_setup_properties_dto.verifier_destination_address
         )
         trigger_read_challenge_txin = TxInput(read_trace_tx.get_txid(), 0)
         trigger_read_challenge_txout = TxOutput(
-            current_output_amount, trigger_read_challenge_destination_address.to_script_pub_key()
+            trigger_read_challenge_output_amount,
+            trigger_read_challenge_destination_address.to_script_pub_key(),
         )
         trigger_read_challenge_tx = Transaction(
             [trigger_read_challenge_txin], [trigger_read_challenge_txout], has_segwit=True
@@ -283,6 +301,7 @@ class TransactionGeneratorFromPublicKeysService:
             search_choice_tx_list=search_choice_tx_list,
             trace_tx=trace_tx,
             trigger_execution_challenge_tx=trigger_execution_challenge_tx,
+            trigger_equivocation_tx=trigger_equivocation_tx,
             trigger_wrong_hash_challenge_tx=trigger_wrong_hash_tx,
             execution_challenge_tx=execution_challenge_tx,
             read_search_hash_tx_list=read_search_hash_tx_list,
