@@ -18,9 +18,10 @@ RUN pip install -r /tmp/requirements/base.txt
 
 ## We need to install it manually due to the existent bug
 
-#RUN pip install --no-cache-dir git+https://github.com/karask/python-bitcoin-utils.git@65a4a49c84a4e1c23b08c0527f8b2d0000e5d5ca
+#RUN pip install --no-cache-dir git+https://github.com/karask/python-bitcoin-utils.git@0c99998136e21f4ec055f2842bdf674aae611c18
 #RUN pip install --no-cache-dir git+https://github.com/ramonamela/python-bitcoin-utils.git@5392fec4f6b149cf7d913d65640b619727e976ef
 RUN pip install --no-cache-dir git+https://github.com/ramonamela/python-bitcoin-utils.git@3e8c2a0bf1b080ed5f80f4e78f71005f42eb52c5
+#RUN pip install --no-cache-dir git+https://github.com/ramonamela/python-bitcoin-utils.git@5b213cb10a6fe810fb9c0606608bfbc05789cd3a
 
 RUN pip install --no-cache-dir git+https://github.com/ramonamela/pybitvmbinding.git@2cb13f79fca1e0da47305a102eeb66fc5982a9e1
 
