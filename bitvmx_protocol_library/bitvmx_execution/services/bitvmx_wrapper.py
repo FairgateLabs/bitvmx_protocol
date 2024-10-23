@@ -53,7 +53,14 @@ class BitVMXWrapper:
         self.fail_actor_read = "prover"
         self.fail_read_type = ReadErrorType.SAME
         self.fail_read_position = ReadErrorPosition.ONE
-        self.fail_read_step = 15
+        # DO NOT CHANGE THIS AS OF NOW (WE HARDCODE THE EXAMPLE)
+        self.fail_read_step = 14
+        # read1_add       4026531872
+        # read1_val       3766484992
+        # read1_last_step 4
+        # read2_add       3766484972
+        # read2_val       2852126720
+        # read2_last_step 7
         self.contains_read_fail = (
             self.fail_read_type is not None
             and self.fail_read_position is not None
@@ -139,43 +146,20 @@ class BitVMXWrapper:
             command.extend([self.fail_type, self.fail_step])
 
         if self.contains_read_fail and int(self.fail_read_step) <= index and fail_read:
-            from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
-                ExecutionTraceQueryService,
-            )
-
-            correct_execution_trace = self.get_execution_trace(
-                setup_uuid=setup_uuid, index=index, input_hex=input_hex, fail_read=False
-            )
-            pandas_execution_trace = pd.DataFrame(
-                [correct_execution_trace.replace("\n", "").split(";")],
-                columns=ExecutionTraceQueryService.trace_header(),
-            ).iloc[0]
             if self.fail_read_position == ReadErrorPosition.ONE:
                 command.append("--fail-read-1")
                 command.append(str(self.fail_read_step))
-                command.append(pandas_execution_trace["read1_address"])
-                command.append(
-                    str(
-                        int(pandas_execution_trace["read1_value"]) + 1
-                        if int(pandas_execution_trace["read1_value"]) < int("ffffffff", 16)
-                        else 0
-                    )
-                )
-                command.append(pandas_execution_trace["read1_address"])
-                base_last_step = int(pandas_execution_trace["read1_last_step"])
+                command.append(str(4026531872))
+                command.append(str(3766484992 + 1))
+                command.append(str(4026531872))
+                base_last_step = 4
             elif self.fail_read_position == ReadErrorPosition.TWO:
                 command.append("--fail-read-2")
                 command.append(str(self.fail_read_step))
-                command.append(pandas_execution_trace["read2_address"])
-                command.append(
-                    str(
-                        int(pandas_execution_trace["read2_value"]) + 1
-                        if int(pandas_execution_trace["read2_value"]) < int("ffffffff", 16)
-                        else 0
-                    )
-                )
-                command.append(pandas_execution_trace["read2_address"])
-                base_last_step = int(pandas_execution_trace["read2_last_step"])
+                command.append(str(3766484972))
+                command.append(str(2852126720 + 1))
+                command.append(str(3766484972))
+                base_last_step = 7
             else:
                 raise Exception("Fail read not recognized")
             if self.fail_read_type == ReadErrorType.SAME:
@@ -247,6 +231,31 @@ class BitVMXWrapper:
                 )
             if self.contains_fail:
                 command.extend([self.fail_type, self.fail_step])
+
+            if self.contains_read_fail:
+                if self.fail_read_position == ReadErrorPosition.ONE:
+                    command.append("--fail-read-1")
+                    command.append(str(self.fail_read_step))
+                    command.append(str(4026531872))
+                    command.append(str(3766484992 + 1))
+                    command.append(str(4026531872))
+                    base_last_step = 4
+                elif self.fail_read_position == ReadErrorPosition.TWO:
+                    command.append("--fail-read-2")
+                    command.append(str(self.fail_read_step))
+                    command.append(str(3766484972))
+                    command.append(str(2852126720 + 1))
+                    command.append(str(3766484972))
+                    base_last_step = 7
+                else:
+                    raise Exception("Fail read not recognized")
+                if self.fail_read_type == ReadErrorType.SAME:
+                    command.append(str(base_last_step))
+                elif self.fail_read_type == ReadErrorType.AFTERWARDS:
+                    command.append(str(base_last_step + 1))
+                elif self.fail_read_type == ReadErrorType.BEFORE:
+                    command.append(str(base_last_step - 1))
+
             execution_directory = self.base_path + setup_uuid
 
             try:
