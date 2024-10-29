@@ -32,7 +32,7 @@ class TriggerWrongProgramCounterChallengeScriptGeneratorService:
         amount_of_bits_per_digit_checksum: int,
         bin_wrong_choice: str,
     ):
-        # choice = int(bin_wrong_choice, 2)
+        choice = int(bin_wrong_choice, 2)
         script = BitcoinScript()
         for signature_public_key in signature_public_keys:
             script.extend(
@@ -41,5 +41,44 @@ class TriggerWrongProgramCounterChallengeScriptGeneratorService:
                     "OP_CHECKSIGVERIFY",
                 ]
             )
+
+        # wrong_hash_choice_array = [
+        #     bin_wrong_choice[i : i + amount_of_bits_wrong_step_search].zfill(
+        #         amount_of_bits_wrong_step_search
+        #     )
+        #     for i in range(0, len(bin_wrong_choice), amount_of_bits_wrong_step_search)
+        # ]
+        # counter = -1
+        # # Character we need to discard at the end of the array
+        # if wrong_hash_choice_array[counter] == ("0" * amount_of_bits_wrong_step_search):
+        #     suffix_character = "0"
+        # else:
+        #     suffix_character = "1"
+        #
+        # if choice == 0:
+        #     for choice_list in reversed(choice_search_prover_public_keys_list):
+        #         self.verify_input_single_word_from_public_keys(
+        #             script=script,
+        #             public_keys=choice_list[0],
+        #             amount_of_bits=amount_of_bits_wrong_step_search,
+        #             to_alt_stack=False,
+        #         )
+        #         script.append(0)
+        #         script.append("OP_EQUALVERIFY")
+        # else:
+        #     while -counter <= len(wrong_hash_choice_array):
+        #         self.verify_input_single_word_from_public_keys(
+        #             script=script,
+        #             public_keys=choice_search_prover_public_keys_list[counter][0],
+        #             amount_of_bits=amount_of_bits_wrong_step_search,
+        #             to_alt_stack=False,
+        #         )
+        #         script.append(int(wrong_hash_choice_array[counter], 2))
+        #         script.append("OP_EQUALVERIFY")
+        #         if wrong_hash_choice_array[counter] != (
+        #             suffix_character * amount_of_bits_wrong_step_search
+        #         ):
+        #             break
+        #         counter -= 1
         script.append(1)
         return script

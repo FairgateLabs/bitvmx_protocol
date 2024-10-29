@@ -12,6 +12,18 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_private_dto import (
     BitVMXProtocolVerifierPrivateDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.get_choice_witness_service import (
+    GetChoiceWitnessService,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.get_correct_hash_witness_service import (
+    GetCorrectHashWitnessService,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.get_trace_witness_service import (
+    GetTraceWitnessService,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.get_wrong_hash_witness_service import (
+    GetWrongHashWitnessService,
+)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
 )
@@ -19,7 +31,10 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 
 class TriggerWrongProgramCounterChallengeTransactionService:
     def __init__(self, verifier_private_key):
-        pass
+        self.get_correct_hash_witness_service = GetCorrectHashWitnessService()
+        self.get_wrong_hash_witness_service = GetWrongHashWitnessService()
+        self.get_trace_witness_service = GetTraceWitnessService()
+        self.get_choice_witness_service = GetChoiceWitnessService()
 
     def __call__(
         self,
@@ -41,6 +56,11 @@ class TriggerWrongProgramCounterChallengeTransactionService:
                 choice=bitvmx_protocol_verifier_dto.first_wrong_step
             ),
             is_odd=trigger_challenge_scripts_address.is_odd(),
+        )
+
+        choices_witness = self.get_choice_witness_service(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
         )
 
         private_key = PrivateKey(
@@ -72,9 +92,11 @@ class TriggerWrongProgramCounterChallengeTransactionService:
         trigger_wrong_program_counter_challenge_signature = [
             wrong_program_counter_challenge_signature
         ]
+        trigger_challenge_witness = choices_witness
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_wrong_program_counter_challenge_tx.witnesses.append(
             TxWitnessInput(
+                # trigger_challenge_witness
                 trigger_wrong_program_counter_challenge_signature
                 + [
                     current_script.to_hex(),
