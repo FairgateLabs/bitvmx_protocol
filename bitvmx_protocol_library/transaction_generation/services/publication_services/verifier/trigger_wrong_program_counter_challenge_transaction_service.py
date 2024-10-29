@@ -96,8 +96,8 @@ class TriggerWrongProgramCounterChallengeTransactionService:
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_wrong_program_counter_challenge_tx.witnesses.append(
             TxWitnessInput(
-                # trigger_challenge_witness
-                trigger_wrong_program_counter_challenge_signature
+                trigger_challenge_witness
+                + trigger_wrong_program_counter_challenge_signature
                 + [
                     current_script.to_hex(),
                     wrong_program_counter_control_block.to_hex(),
