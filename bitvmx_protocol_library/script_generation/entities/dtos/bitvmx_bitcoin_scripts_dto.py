@@ -87,7 +87,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return (
             self.trigger_challenge_scripts
             + self.wrong_hash_challenge_script_list.script_list()
-            # + self.wrong_program_counter_challenge_scripts_list.script_list()
+            + self.wrong_program_counter_challenge_scripts_list.script_list()
             + BitcoinScriptList(self.choice_read_search_scripts[0])
             + self.input_1_equivocation_challenge_scripts
             + self.input_2_equivocation_challenge_scripts
@@ -166,7 +166,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return (
             len(self.trigger_challenge_scripts)
             + len(self.wrong_hash_challenge_script_list)
-            # + len(self.wrong_program_counter_challenge_scripts_list)
+            + len(self.wrong_program_counter_challenge_scripts_list)
         )
 
     @staticmethod
@@ -200,7 +200,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return (
             len(self.trigger_challenge_scripts)
             + len(self.wrong_hash_challenge_script_list)
-            # + len(self.wrong_program_counter_challenge_scripts_list)
+            + len(self.wrong_program_counter_challenge_scripts_list)
             + 1
             + index_from_address
         )
@@ -219,7 +219,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return (
             len(self.trigger_challenge_scripts)
             + len(self.wrong_hash_challenge_script_list)
-            # + len(self.wrong_program_counter_challenge_scripts_list)
+            + len(self.wrong_program_counter_challenge_scripts_list)
             + 1
             + len(self.input_1_equivocation_challenge_scripts)
             + index_from_address
@@ -230,7 +230,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return (
             len(self.trigger_challenge_scripts)
             + len(self.wrong_hash_challenge_script_list)
-            # + len(self.wrong_program_counter_challenge_scripts_list)
+            + len(self.wrong_program_counter_challenge_scripts_list)
             + 1
             + len(self.input_1_equivocation_challenge_scripts)
             + len(self.input_2_equivocation_challenge_scripts)
@@ -242,7 +242,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return (
             len(self.trigger_challenge_scripts)
             + len(self.wrong_hash_challenge_script_list)
-            # + len(self.wrong_program_counter_challenge_scripts_list)
+            + len(self.wrong_program_counter_challenge_scripts_list)
             + 1
             + len(self.input_1_equivocation_challenge_scripts)
             + len(self.input_2_equivocation_challenge_scripts)

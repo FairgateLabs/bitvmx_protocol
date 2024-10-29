@@ -30,11 +30,11 @@ class BitVMXWrapper:
         self.fail_actor = "prover"
         # self.fail_step = "1234567890"
         self.fail_step = "14"
-        self.fail_step = None
+        # self.fail_step = None
         # self.fail_type = "--fail-execute"
-        self.fail_type = "--fail-hash"
-        # self.fail_type = "--fail-pc"
-        self.fail_input = True
+        # self.fail_type = "--fail-hash"
+        self.fail_type = "--fail-pc"
+        self.fail_input = False
         self.fail_actor_input = "prover"
         self.contains_fail = (
             self.fail_actor is not None
