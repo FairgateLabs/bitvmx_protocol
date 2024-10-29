@@ -1,11 +1,11 @@
 from typing import List
 
 from bitvmx_protocol_library.script_generation.entities.business_objects.bitvmx_wrong_hash_script_list import (
-    BitVMXWrongHashScriptList,
+    BitVMXWrongProgramCounterScriptList,
 )
 
 
-class TriggerWrongHashScriptListGeneratorService:
+class TriggerWrongProgramCounterChallengeScriptsGeneratorService:
 
     def __call__(
         self,
@@ -18,8 +18,8 @@ class TriggerWrongHashScriptListGeneratorService:
         hash_result_public_keys: List[str],
         amount_of_nibbles_hash: int,
         amount_of_bits_per_digit_checksum: int,
-    ) -> BitVMXWrongHashScriptList:
-        return BitVMXWrongHashScriptList(
+    ) -> BitVMXWrongProgramCounterScriptList:
+        return BitVMXWrongProgramCounterScriptList(
             signature_public_keys=signature_public_keys,
             trace_words_lengths=trace_words_lengths,
             amount_of_bits_wrong_step_search=amount_of_bits_wrong_step_search,

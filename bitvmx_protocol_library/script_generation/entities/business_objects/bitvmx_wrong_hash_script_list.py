@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import List, Optional
 
 from pydantic import BaseModel
@@ -8,9 +9,12 @@ from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin
 from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_wrong_hash_challenge_script_generator_service import (
     TriggerWrongHashChallengeScriptGeneratorService,
 )
+from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_wrong_program_counter_challenge_script_generator_service import (
+    TriggerWrongProgramCounterChallengeScriptGeneratorService,
+)
 
 
-class BitVMXWrongHashScriptList(BaseModel):
+class BitVMXAbstractSha256ScriptList(BaseModel, ABC):
     signature_public_keys: List[str]
     trace_words_lengths: List[int]
     amount_of_bits_wrong_step_search: int
@@ -23,15 +27,18 @@ class BitVMXWrongHashScriptList(BaseModel):
     _script_list: Optional[BitcoinScriptList] = None
 
     @property
+    @abstractmethod
+    def script_generator_service(self):
+        pass
+
+    @property
     def amount_of_base_scripts(self) -> int:
         return (2**self.amount_of_bits_wrong_step_search) - 1
 
     def script_list(self) -> BitcoinScriptList:
         if self._script_list is not None:
             return self._script_list
-        trigger_wrong_hash_challenge_script_generator_service = (
-            TriggerWrongHashChallengeScriptGeneratorService()
-        )
+        trigger_wrong_hash_challenge_script_generator_service = self.script_generator_service()
         script_list = []
         assert len(self.choice_search_prover_public_keys_list) == len(
             self.hash_search_public_keys_list
@@ -154,3 +161,16 @@ class BitVMXWrongHashScriptList(BaseModel):
 
     def __getitem__(self, choice: int) -> List[str]:
         raise NotImplementedError
+
+
+class BitVMXWrongHashScriptList(BitVMXAbstractSha256ScriptList):
+    @property
+    def script_generator_service(self):
+        return TriggerWrongHashChallengeScriptGeneratorService
+
+
+class BitVMXWrongProgramCounterScriptList(BitVMXAbstractSha256ScriptList):
+
+    @property
+    def script_generator_service(self):
+        return TriggerWrongProgramCounterChallengeScriptGeneratorService

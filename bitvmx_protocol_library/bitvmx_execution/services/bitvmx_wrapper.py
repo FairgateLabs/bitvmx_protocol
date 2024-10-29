@@ -5,8 +5,6 @@ import subprocess
 from enum import Enum
 from typing import Optional
 
-import pandas as pd
-
 
 def _tweak_input(input_hex: str):
     return input_hex[:-1] + hex(15 - int(input_hex[-1], 16))[2:]
@@ -31,11 +29,12 @@ class BitVMXWrapper:
         # self.fail_actor = "verifier"
         self.fail_actor = "prover"
         # self.fail_step = "1234567890"
-        # self.fail_step = "14"
+        self.fail_step = "14"
         self.fail_step = None
-        self.fail_type = "--fail-execute"
-        # self.fail_type = "--fail-hash"
-        self.fail_input = False
+        # self.fail_type = "--fail-execute"
+        self.fail_type = "--fail-hash"
+        # self.fail_type = "--fail-pc"
+        self.fail_input = True
         self.fail_actor_input = "prover"
         self.contains_fail = (
             self.fail_actor is not None
@@ -49,7 +48,7 @@ class BitVMXWrapper:
             and self.fail_input
         )
 
-        self.fail_read = True
+        self.fail_read = False
         self.fail_actor_read = "prover"
         self.fail_read_type = ReadErrorType.SAME
         self.fail_read_position = ReadErrorPosition.ONE
@@ -68,36 +67,6 @@ class BitVMXWrapper:
             and self.fail_read
             and self.fail_read_step is not None
         )
-
-    # def get_static_addresses(self, elf_file: str):
-    #     directory = self.base_path
-    #     command = [
-    #         "cargo",
-    #         "run",
-    #         "--manifest-path",
-    #         "../BitVMX-CPU/Cargo.toml",
-    #         "--release",
-    #         "--bin",
-    #         "emulator",
-    #         "--",
-    #         "generate-rom-commitment",
-    #         "--elf",
-    #         "../BitVMX-CPU/docker-riscv32/" + elf_file,
-    #         "--sections",
-    #     ]
-    #     try:
-    #         # Run the command in the specified directory
-    #         result = subprocess.run(
-    #             command, capture_output=True, text=True, check=True, cwd=directory
-    #         )
-    #
-    #     except subprocess.CalledProcessError as e:
-    #         # Handle errors in execution
-    #         print("An error occurred while running the command.")
-    #         print("Return code:", e.returncode)
-    #         print("Output:\n", e.stdout)
-    #         print("Errors:\n", e.stderr)
-    #         raise Exception("Some problem with the computation")
 
     def get_execution_trace(
         self, setup_uuid: str, index: int, input_hex: Optional[str] = None, fail_read=True
@@ -213,7 +182,7 @@ class BitVMXWrapper:
                 "--",
                 "execute",
                 "--elf",
-                "../../BitVMX-CPU/docker-riscv32/" + elf_file,
+                "../../BitVMX-CPU/docker-riscv32/riscv32/build/" + elf_file,
                 "--debug",
                 "--checkpoints",
             ]

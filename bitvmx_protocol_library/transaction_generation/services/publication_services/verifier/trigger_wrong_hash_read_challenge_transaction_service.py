@@ -14,15 +14,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_private_dto import (
     BitVMXProtocolVerifierPrivateDTO,
 )
-from bitvmx_protocol_library.script_generation.services.bitvmx_bitcoin_scripts_generator_service import (
-    BitVMXBitcoinScriptsGeneratorService,
-)
-from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_wrong_hash_challenge_script_generator_service import (
-    TriggerWrongHashChallengeScriptGeneratorService,
-)
-from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
-    GenerateWitnessFromInputNibblesService,
-)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
     transaction_info_service,
@@ -31,13 +22,7 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 
 class TriggerWrongHashReadChallengeTransactionService:
     def __init__(self, verifier_private_key):
-        self.verifier_wrong_hash_script_generator_service = (
-            TriggerWrongHashChallengeScriptGeneratorService()
-        )
-        self.generate_witness_from_input_nibbles_service = GenerateWitnessFromInputNibblesService(
-            verifier_private_key
-        )
-        self.bitvmx_bitcoin_scripts_generator_service = BitVMXBitcoinScriptsGeneratorService()
+        pass
 
     def __call__(
         self,

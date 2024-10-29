@@ -156,6 +156,21 @@ class TransactionGeneratorFromPublicKeysService:
             [trigger_execution_challenge_txin], [trigger_execution_challenge_txout], has_segwit=True
         )
 
+        trigger_wrong_pc_txin = TxInput(trace_tx.get_txid(), 0)
+        trigger_wrong_pc_output_address = P2wpkhAddress.from_address(
+            address=bitvmx_protocol_setup_properties_dto.verifier_destination_address
+        )
+        trigger_wrong_pc_output_amount = (
+            trace_output_amount - bitvmx_protocol_setup_properties_dto.step_fees_satoshis * 4
+        )
+        trigger_wrong_pc_txout = TxOutput(
+            trigger_wrong_pc_output_amount,
+            trigger_wrong_pc_output_address.to_script_pub_key(),
+        )
+        trigger_wrong_pc_tx = Transaction(
+            [trigger_wrong_pc_txin], [trigger_wrong_pc_txout], has_segwit=True
+        )
+
         trigger_wrong_hash_txin = TxInput(trace_tx.get_txid(), 0)
         trigger_wrong_hash_output_address = P2wpkhAddress.from_address(
             address=bitvmx_protocol_setup_properties_dto.verifier_destination_address
@@ -303,6 +318,7 @@ class TransactionGeneratorFromPublicKeysService:
             trigger_execution_challenge_tx=trigger_execution_challenge_tx,
             trigger_equivocation_tx=trigger_equivocation_tx,
             trigger_wrong_hash_challenge_tx=trigger_wrong_hash_tx,
+            trigger_wrong_program_counter_challenge_tx=trigger_wrong_pc_tx,
             execution_challenge_tx=execution_challenge_tx,
             read_search_hash_tx_list=read_search_hash_tx_list,
             read_search_choice_tx_list=read_search_choice_tx_list,

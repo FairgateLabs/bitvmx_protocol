@@ -15,6 +15,7 @@ from bitvmx_protocol_library.script_generation.entities.business_objects.bitvmx_
 )
 from bitvmx_protocol_library.script_generation.entities.business_objects.bitvmx_wrong_hash_script_list import (
     BitVMXWrongHashScriptList,
+    BitVMXWrongProgramCounterScriptList,
 )
 
 
@@ -27,6 +28,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     trigger_challenge_scripts: BitcoinScriptList
     execution_challenge_script_list: BitVMXExecutionScriptList
     wrong_hash_challenge_script_list: BitVMXWrongHashScriptList
+    wrong_program_counter_challenge_scripts_list: BitVMXWrongProgramCounterScriptList
     input_1_equivocation_challenge_scripts: BitcoinScriptList
     input_2_equivocation_challenge_scripts: BitcoinScriptList
     constants_1_equivocation_challenge_scripts: BitcoinScriptList
@@ -71,6 +73,9 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             elif field_type == BitVMXWrongHashScriptList:
                 if not isinstance(data[field_name], BitVMXWrongHashScriptList):
                     data[field_name] = BitVMXWrongHashScriptList(**data[field_name])
+            elif field_type == BitVMXWrongProgramCounterScriptList:
+                if not isinstance(data[field_name], BitVMXWrongProgramCounterScriptList):
+                    data[field_name] = BitVMXWrongProgramCounterScriptList(**data[field_name])
             elif field_type == Dict[str, str]:
                 pass
             else:
@@ -82,6 +87,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return (
             self.trigger_challenge_scripts
             + self.wrong_hash_challenge_script_list.script_list()
+            # + self.wrong_program_counter_challenge_scripts_list.script_list()
             + BitcoinScriptList(self.choice_read_search_scripts[0])
             + self.input_1_equivocation_challenge_scripts
             + self.input_2_equivocation_challenge_scripts
@@ -147,8 +153,21 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             self.trigger_challenge_scripts
         ) + self.wrong_hash_challenge_script_list.list_index_from_choice(choice=choice)
 
+    def trigger_wrong_program_counter_challenge_index(self, choice: int) -> int:
+        return (
+            len(self.trigger_challenge_scripts)
+            + len(self.wrong_hash_challenge_script_list)
+            + self.wrong_program_counter_challenge_scripts_list.list_index_from_choice(
+                choice=choice
+            )
+        )
+
     def trigger_read_search_challenge_index(self) -> int:
-        return len(self.trigger_challenge_scripts) + len(self.wrong_hash_challenge_script_list)
+        return (
+            len(self.trigger_challenge_scripts)
+            + len(self.wrong_hash_challenge_script_list)
+            # + len(self.wrong_program_counter_challenge_scripts_list)
+        )
 
     @staticmethod
     def _check_input_range(address: str, base_input_address: str, amount_of_input_words: int):
@@ -181,6 +200,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return (
             len(self.trigger_challenge_scripts)
             + len(self.wrong_hash_challenge_script_list)
+            # + len(self.wrong_program_counter_challenge_scripts_list)
             + 1
             + index_from_address
         )
@@ -199,6 +219,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return (
             len(self.trigger_challenge_scripts)
             + len(self.wrong_hash_challenge_script_list)
+            # + len(self.wrong_program_counter_challenge_scripts_list)
             + 1
             + len(self.input_1_equivocation_challenge_scripts)
             + index_from_address
@@ -209,6 +230,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return (
             len(self.trigger_challenge_scripts)
             + len(self.wrong_hash_challenge_script_list)
+            # + len(self.wrong_program_counter_challenge_scripts_list)
             + 1
             + len(self.input_1_equivocation_challenge_scripts)
             + len(self.input_2_equivocation_challenge_scripts)
@@ -220,6 +242,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return (
             len(self.trigger_challenge_scripts)
             + len(self.wrong_hash_challenge_script_list)
+            # + len(self.wrong_program_counter_challenge_scripts_list)
             + 1
             + len(self.input_1_equivocation_challenge_scripts)
             + len(self.input_2_equivocation_challenge_scripts)

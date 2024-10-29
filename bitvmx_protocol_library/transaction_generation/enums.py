@@ -19,3 +19,4 @@ class TransactionVerifierStepType(Enum):
     TRIGGER_INPUT_EQUIVOCATION_CHALLENGE_1 = "trigger_input_equivocation_1"
     TRIGGER_INPUT_EQUIVOCATION_CHALLENGE_2 = "trigger_input_equivocation_2"
     TRIGGER_READ_SEARCH_CHALLENGE = "trigger_read_search_challenge"
+    TRIGGER_WRONG_PROGRAM_COUNTER = "trigger_wrong_program_counter"
