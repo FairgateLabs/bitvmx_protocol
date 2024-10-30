@@ -3,6 +3,10 @@ from bitcoinutils.keys import PrivateKey
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
+from bitvmx_protocol_library.bitvmx_execution.entities.execution_trace_dto import ExecutionTraceDTO
+from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
+    ExecutionTraceQueryService,
+)
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
@@ -12,17 +16,14 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_private_dto import (
     BitVMXProtocolVerifierPrivateDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.get_choice_witness_service import (
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_choice_witness_service import (
     GetChoiceWitnessService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.get_correct_hash_witness_service import (
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_correct_hash_witness_service import (
     GetCorrectHashWitnessService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.get_trace_witness_service import (
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_trace_witness_service import (
     GetTraceWitnessService,
-)
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.get_wrong_hash_witness_service import (
-    GetWrongHashWitnessService,
 )
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
@@ -32,9 +33,9 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 class TriggerWrongProgramCounterChallengeTransactionService:
     def __init__(self, verifier_private_key):
         self.get_correct_hash_witness_service = GetCorrectHashWitnessService()
-        self.get_wrong_hash_witness_service = GetWrongHashWitnessService()
         self.get_trace_witness_service = GetTraceWitnessService()
         self.get_choice_witness_service = GetChoiceWitnessService()
+        self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
 
     def __call__(
         self,
@@ -57,6 +58,33 @@ class TriggerWrongProgramCounterChallengeTransactionService:
             ),
             is_odd=trigger_challenge_scripts_address.is_odd(),
         )
+
+        previous_to_last_correct_step_trace_series = self.execution_trace_query_service(
+            setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid,
+            index=bitvmx_protocol_verifier_dto.first_wrong_step - 1,
+            input_hex=bitvmx_protocol_verifier_dto.input_hex,
+        )
+        trace_words_lengths = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
+                ::-1
+            ]
+        )
+        previous_to_last_correct_trace = ExecutionTraceDTO.from_pandas_series(
+            execution_trace=previous_to_last_correct_step_trace_series,
+            trace_words_lengths=trace_words_lengths,
+        )
+
+        trace_witness = self.get_trace_witness_service(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
+        )
+
+        if bitvmx_protocol_verifier_dto.first_wrong_step > 0:
+            correct_hash_witness = self.get_correct_hash_witness_service(
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
+            )
+        else:
+            correct_hash_witness = []
 
         choices_witness = self.get_choice_witness_service(
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
@@ -92,7 +120,8 @@ class TriggerWrongProgramCounterChallengeTransactionService:
         trigger_wrong_program_counter_challenge_signature = [
             wrong_program_counter_challenge_signature
         ]
-        trigger_challenge_witness = choices_witness
+
+        trigger_challenge_witness = correct_hash_witness + choices_witness
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_wrong_program_counter_challenge_tx.witnesses.append(
             TxWitnessInput(

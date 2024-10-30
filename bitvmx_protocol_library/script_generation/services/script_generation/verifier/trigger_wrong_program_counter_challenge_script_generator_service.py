@@ -5,6 +5,9 @@ from bitcoinutils.keys import PublicKey
 from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin_script import (
     BitcoinScript,
 )
+from bitvmx_protocol_library.winternitz_keys_handling.functions.signature_functions import (
+    byte_sha256,
+)
 from bitvmx_protocol_library.winternitz_keys_handling.scripts.verify_digit_signature_nibbles_service import (
     VerifyDigitSignatureNibblesService,
 )
@@ -80,5 +83,67 @@ class TriggerWrongProgramCounterChallengeScriptGeneratorService:
                 ):
                     break
                 counter -= 1
+
+        if choice == 0:
+            # TODO: implement with the initial program counter
+            init_hash = byte_sha256(bytes.fromhex("ff")).hex().zfill(64)
+            for nibble in reversed(init_hash):
+                script.append(int(nibble, 16))
+        else:
+            bin_correct_choice = bin(choice - 1)[2:]
+            while len(bin_correct_choice) % amount_of_bits_wrong_step_search != 0:
+                bin_correct_choice = "0" + bin_correct_choice
+            bin_correct_choice = "0" * amount_of_bits_wrong_step_search + bin_correct_choice
+            correct_hash_choice_array = [
+                bin_correct_choice[i : i + amount_of_bits_wrong_step_search].zfill(
+                    amount_of_bits_wrong_step_search
+                )
+                for i in range(0, len(bin_correct_choice), amount_of_bits_wrong_step_search)
+            ]
+
+            # Correct hash (previous step)
+            self._add_hash_to_stack(
+                script=script,
+                binary_choice_array=correct_hash_choice_array,
+                hash_search_public_keys_list=hash_search_public_keys_list,
+                hash_result_public_keys=hash_result_public_keys,
+                amount_of_nibbles_hash=amount_of_nibbles_hash,
+                amount_of_bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+            )
+
+            # for _ in range(amount_of_nibbles_hash):
+            #     script.append("OP_FROMALTSTACK")
+
         script.append(1)
         return script
+
+    def _add_hash_to_stack(
+        self,
+        script: BitcoinScript,
+        binary_choice_array: List[str],
+        hash_search_public_keys_list: List[List[List[str]]],
+        hash_result_public_keys: List[str],
+        amount_of_nibbles_hash: int,
+        amount_of_bits_per_digit_checksum: int,
+    ):
+        wrong_hash_step_iteration = -1
+        while -wrong_hash_step_iteration < len(binary_choice_array) and binary_choice_array[
+            wrong_hash_step_iteration
+        ] == "1" * len(binary_choice_array[0]):
+            wrong_hash_step_iteration -= 1
+        wrong_hash_index = int(binary_choice_array[wrong_hash_step_iteration], 2)
+        if "".join(binary_choice_array) == "1" * len(hash_search_public_keys_list) * len(
+            binary_choice_array[0]
+        ):
+            winternitz_keys = hash_result_public_keys
+        else:
+            winternitz_keys = hash_search_public_keys_list[wrong_hash_step_iteration][
+                wrong_hash_index
+            ]
+        self.verify_input_nibble_message_from_public_keys(
+            script,
+            winternitz_keys,
+            amount_of_nibbles_hash,
+            amount_of_bits_per_digit_checksum,
+            to_alt_stack=True,
+        )

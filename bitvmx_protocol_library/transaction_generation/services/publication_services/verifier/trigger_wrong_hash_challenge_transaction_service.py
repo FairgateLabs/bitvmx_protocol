@@ -1,4 +1,3 @@
-
 from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
 from bitcoinutils.keys import PrivateKey
 from bitcoinutils.transactions import TxWitnessInput
@@ -13,16 +12,16 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_private_dto import (
     BitVMXProtocolVerifierPrivateDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.get_choice_witness_service import (
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_choice_witness_service import (
     GetChoiceWitnessService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.get_correct_hash_witness_service import (
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_correct_hash_witness_service import (
     GetCorrectHashWitnessService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.get_trace_witness_service import (
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_trace_witness_service import (
     GetTraceWitnessService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.get_wrong_hash_witness_service import (
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_wrong_hash_witness_service import (
     GetWrongHashWitnessService,
 )
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (

@@ -33,9 +33,9 @@ class VerifierChallengeDetectionService:
         self.verifier_challenge_detection_services = [
             VerifierWrongProgramCounterChallengeDetectionService(),
             VerifierReadInputEquivocationChallengeDetectionService(),
-            VerifierExecutionChallengeDetectionService(),
             VerifierWrongHashChallengeDetectionService(),
             VerifierReadSearchChallengeDetectionService(),
+            VerifierExecutionChallengeDetectionService(),
         ]
         self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
 

@@ -1,3 +1,5 @@
+from math import inf, isinf
+
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
@@ -246,7 +248,42 @@ class PublishChoiceReadSearchTransactionService:
             bitvmx_protocol_verifier_dto.published_read_hashes_dict.copy()
         )
 
+        published_execution_trace = bitvmx_protocol_verifier_dto.published_execution_trace
+        real_execution_trace = bitvmx_protocol_verifier_dto.real_execution_trace
+
+        regular_read_search_target = None
+
+        if (
+            published_execution_trace.read_1_address == real_execution_trace.read_1_address
+            and published_execution_trace.read_1_value != real_execution_trace.read_1_value
+        ):
+            if int(published_execution_trace.read_1_last_step, 16) < int(
+                real_execution_trace.read_1_last_step, 16
+            ):
+                regular_read_search_target = int(real_execution_trace.read_1_last_step, 16)
+            else:
+                regular_read_search_target = int(published_execution_trace.read_1_last_step, 16)
+
+        elif (
+            published_execution_trace.read_2_address == real_execution_trace.read_2_address
+            and published_execution_trace.read_2_value != real_execution_trace.read_2_value
+        ):
+            if int(published_execution_trace.read_2_last_step, 16) < int(
+                real_execution_trace.read_2_last_step, 16
+            ):
+                regular_read_search_target = int(real_execution_trace.read_2_last_step, 16)
+            else:
+                regular_read_search_target = int(published_execution_trace.read_2_last_step, 16)
+
+        else:
+            raise Exception(
+                "We should no te triggering the read search transaction if we don't have an error in the read"
+            )
+
+        bad_hash_search_target = inf
+
         if iteration > 0:
+            # We need to get the new hashes and see if there is some discrepancy
             previous_hash_read_search_txid = bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_hash_tx_list[
                 iteration - 1
             ].get_txid()
@@ -319,6 +356,21 @@ class PublishChoiceReadSearchTransactionService:
                 )
 
             for j in range(len(index_list)):
+                real_hash = self.execution_trace_query_service(
+                    setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid,
+                    index=index_list[j],
+                    input_hex=bitvmx_protocol_verifier_dto.input_hex,
+                )["step_hash"]
+                if index_list[j] < bitvmx_protocol_verifier_dto.first_wrong_step:
+                    if index_list[j] not in bitvmx_protocol_verifier_dto.published_hashes_dict:
+                        bitvmx_protocol_verifier_dto.published_hashes_dict[index_list[j]] = (
+                            real_hash
+                        )
+                    else:
+                        assert (
+                            bitvmx_protocol_verifier_dto.published_hashes_dict[index_list[j]]
+                            == real_hash
+                        )
                 previous_published_read_hashes_dict[index_list[j]] = published_read_hashes[j]
 
             index_list.append(
@@ -336,4 +388,21 @@ class PublishChoiceReadSearchTransactionService:
                 )
             )
 
-        return 240, previous_published_read_hashes_dict
+            sorted_published_indexes = sorted(
+                bitvmx_protocol_verifier_dto.published_read_hashes_dict.keys()
+            )
+            i = 0
+            while sorted_published_indexes[i] < regular_read_search_target and isinf(
+                bad_hash_search_target
+            ):
+                current_index = sorted_published_indexes[i]
+                if (
+                    bitvmx_protocol_verifier_dto.published_hashes_dict[current_index]
+                    != bitvmx_protocol_verifier_dto.published_read_hashes_dict[current_index]
+                ):
+                    bad_hash_search_target = sorted_published_indexes[i + 1] - 1
+                i += 1
+        return (
+            min(bad_hash_search_target, regular_read_search_target),
+            previous_published_read_hashes_dict,
+        )
