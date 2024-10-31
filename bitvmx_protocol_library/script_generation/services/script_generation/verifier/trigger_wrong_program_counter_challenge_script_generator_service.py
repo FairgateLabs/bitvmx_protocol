@@ -114,6 +114,49 @@ class TriggerWrongProgramCounterChallengeScriptGeneratorService:
             # for _ in range(amount_of_nibbles_hash):
             #     script.append("OP_FROMALTSTACK")
 
+            self.verify_input_nibble_message_from_public_keys(
+                script=script,
+                public_keys=trace_prover_public_keys[0],
+                n0=trace_words_lengths[0],
+                bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+                to_alt_stack=True,
+            )
+
+            self.verify_input_nibble_message_from_public_keys(
+                script=script,
+                public_keys=trace_prover_public_keys[1],
+                n0=trace_words_lengths[1],
+                bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+                to_alt_stack=True,
+            )
+
+            length_to_check = trace_words_lengths[0] + trace_words_lengths[1]
+            script.append(0)
+
+            script.append(length_to_check)
+            script.append("OP_PICK")
+            script.append(8)
+            script.append("OP_EQUALVERIFY")
+
+            for i in range(length_to_check, 0, -1):
+                script.append(i)
+                script.append("OP_PICK")
+                script.append("OP_FROMALTSTACK")
+                script.append("OP_EQUAL")
+                script.append("OP_ADD")
+
+            script.append(length_to_check)
+            script.append("OP_LESSTHAN")
+            script.append("OP_VERIFY")
+
+            for i in range(0, 4):
+                remaining_amount_of_nibbles = trace_words_lengths[i]
+                for _ in range(remaining_amount_of_nibbles):
+                    script.append("OP_TOALTSTACK")
+
+            for _ in range(amount_of_nibbles_hash):
+                script.append("OP_TOALTSTACK")
+
         script.append(1)
         return script
 

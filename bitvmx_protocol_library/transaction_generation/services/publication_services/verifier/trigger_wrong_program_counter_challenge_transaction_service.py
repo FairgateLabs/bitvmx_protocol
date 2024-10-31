@@ -59,7 +59,7 @@ class TriggerWrongProgramCounterChallengeTransactionService:
             is_odd=trigger_challenge_scripts_address.is_odd(),
         )
 
-        previous_to_last_correct_step_trace_series = self.execution_trace_query_service(
+        last_correct_step_trace_series = self.execution_trace_query_service(
             setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid,
             index=bitvmx_protocol_verifier_dto.first_wrong_step - 1,
             input_hex=bitvmx_protocol_verifier_dto.input_hex,
@@ -69,8 +69,8 @@ class TriggerWrongProgramCounterChallengeTransactionService:
                 ::-1
             ]
         )
-        previous_to_last_correct_trace = ExecutionTraceDTO.from_pandas_series(
-            execution_trace=previous_to_last_correct_step_trace_series,
+        last_correct_trace = ExecutionTraceDTO.from_pandas_series(
+            execution_trace=last_correct_step_trace_series,
             trace_words_lengths=trace_words_lengths,
         )
 
@@ -121,7 +121,57 @@ class TriggerWrongProgramCounterChallengeTransactionService:
             wrong_program_counter_challenge_signature
         ]
 
-        trigger_challenge_witness = correct_hash_witness + choices_witness
+        hash_witness = []
+        for i in range(len(last_correct_step_trace_series["step_hash"])):
+            hash_witness.append(
+                hex(int(last_correct_step_trace_series["step_hash"][i], 16))[2:].zfill(2)
+                if int(last_correct_step_trace_series["step_hash"][i], 16) > 0
+                else ""
+            )
+
+        write_address_witness = []
+        for i in range(len(last_correct_trace.write_address)):
+            write_address_witness.append(
+                hex(int(last_correct_trace.write_address[i], 16))[2:].zfill(2)
+                if int(last_correct_trace.write_address[i], 16) > 0
+                else ""
+            )
+        write_value_witness = []
+        for i in range(len(last_correct_trace.write_value)):
+            write_value_witness.append(
+                hex(int(last_correct_trace.write_value[i], 16))[2:].zfill(2)
+                if int(last_correct_trace.write_value[i], 16) > 0
+                else ""
+            )
+        write_PC_witness = []
+        for i in range(len(last_correct_trace.write_PC_address)):
+            write_PC_witness.append(
+                hex(int(last_correct_trace.write_PC_address[i], 16))[2:].zfill(2)
+                if int(last_correct_trace.write_PC_address[i], 16) > 0
+                else ""
+            )
+        write_micro_witness = []
+        for i in range(len(last_correct_trace.write_micro)):
+            write_micro_witness.append(
+                hex(int(last_correct_trace.write_micro[i], 16))[2:].zfill(2)
+                if int(last_correct_trace.write_micro[i], 16) > 0
+                else ""
+            )
+        previous_trace_witness = (
+            write_address_witness + write_value_witness + write_PC_witness + write_micro_witness
+        )
+
+        pc_witness = []
+        pc_witness.extend(trace_witness[-2])
+        pc_witness.extend(trace_witness[-1])
+
+        trigger_challenge_witness = (
+            hash_witness
+            + previous_trace_witness
+            + pc_witness
+            + correct_hash_witness
+            + choices_witness
+        )
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_wrong_program_counter_challenge_tx.witnesses.append(
             TxWitnessInput(
