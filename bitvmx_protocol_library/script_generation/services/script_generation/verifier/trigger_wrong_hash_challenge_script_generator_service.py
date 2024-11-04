@@ -145,14 +145,14 @@ class TriggerWrongHashChallengeScriptGeneratorService:
             sha_256_script = BitcoinScript.from_int_list(sha_256_script_int_opcodes)
             self.cached_sha_scripts[current_length] = sha_256_script
         script += sha_256_script
-        for i in range(64):
+        for i in range(amount_of_nibbles_hash):
             script.append(i)
             script.append("OP_ROLL")
             script.append("OP_FROMALTSTACK")
             script.append("OP_EQUAL")
-        for i in range(64 - 1):
+        for i in range(amount_of_nibbles_hash - 1):
             script.append("OP_ADD")
-        script.append(64)
+        script.append(amount_of_nibbles_hash)
         script.append("OP_LESSTHAN")
         return script
 

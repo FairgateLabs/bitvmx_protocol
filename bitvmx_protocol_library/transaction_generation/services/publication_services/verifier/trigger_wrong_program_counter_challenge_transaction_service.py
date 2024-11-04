@@ -74,6 +74,16 @@ class TriggerWrongProgramCounterChallengeTransactionService:
             trace_words_lengths=trace_words_lengths,
         )
 
+        previous_to_last_correct_step_trace_series = self.execution_trace_query_service(
+            setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid,
+            index=bitvmx_protocol_verifier_dto.first_wrong_step - 2,
+            input_hex=bitvmx_protocol_verifier_dto.input_hex,
+        )
+        previous_to_last_correct_trace = ExecutionTraceDTO.from_pandas_series(
+            execution_trace=previous_to_last_correct_step_trace_series,
+            trace_words_lengths=trace_words_lengths,
+        )
+
         trace_witness = self.get_trace_witness_service(
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
         )
@@ -122,10 +132,12 @@ class TriggerWrongProgramCounterChallengeTransactionService:
         ]
 
         hash_witness = []
-        for i in range(len(last_correct_step_trace_series["step_hash"])):
+        for i in range(len(previous_to_last_correct_step_trace_series["step_hash"])):
             hash_witness.append(
-                hex(int(last_correct_step_trace_series["step_hash"][i], 16))[2:].zfill(2)
-                if int(last_correct_step_trace_series["step_hash"][i], 16) > 0
+                hex(int(previous_to_last_correct_step_trace_series["step_hash"][i], 16))[2:].zfill(
+                    2
+                )
+                if int(previous_to_last_correct_step_trace_series["step_hash"][i], 16) > 0
                 else ""
             )
 
