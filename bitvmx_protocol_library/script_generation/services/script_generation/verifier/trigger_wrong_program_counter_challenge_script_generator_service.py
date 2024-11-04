@@ -1,5 +1,6 @@
 from typing import List
 
+import pybitvmbinding
 from bitcoinutils.keys import PublicKey
 
 from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin_script import (
@@ -100,7 +101,6 @@ class TriggerWrongProgramCounterChallengeScriptGeneratorService:
                 )
                 for i in range(0, len(bin_correct_choice), amount_of_bits_wrong_step_search)
             ]
-
             # Correct hash (previous step)
             self._add_hash_to_stack(
                 script=script,
@@ -110,9 +110,6 @@ class TriggerWrongProgramCounterChallengeScriptGeneratorService:
                 amount_of_nibbles_hash=amount_of_nibbles_hash,
                 amount_of_bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
             )
-
-            # for _ in range(amount_of_nibbles_hash):
-            #     script.append("OP_FROMALTSTACK")
 
             self.verify_input_nibble_message_from_public_keys(
                 script=script,
@@ -133,11 +130,6 @@ class TriggerWrongProgramCounterChallengeScriptGeneratorService:
             length_to_check = trace_words_lengths[0] + trace_words_lengths[1]
             script.append(0)
 
-            script.append(length_to_check)
-            script.append("OP_PICK")
-            script.append(8)
-            script.append("OP_EQUALVERIFY")
-
             for i in range(length_to_check, 0, -1):
                 script.append(i)
                 script.append("OP_PICK")
@@ -149,10 +141,24 @@ class TriggerWrongProgramCounterChallengeScriptGeneratorService:
             script.append("OP_LESSTHAN")
             script.append("OP_VERIFY")
 
-            for i in range(0, 4):
-                remaining_amount_of_nibbles = trace_words_lengths[i]
-                for _ in range(remaining_amount_of_nibbles):
-                    script.append("OP_TOALTSTACK")
+            amount_of_input_hash_nibbles_trace = 8 + 8 + 8 + 2
+            amount_of_input_hash_nibbles = (
+                amount_of_nibbles_hash + amount_of_input_hash_nibbles_trace
+            )
+            current_length = int(amount_of_input_hash_nibbles / 2)
+            if current_length in self.cached_sha_scripts:
+                sha_256_script = self.cached_sha_scripts[current_length]
+            else:
+                sha_256_script_int_opcodes = pybitvmbinding.sha_256_script(current_length)
+                sha_256_script = BitcoinScript.from_int_list(sha_256_script_int_opcodes)
+                self.cached_sha_scripts[current_length] = sha_256_script
+
+            script += sha_256_script
+
+            # for i in range(0, 4):
+            #     remaining_amount_of_nibbles = trace_words_lengths[i]
+            #     for _ in range(remaining_amount_of_nibbles):
+            #         script.append("OP_TOALTSTACK")
 
             for _ in range(amount_of_nibbles_hash):
                 script.append("OP_TOALTSTACK")
