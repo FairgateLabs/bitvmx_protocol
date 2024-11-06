@@ -39,14 +39,14 @@ class VerifierWrongProgramCounterChallengeDetectionService:
         first_wrong_trace = ExecutionTraceDTO.from_pandas_series(
             execution_trace=first_wrong_step_trace_series, trace_words_lengths=trace_words_lengths
         )
-        last_correct_step_trace_series = self.execution_trace_query_service(
-            setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid,
-            index=bitvmx_protocol_verifier_dto.first_wrong_step - 1,
-            input_hex=bitvmx_protocol_verifier_dto.input_hex,
-        )
-        last_correct_trace = ExecutionTraceDTO.from_pandas_series(
-            execution_trace=last_correct_step_trace_series, trace_words_lengths=trace_words_lengths
-        )
+        # last_correct_step_trace_series = self.execution_trace_query_service(
+        #     setup_uuid=bitvmx_protocol_setup_properties_dto.setup_uuid,
+        #     index=bitvmx_protocol_verifier_dto.first_wrong_step - 1,
+        #     input_hex=bitvmx_protocol_verifier_dto.input_hex,
+        # )
+        # last_correct_trace = ExecutionTraceDTO.from_pandas_series(
+        #     execution_trace=last_correct_step_trace_series, trace_words_lengths=trace_words_lengths
+        # )
 
         if bitvmx_protocol_verifier_dto.first_wrong_step > 0:
             if (

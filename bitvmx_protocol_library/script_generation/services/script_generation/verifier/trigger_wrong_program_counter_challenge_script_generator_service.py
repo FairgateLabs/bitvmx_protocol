@@ -111,17 +111,17 @@ class TriggerWrongProgramCounterChallengeScriptGeneratorService:
                 amount_of_bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
             )
 
-            script.append("OP_FROMALTSTACK")
-            script.append(int("0d", 16))
-            script.append("OP_EQUALVERIFY")
-
-            script.append("OP_FROMALTSTACK")
-            script.append(int("0a", 16))
-            script.append("OP_EQUALVERIFY")
-
-            script.append("OP_FROMALTSTACK")
-            script.append(int("08", 16))
-            script.append("OP_EQUALVERIFY")
+            # script.append("OP_FROMALTSTACK")
+            # script.append(int("0d", 16))
+            # script.append("OP_EQUALVERIFY")
+            #
+            # script.append("OP_FROMALTSTACK")
+            # script.append(int("0a", 16))
+            # script.append("OP_EQUALVERIFY")
+            #
+            # script.append("OP_FROMALTSTACK")
+            # script.append(int("08", 16))
+            # script.append("OP_EQUALVERIFY")
 
             self.verify_input_nibble_message_from_public_keys(
                 script=script,
@@ -165,98 +165,14 @@ class TriggerWrongProgramCounterChallengeScriptGeneratorService:
                 sha_256_script = BitcoinScript.from_int_list(sha_256_script_int_opcodes)
                 self.cached_sha_scripts[current_length] = sha_256_script
 
-            script.append("OP_DUP")
-            script.append(int("00", 16))
-            script.append("OP_EQUALVERIFY")
-
-            script.append(1)
-            script.append("OP_PICK")
-            script.append(int("00", 16))
-            script.append("OP_EQUALVERIFY")
-
-            script.append(2)
-            script.append("OP_PICK")
-            script.append(int("08", 16))
-            script.append("OP_EQUALVERIFY")
-
-            # script.append(3)
-            # script.append("OP_PICK")
-            # script.append(int("0d", 16))
-            # script.append("OP_EQUALVERIFY")
-            #
-            # script.append(4)
-            # script.append("OP_PICK")
-            # script.append(int("01", 16))
-            # script.append("OP_EQUALVERIFY")
-            #
-            # script.append(5)
-            # script.append("OP_PICK")
-            # script.append(int("00", 16))
-            # script.append("OP_EQUALVERIFY")
-
             script += sha_256_script
-            # for i in range(64-1, -1, -1):
-            # for i in range(amount_of_nibbles_hash):
-
-            script.append("OP_DUP")
-            script.append(int("0d", 16))
-            script.append("OP_EQUALVERIFY")
-
-            script.append(1)
-            script.append("OP_PICK")
-            script.append(int("0a", 16))
-            script.append("OP_EQUALVERIFY")
-
-            script.append(2)
-            script.append("OP_PICK")
-            script.append(int("08", 16))
-            script.append("OP_EQUALVERIFY")
-
-            script.append(3)
-            script.append("OP_PICK")
-            script.append(int("05", 16))
-            script.append("OP_EQUALVERIFY")
-
-            script.append(4)
-            script.append("OP_PICK")
-            script.append(int("05", 16))
-            script.append("OP_EQUALVERIFY")
-
-            script.append(5)
-            script.append("OP_PICK")
-            script.append(int("0a", 16))
-            script.append("OP_EQUALVERIFY")
-
-            script.append(6)
-            script.append("OP_PICK")
-            script.append(int("08", 16))
-            script.append("OP_EQUALVERIFY")
-
-            script.append(7)
-            script.append("OP_PICK")
-            script.append(int("0f", 16))
-            script.append("OP_EQUALVERIFY")
-
-            # script.append("OP_FROMALTSTACK")
-            # script.append(int("0d", 16))
-            # script.append("OP_EQUALVERIFY")
-
-            # for i in range(amount_of_nibbles_hash):
-            #     script.append(i)
-            #     script.append("OP_ROLL")
-            #     script.append("OP_FROMALTSTACK")
-            #     script.append("OP_EQUAL")
-            #
-            # for i in range(64 - 1):
-            #     script.append("OP_ADD")
-            # script.append(64)
-            # script.append("OP_EQUAL")
 
             for i in range(amount_of_nibbles_hash):
-                script.append("OP_TOALTSTACK")
+                script.append("OP_FROMALTSTACK")
+                script.append("OP_EQUALVERIFY")
+
             script.append(1)
 
-        # script.append(1)
         return script
 
     def _add_hash_to_stack(

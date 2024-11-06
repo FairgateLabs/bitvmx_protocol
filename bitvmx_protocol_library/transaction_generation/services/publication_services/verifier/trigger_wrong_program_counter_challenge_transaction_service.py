@@ -79,10 +79,6 @@ class TriggerWrongProgramCounterChallengeTransactionService:
             index=bitvmx_protocol_verifier_dto.first_wrong_step - 2,
             input_hex=bitvmx_protocol_verifier_dto.input_hex,
         )
-        previous_to_last_correct_trace = ExecutionTraceDTO.from_pandas_series(
-            execution_trace=previous_to_last_correct_step_trace_series,
-            trace_words_lengths=trace_words_lengths,
-        )
 
         trace_witness = self.get_trace_witness_service(
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
