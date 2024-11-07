@@ -29,8 +29,8 @@ class BitVMXWrapper:
         # self.fail_actor = "verifier"
         self.fail_actor = "prover"
         # self.fail_step = "1234567890"
-        self.fail_step = "15"
-        # self.fail_step = None
+        # self.fail_step = "1"
+        self.fail_step = None
         # self.fail_type = "--fail-execute"
         # self.fail_type = "--fail-hash"
         self.fail_type = "--fail-pc"
@@ -48,12 +48,12 @@ class BitVMXWrapper:
             and self.fail_input
         )
 
-        self.fail_read = False
+        self.fail_read = True
         self.fail_actor_read = "prover"
         self.fail_read_type = ReadErrorType.SAME
         self.fail_read_position = ReadErrorPosition.ONE
         # DO NOT CHANGE THIS AS OF NOW (WE HARDCODE THE EXAMPLE)
-        self.fail_read_step = 15
+        self.fail_read_step = 16
         # read1_add       4026531872
         # read1_val       3766484992
         # read1_last_step 4
@@ -121,22 +121,22 @@ class BitVMXWrapper:
                 command.append(str(4026531872))
                 command.append(str(3766484992 + 1))
                 command.append(str(4026531872))
-                base_last_step = 4
+                base_last_step = 5
             elif self.fail_read_position == ReadErrorPosition.TWO:
                 command.append("--fail-read-2")
                 command.append(str(self.fail_read_step))
                 command.append(str(3766484972))
-                command.append(str(2852126720 + 1))
+                command.append(str(2852126724 + 1))
                 command.append(str(3766484972))
                 base_last_step = 7
             else:
                 raise Exception("Fail read not recognized")
             if self.fail_read_type == ReadErrorType.SAME:
-                command.append(str(base_last_step))
+                command.append("0" + str(base_last_step))
             elif self.fail_read_type == ReadErrorType.AFTERWARDS:
-                command.append(str(base_last_step + 1))
+                command.append("0" + str(base_last_step + 1))
             elif self.fail_read_type == ReadErrorType.BEFORE:
-                command.append(str(base_last_step - 1))
+                command.append("0" + str(base_last_step - 1))
 
         execution_directory = self.base_path + setup_uuid
 
@@ -202,14 +202,14 @@ class BitVMXWrapper:
                 command.extend([self.fail_type, self.fail_step])
 
             if self.contains_read_fail:
-                assert self.fail_read_step == 15
+                assert self.fail_read_step == 16
                 if self.fail_read_position == ReadErrorPosition.ONE:
                     command.append("--fail-read-1")
                     command.append(str(self.fail_read_step))
                     command.append(str(4026531872))
                     command.append(str(3766484992 + 1))
                     command.append(str(4026531872))
-                    base_last_step = 4
+                    base_last_step = 5
                 elif self.fail_read_position == ReadErrorPosition.TWO:
                     command.append("--fail-read-2")
                     command.append(str(self.fail_read_step))
@@ -220,11 +220,11 @@ class BitVMXWrapper:
                 else:
                     raise Exception("Fail read not recognized")
                 if self.fail_read_type == ReadErrorType.SAME:
-                    command.append(str(base_last_step))
+                    command.append("0" + str(base_last_step))
                 elif self.fail_read_type == ReadErrorType.AFTERWARDS:
-                    command.append(str(base_last_step + 1))
+                    command.append("0" + str(base_last_step + 1))
                 elif self.fail_read_type == ReadErrorType.BEFORE:
-                    command.append(str(base_last_step - 1))
+                    command.append("0" + str(base_last_step - 1))
 
             execution_directory = self.base_path + setup_uuid
 

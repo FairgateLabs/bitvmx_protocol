@@ -35,7 +35,7 @@ class TriggerWrongHashChallengeScriptGeneratorService:
         amount_of_nibbles_hash: int,
         amount_of_bits_per_digit_checksum: int,
         bin_wrong_choice: str,
-    ):
+    ) -> BitcoinScript:
         choice = int(bin_wrong_choice, 2)
         script = BitcoinScript()
         for signature_public_key in signature_public_keys:

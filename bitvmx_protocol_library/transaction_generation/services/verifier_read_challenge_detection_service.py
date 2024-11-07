@@ -13,6 +13,12 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.transaction_generation.services.verifier_read_challenge_detection.verifier_wrong_hash_read_challenge_detection_service import (
     VerifierWrongHashReadChallengeDetectionService,
 )
+from bitvmx_protocol_library.transaction_generation.services.verifier_read_challenge_detection.verifier_wrong_latter_step_challenge_detection_service import (
+    VerifierWrongLatterStepChallengeDetectionService,
+)
+from bitvmx_protocol_library.transaction_generation.services.verifier_read_challenge_detection.verifier_wrong_value_address_read_challenge_detection_service import (
+    VerifierWrongValueAddressReadChallengeDetectionService,
+)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     transaction_info_service,
 )
@@ -22,6 +28,8 @@ class VerifierReadChallengeDetectionService:
     def __init__(self):
         self.verifier_read_challenge_detection_services = [
             VerifierWrongHashReadChallengeDetectionService(),
+            VerifierWrongValueAddressReadChallengeDetectionService(),
+            VerifierWrongLatterStepChallengeDetectionService(),
         ]
         self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
 

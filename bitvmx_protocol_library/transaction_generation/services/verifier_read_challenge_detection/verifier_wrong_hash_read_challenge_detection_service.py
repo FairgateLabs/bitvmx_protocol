@@ -39,6 +39,6 @@ class VerifierWrongHashReadChallengeDetectionService:
         ):
             return (
                 TriggerWrongHashReadChallengeTransactionService,
-                TransactionVerifierStepType.TRIGGER_READ_SEARCH_CHALLENGE,
+                TransactionVerifierStepType.TRIGGER_WRONG_HASH_READ_SEARCH_CHALLENGE,
             )
         return None, None
