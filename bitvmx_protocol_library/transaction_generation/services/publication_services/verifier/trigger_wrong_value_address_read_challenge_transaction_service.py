@@ -14,6 +14,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_private_dto import (
     BitVMXProtocolVerifierPrivateDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_full_read_choice_witness_service import (
+    GetFullReadChoiceWitnessService,
+)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
 )
@@ -21,7 +24,7 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 
 class GenericTriggerWrongValueAddressReadChallengeTransactionService:
     def __init__(self, verifier_private_key):
-        pass
+        self.get_full_read_choice_witness_service = GetFullReadChoiceWitnessService()
 
     def __call__(
         self,
@@ -41,6 +44,12 @@ class GenericTriggerWrongValueAddressReadChallengeTransactionService:
         current_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_read_challenge_scripts_list[
             current_index
         ]
+
+        read_choices_witness = self.get_full_read_choice_witness_service(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
+        )
+
         private_key = PrivateKey(
             b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.verifier_signature_private_key)
         )
@@ -67,7 +76,7 @@ class GenericTriggerWrongValueAddressReadChallengeTransactionService:
         )
         trigger_read_challenge_signature = [wrong_value_address_challenge_signature]
 
-        trigger_read_challenge_witness = []
+        trigger_read_challenge_witness = read_choices_witness
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_read_challenge_tx.witnesses.append(
             TxWitnessInput(

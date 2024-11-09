@@ -111,18 +111,6 @@ class TriggerWrongProgramCounterChallengeScriptGeneratorService:
                 amount_of_bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
             )
 
-            # script.append("OP_FROMALTSTACK")
-            # script.append(int("0d", 16))
-            # script.append("OP_EQUALVERIFY")
-            #
-            # script.append("OP_FROMALTSTACK")
-            # script.append(int("0a", 16))
-            # script.append("OP_EQUALVERIFY")
-            #
-            # script.append("OP_FROMALTSTACK")
-            # script.append(int("08", 16))
-            # script.append("OP_EQUALVERIFY")
-
             self.verify_input_nibble_message_from_public_keys(
                 script=script,
                 public_keys=trace_prover_public_keys[0],

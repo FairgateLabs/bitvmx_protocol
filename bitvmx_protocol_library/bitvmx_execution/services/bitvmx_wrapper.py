@@ -50,6 +50,8 @@ class BitVMXWrapper:
 
         self.fail_read = True
         self.fail_actor_read = "prover"
+        # This is the latter one
+        # self.fail_read_type = ReadErrorType.BEFORE
         self.fail_read_type = ReadErrorType.SAME
         self.fail_read_position = ReadErrorPosition.ONE
         # DO NOT CHANGE THIS AS OF NOW (WE HARDCODE THE EXAMPLE)
@@ -57,9 +59,9 @@ class BitVMXWrapper:
         # read1_add       4026531872
         # read1_val       3766484992
         # read1_last_step 4
-        # read2_add       3766484972
-        # read2_val       2852126720
-        # read2_last_step 7
+        # read2_add       4026531900
+        # read2_val       2852126724
+        # read2_last_step 14
         self.contains_read_fail = (
             self.fail_read_type is not None
             and self.fail_read_position is not None
@@ -121,7 +123,7 @@ class BitVMXWrapper:
                 command.append(str(4026531872))
                 command.append(str(3766484992 + 1))
                 command.append(str(4026531872))
-                base_last_step = 5
+                base_last_step = 4
             elif self.fail_read_position == ReadErrorPosition.TWO:
                 command.append("--fail-read-2")
                 command.append(str(self.fail_read_step))
@@ -209,7 +211,7 @@ class BitVMXWrapper:
                     command.append(str(4026531872))
                     command.append(str(3766484992 + 1))
                     command.append(str(4026531872))
-                    base_last_step = 5
+                    base_last_step = 4
                 elif self.fail_read_position == ReadErrorPosition.TWO:
                     command.append("--fail-read-2")
                     command.append(str(self.fail_read_step))

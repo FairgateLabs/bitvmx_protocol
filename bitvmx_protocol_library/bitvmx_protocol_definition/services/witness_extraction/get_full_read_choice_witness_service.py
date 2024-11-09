@@ -1,0 +1,49 @@
+from typing import List
+
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
+    BitVMXProtocolSetupPropertiesDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
+    BitVMXProtocolVerifierDTO,
+)
+from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
+    transaction_info_service,
+)
+
+
+class GetFullReadChoiceWitnessService:
+
+    def __call__(
+        self,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
+        bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
+    ) -> List[str]:
+        choice_witness = []
+        counter = 0
+        total_amount_of_choices = len(
+            bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.choice_read_search_prover_public_keys_list
+        )
+        while counter < total_amount_of_choices:
+            if counter == 0:
+                # Trace case
+                trace_tx = transaction_info_service(
+                    tx_id=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_trace_tx.get_txid()
+                )
+                previous_witness = trace_tx.inputs[0].witness
+                while len(previous_witness[0]) == 128:
+                    previous_witness = previous_witness[1:]
+                choice_witness = previous_witness[4:8] + choice_witness
+            else:
+                # Hash case
+                hash_tx = transaction_info_service(
+                    tx_id=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_hash_tx_list[
+                        total_amount_of_choices - counter - 1
+                    ].get_txid()
+                )
+                previous_witness = hash_tx.inputs[0].witness
+                while len(previous_witness[0]) == 128:
+                    previous_witness = previous_witness[1:]
+                choice_witness = previous_witness[4:8] + choice_witness
+                # choice_witness.extend(previous_witness[4:8])
+            counter += 1
+        return choice_witness
