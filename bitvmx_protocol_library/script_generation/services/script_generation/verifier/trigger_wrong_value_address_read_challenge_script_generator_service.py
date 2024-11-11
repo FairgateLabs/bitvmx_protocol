@@ -27,9 +27,11 @@ class GenericTriggerWrongValueAddressReadChallengeScriptGeneratorService:
         self,
         signature_public_keys: List[str],
         trace_words_lengths: List[int],
+        read_trace_words_lengths: List[int],
         amount_of_bits_wrong_step_search: int,
         choice_read_search_prover_public_keys_list: List[List[List[str]]],
         trace_prover_public_keys: List[List[str]],
+        read_trace_prover_public_keys: List[List[str]],
         amount_of_bits_per_digit_checksum: int,
     ) -> BitcoinScript:
         script = BitcoinScript()
@@ -56,12 +58,46 @@ class GenericTriggerWrongValueAddressReadChallengeScriptGeneratorService:
             to_alt_stack=True,
         )
 
+        self.verify_input_nibble_message_from_public_keys(
+            script=script,
+            public_keys=trace_prover_public_keys[-self._trace_address_index - 1],
+            n0=trace_words_lengths[-self._trace_address_index - 1],
+            bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+            to_alt_stack=True,
+        )
+
+        self.verify_input_nibble_message_from_public_keys(
+            script=script,
+            public_keys=trace_prover_public_keys[-self._trace_value_index - 1],
+            n0=trace_words_lengths[-self._trace_value_index - 1],
+            bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+            to_alt_stack=True,
+        )
+
+        # self.verify_input_nibble_message_from_public_keys(
+        #     script=script,
+        #     public_keys=read_trace_prover_public_keys[-self._trace_value_index - 1],
+        #     n0=read_trace_words_lengths[-self._trace_value_index - 1],
+        #     bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+        #     to_alt_stack=True,
+        # )
+
         script.append(1)
         return script
 
     @property
     @abstractmethod
     def _trace_last_step_index(self):
+        pass
+
+    @property
+    @abstractmethod
+    def _trace_address_index(self):
+        pass
+
+    @property
+    @abstractmethod
+    def _trace_value_index(self):
         pass
 
 
@@ -72,6 +108,16 @@ class TriggerWrongValueAddressRead1ChallengeScriptGeneratorService(
     def _trace_last_step_index(self):
         return BitVMXProtocolPropertiesDTO.read_1_last_step_position
 
+    @property
+    @abstractmethod
+    def _trace_address_index(self):
+        return BitVMXProtocolPropertiesDTO.read_1_address_position
+
+    @property
+    @abstractmethod
+    def _trace_value_index(self):
+        return BitVMXProtocolPropertiesDTO.read_1_value_position
+
 
 class TriggerWrongValueAddressRead2ChallengeScriptGeneratorService(
     GenericTriggerWrongValueAddressReadChallengeScriptGeneratorService
@@ -79,3 +125,13 @@ class TriggerWrongValueAddressRead2ChallengeScriptGeneratorService(
     @property
     def _trace_last_step_index(self):
         return BitVMXProtocolPropertiesDTO.read_2_last_step_position
+
+    @property
+    @abstractmethod
+    def _trace_address_index(self):
+        return BitVMXProtocolPropertiesDTO.read_2_address_position
+
+    @property
+    @abstractmethod
+    def _trace_value_index(self):
+        return BitVMXProtocolPropertiesDTO.read_2_value_position

@@ -20,6 +20,7 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.execution_trace
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_execution_trace_witness_service import (
     GetExecutionTraceWitnessService,
+    GetReadExecutionTraceWitnessService,
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_full_read_choice_witness_service import (
     GetFullReadChoiceWitnessService,
@@ -33,6 +34,7 @@ class GenericTriggerWrongValueAddressReadChallengeTransactionService:
     def __init__(self, verifier_private_key):
         self.get_full_read_choice_witness_service = GetFullReadChoiceWitnessService()
         self.get_execution_trace_witness_service = GetExecutionTraceWitnessService()
+        self.get_read_execution_trace_witness_service = GetReadExecutionTraceWitnessService()
 
     def __call__(
         self,
@@ -86,12 +88,26 @@ class GenericTriggerWrongValueAddressReadChallengeTransactionService:
         execution_trace_witness_dto = self.get_execution_trace_witness_service(
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
         )
+        read_execution_trace_witness_dto = self.get_read_execution_trace_witness_service(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
+        )
+
+        # execution_trace_witness_dto.write_address
+        # execution_trace_witness_dto.write_address
 
         trace_last_step = self._get_last_step_witness(
             execution_trace_witness_dto=execution_trace_witness_dto
         )
+        trace_address = self._get_trace_address_witness(
+            execution_trace_witness_dto=execution_trace_witness_dto
+        )
+        trace_value = self._get_trace_value_witness(
+            execution_trace_witness_dto=execution_trace_witness_dto
+        )
 
-        trigger_read_challenge_witness = trace_last_step + read_choices_witness
+        trigger_read_challenge_witness = (
+            trace_value + trace_address + trace_last_step + read_choices_witness
+        )
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_read_challenge_tx.witnesses.append(
             TxWitnessInput(
@@ -127,6 +143,18 @@ class GenericTriggerWrongValueAddressReadChallengeTransactionService:
     ) -> List[str]:
         pass
 
+    @abstractmethod
+    def _get_trace_address_witness(
+        self, execution_trace_witness_dto: ExecutionTraceWitnessDTO
+    ) -> List[str]:
+        pass
+
+    @abstractmethod
+    def _get_trace_value_witness(
+        self, execution_trace_witness_dto: ExecutionTraceWitnessDTO
+    ) -> List[str]:
+        pass
+
 
 class TriggerWrongValueAddressRead1ChallengeTransactionService(
     GenericTriggerWrongValueAddressReadChallengeTransactionService
@@ -143,6 +171,16 @@ class TriggerWrongValueAddressRead1ChallengeTransactionService(
     ) -> List[str]:
         return execution_trace_witness_dto.read_1_last_step
 
+    def _get_trace_address_witness(
+        self, execution_trace_witness_dto: ExecutionTraceWitnessDTO
+    ) -> List[str]:
+        return execution_trace_witness_dto.read_1_address
+
+    def _get_trace_value_witness(
+        self, execution_trace_witness_dto: ExecutionTraceWitnessDTO
+    ) -> List[str]:
+        return execution_trace_witness_dto.read_1_value
+
 
 class TriggerWrongValueAddressRead2ChallengeTransactionService(
     GenericTriggerWrongValueAddressReadChallengeTransactionService
@@ -158,3 +196,13 @@ class TriggerWrongValueAddressRead2ChallengeTransactionService(
         self, execution_trace_witness_dto: ExecutionTraceWitnessDTO
     ) -> List[str]:
         return execution_trace_witness_dto.read_2_last_step
+
+    def _get_trace_address_witness(
+        self, execution_trace_witness_dto: ExecutionTraceWitnessDTO
+    ) -> List[str]:
+        return execution_trace_witness_dto.read_2_address
+
+    def _get_trace_value_witness(
+        self, execution_trace_witness_dto: ExecutionTraceWitnessDTO
+    ) -> List[str]:
+        return execution_trace_witness_dto.read_2_value

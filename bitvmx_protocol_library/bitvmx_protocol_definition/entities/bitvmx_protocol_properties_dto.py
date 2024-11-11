@@ -31,6 +31,10 @@ class BitVMXProtocolPropertiesDTO(BaseModel):
     write_value_position: ClassVar[int]
     write_pc_address_position: ClassVar[int]
     write_pc_micro_position: ClassVar[int]
+    read_write_address_position: ClassVar[int]
+    read_write_value_position: ClassVar[int]
+    read_write_pc_address_position: ClassVar[int]
+    read_write_pc_micro_position: ClassVar[int]
     amount_of_nibbles_input_word: ClassVar[int]
 
     def __init__(self, **data):
@@ -136,6 +140,22 @@ class BitVMXProtocolPropertiesDTO(BaseModel):
     @classproperty
     def write_pc_micro_position(self):
         return 12
+
+    @classproperty
+    def read_write_address_position(self):
+        return 0
+
+    @classproperty
+    def read_write_value_position(self):
+        return 1
+
+    @classproperty
+    def read_write_pc_address_position(self):
+        return 2
+
+    @classproperty
+    def read_write_pc_micro_position(self):
+        return 3
 
     @classproperty
     def amount_of_nibbles_input_word(self):

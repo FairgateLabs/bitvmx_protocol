@@ -73,12 +73,16 @@ class GenericGetExecutionTraceWitnessService(Generic[ReturnType]):
         self, vectorized_witness: List[List[str]]
     ) -> ReadExecutionTraceWitnessDTO:
         return ReadExecutionTraceWitnessDTO(
-            write_address=vectorized_witness[BitVMXProtocolPropertiesDTO.write_address_position],
-            write_value=vectorized_witness[BitVMXProtocolPropertiesDTO.write_value_position],
-            write_PC_address=vectorized_witness[
-                BitVMXProtocolPropertiesDTO.write_pc_address_position
+            write_address=vectorized_witness[
+                BitVMXProtocolPropertiesDTO.read_write_address_position
             ],
-            write_micro=vectorized_witness[BitVMXProtocolPropertiesDTO.write_pc_micro_position],
+            write_value=vectorized_witness[BitVMXProtocolPropertiesDTO.read_write_value_position],
+            write_PC_address=vectorized_witness[
+                BitVMXProtocolPropertiesDTO.read_write_pc_address_position
+            ],
+            write_micro=vectorized_witness[
+                BitVMXProtocolPropertiesDTO.read_write_pc_micro_position
+            ],
         )
 
     def _get_execution_trace_witness_dto(
