@@ -74,13 +74,25 @@ class GenericTriggerWrongValueAddressReadChallengeScriptGeneratorService:
             to_alt_stack=True,
         )
 
-        # self.verify_input_nibble_message_from_public_keys(
-        #     script=script,
-        #     public_keys=read_trace_prover_public_keys[-self._trace_value_index - 1],
-        #     n0=read_trace_words_lengths[-self._trace_value_index - 1],
-        #     bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
-        #     to_alt_stack=True,
-        # )
+        read_trace_value_index = BitVMXProtocolPropertiesDTO.read_write_value_position
+
+        self.verify_input_nibble_message_from_public_keys(
+            script=script,
+            public_keys=read_trace_prover_public_keys[-read_trace_value_index - 1],
+            n0=read_trace_words_lengths[-read_trace_value_index - 1],
+            bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+            to_alt_stack=True,
+        )
+
+        read_trace_address_index = BitVMXProtocolPropertiesDTO.read_write_address_position
+
+        self.verify_input_nibble_message_from_public_keys(
+            script=script,
+            public_keys=read_trace_prover_public_keys[-read_trace_address_index - 1],
+            n0=read_trace_words_lengths[-read_trace_address_index - 1],
+            bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+            to_alt_stack=True,
+        )
 
         script.append(1)
         return script

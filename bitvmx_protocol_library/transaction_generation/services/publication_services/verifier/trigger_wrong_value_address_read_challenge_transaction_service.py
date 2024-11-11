@@ -92,9 +92,6 @@ class GenericTriggerWrongValueAddressReadChallengeTransactionService:
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
         )
 
-        # execution_trace_witness_dto.write_address
-        # execution_trace_witness_dto.write_address
-
         trace_last_step = self._get_last_step_witness(
             execution_trace_witness_dto=execution_trace_witness_dto
         )
@@ -105,8 +102,16 @@ class GenericTriggerWrongValueAddressReadChallengeTransactionService:
             execution_trace_witness_dto=execution_trace_witness_dto
         )
 
+        read_trace_address = read_execution_trace_witness_dto.write_address
+        read_trace_value = read_execution_trace_witness_dto.write_value
+
         trigger_read_challenge_witness = (
-            trace_value + trace_address + trace_last_step + read_choices_witness
+            read_trace_address
+            + read_trace_value
+            + trace_value
+            + trace_address
+            + trace_last_step
+            + read_choices_witness
         )
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_read_challenge_tx.witnesses.append(
