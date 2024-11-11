@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import List
 
 from bitcoinutils.constants import TAPROOT_SIGHASH_ALL
 from bitcoinutils.keys import PrivateKey
@@ -14,6 +15,12 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_private_dto import (
     BitVMXProtocolVerifierPrivateDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.execution_trace_witness_dto import (
+    ExecutionTraceWitnessDTO,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_execution_trace_witness_service import (
+    GetExecutionTraceWitnessService,
+)
 from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_full_read_choice_witness_service import (
     GetFullReadChoiceWitnessService,
 )
@@ -25,6 +32,7 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 class GenericTriggerWrongValueAddressReadChallengeTransactionService:
     def __init__(self, verifier_private_key):
         self.get_full_read_choice_witness_service = GetFullReadChoiceWitnessService()
+        self.get_execution_trace_witness_service = GetExecutionTraceWitnessService()
 
     def __call__(
         self,
@@ -47,7 +55,6 @@ class GenericTriggerWrongValueAddressReadChallengeTransactionService:
 
         read_choices_witness = self.get_full_read_choice_witness_service(
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-            bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
         )
 
         private_key = PrivateKey(
@@ -76,7 +83,15 @@ class GenericTriggerWrongValueAddressReadChallengeTransactionService:
         )
         trigger_read_challenge_signature = [wrong_value_address_challenge_signature]
 
-        trigger_read_challenge_witness = read_choices_witness
+        execution_trace_witness_dto = self.get_execution_trace_witness_service(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
+        )
+
+        trace_last_step = self._get_last_step_witness(
+            execution_trace_witness_dto=execution_trace_witness_dto
+        )
+
+        trigger_read_challenge_witness = trace_last_step + read_choices_witness
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_read_challenge_tx.witnesses.append(
             TxWitnessInput(
@@ -106,20 +121,40 @@ class GenericTriggerWrongValueAddressReadChallengeTransactionService:
     ) -> int:
         pass
 
+    @abstractmethod
+    def _get_last_step_witness(
+        self, execution_trace_witness_dto: ExecutionTraceWitnessDTO
+    ) -> List[str]:
+        pass
+
 
 class TriggerWrongValueAddressRead1ChallengeTransactionService(
     GenericTriggerWrongValueAddressReadChallengeTransactionService
 ):
-    def _get_index(self, bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO):
+    def _get_index(
+        self, bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO
+    ) -> int:
         return (
             bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_wrong_value_address_read_1_index()
         )
+
+    def _get_last_step_witness(
+        self, execution_trace_witness_dto: ExecutionTraceWitnessDTO
+    ) -> List[str]:
+        return execution_trace_witness_dto.read_1_last_step
 
 
 class TriggerWrongValueAddressRead2ChallengeTransactionService(
     GenericTriggerWrongValueAddressReadChallengeTransactionService
 ):
-    def _get_index(self, bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO):
+    def _get_index(
+        self, bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO
+    ) -> int:
         return (
             bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_wrong_value_address_read_2_index()
         )
+
+    def _get_last_step_witness(
+        self, execution_trace_witness_dto: ExecutionTraceWitnessDTO
+    ) -> List[str]:
+        return execution_trace_witness_dto.read_2_last_step

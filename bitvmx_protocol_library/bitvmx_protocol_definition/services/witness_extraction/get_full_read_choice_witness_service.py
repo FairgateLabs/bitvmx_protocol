@@ -3,9 +3,6 @@ from typing import List
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
-    BitVMXProtocolVerifierDTO,
-)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     transaction_info_service,
 )
@@ -16,7 +13,6 @@ class GetFullReadChoiceWitnessService:
     def __call__(
         self,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
-        bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ) -> List[str]:
         choice_witness = []
         counter = 0

@@ -1,7 +1,11 @@
+from abc import abstractmethod
 from typing import List
 
 from bitcoinutils.keys import PublicKey
 
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
+    BitVMXProtocolPropertiesDTO,
+)
 from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin_script import (
     BitcoinScript,
 )
@@ -44,25 +48,34 @@ class GenericTriggerWrongValueAddressReadChallengeScriptGeneratorService:
                 to_alt_stack=True,
             )
 
-        # self.verify_input_nibble_message_from_public_keys(
-        #     script=script,
-        #     public_keys=trace_prover_public_keys[0],
-        #     n0=trace_words_lengths[0],
-        #     bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
-        #     to_alt_stack=True,
-        # )
+        self.verify_input_nibble_message_from_public_keys(
+            script=script,
+            public_keys=trace_prover_public_keys[-self._trace_last_step_index - 1],
+            n0=trace_words_lengths[-self._trace_last_step_index - 1],
+            bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+            to_alt_stack=True,
+        )
 
         script.append(1)
         return script
+
+    @property
+    @abstractmethod
+    def _trace_last_step_index(self):
+        pass
 
 
 class TriggerWrongValueAddressRead1ChallengeScriptGeneratorService(
     GenericTriggerWrongValueAddressReadChallengeScriptGeneratorService
 ):
-    pass
+    @property
+    def _trace_last_step_index(self):
+        return BitVMXProtocolPropertiesDTO.read_1_last_step_position
 
 
 class TriggerWrongValueAddressRead2ChallengeScriptGeneratorService(
     GenericTriggerWrongValueAddressReadChallengeScriptGeneratorService
 ):
-    pass
+    @property
+    def _trace_last_step_index(self):
+        return BitVMXProtocolPropertiesDTO.read_2_last_step_position
