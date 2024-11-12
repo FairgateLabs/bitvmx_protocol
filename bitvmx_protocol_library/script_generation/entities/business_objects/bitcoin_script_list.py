@@ -133,9 +133,15 @@ class BitcoinScriptList:
     def __getitem__(self, index: int):
         return self.script_list[index]
 
-    def __add__(self, other: "BitcoinScriptList") -> "BitcoinScriptList":
-        assert isinstance(other, BitcoinScriptList)
-        return BitcoinScriptList(self.script_list + other.script_list)
+    def __add__(self, other: Union["BitcoinScriptList", BitcoinScript]) -> "BitcoinScriptList":
+        assert isinstance(other, BitcoinScriptList) or isinstance(other, BitcoinScript)
+        if isinstance(other, BitcoinScript):
+            script_list_copy = self.script_list.copy()
+            script_list_copy.append(other)
+            return BitcoinScriptList(script_list_copy)
+        elif isinstance(other, BitcoinScriptList):
+            return BitcoinScriptList(self.script_list + other.script_list)
+        raise Exception("Type not supported")
 
     def __len__(self):
         return len(self.script_list)

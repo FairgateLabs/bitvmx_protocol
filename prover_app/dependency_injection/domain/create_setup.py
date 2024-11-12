@@ -1,6 +1,6 @@
 from dependency_injector import containers, providers
 
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.generate_prover_public_keys_service import (
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.public_keys_generation.generate_prover_public_keys_service import (
     GenerateProverPublicKeysService,
 )
 from bitvmx_protocol_library.script_generation.services.bitvmx_bitcoin_scripts_generator_service import (

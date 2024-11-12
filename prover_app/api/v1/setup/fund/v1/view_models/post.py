@@ -4,7 +4,7 @@ from pydantic import BaseModel, conint, field_validator
 
 
 class SetupFundPostV1Input(BaseModel):
-    max_amount_of_steps: int
+    max_amount_of_steps: conint(ge=0, le=2**32)
     amount_of_bits_wrong_step_search: conint(ge=1, le=3)
     verifier_list: Optional[List[str]] = None
     secret_origin_of_funds: str

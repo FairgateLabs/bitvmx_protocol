@@ -86,6 +86,8 @@ class PublishReadTraceTransactionService:
             index=first_wrong_step,
             input_hex=bitvmx_protocol_prover_dto.input_hex,
         )
+        # TODO: REMOVE WHEN TEST OF HASH IS DONE
+        # current_trace["write_value"] = "3766484993"
         current_trace_values = current_trace[:13].to_list()
         current_trace_values.reverse()
         read_trace_array = []
