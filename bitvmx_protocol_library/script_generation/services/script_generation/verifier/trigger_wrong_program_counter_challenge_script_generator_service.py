@@ -3,11 +3,14 @@ from typing import List
 import pybitvmbinding
 from bitcoinutils.keys import PublicKey
 
+from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_generation_service import (
+    ExecutionTraceGenerationService,
+)
+from bitvmx_protocol_library.bitvmx_execution.services.initial_program_counter_generation_service import (
+    InitialProgramCounterGenerationService,
+)
 from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin_script import (
     BitcoinScript,
-)
-from bitvmx_protocol_library.winternitz_keys_handling.functions.signature_functions import (
-    byte_sha256,
 )
 from bitvmx_protocol_library.winternitz_keys_handling.scripts.verify_digit_signature_nibbles_service import (
     VerifyDigitSignatureNibblesService,
@@ -21,6 +24,9 @@ class TriggerWrongProgramCounterChallengeScriptGeneratorService:
     def __init__(self):
         self.verify_input_nibble_message_from_public_keys = VerifyDigitSignatureNibblesService()
         self.verify_input_single_word_from_public_keys = VerifyDigitSignatureSingleWordService()
+        self.initial_program_counter_generation_service = InitialProgramCounterGenerationService(
+            instruction_commitment=ExecutionTraceGenerationService.commitment_file()
+        )
         self.cached_sha_scripts = {}
 
     def __call__(
@@ -86,10 +92,33 @@ class TriggerWrongProgramCounterChallengeScriptGeneratorService:
                 counter -= 1
 
         if choice == 0:
-            # TODO: implement with the initial program counter
-            init_hash = byte_sha256(bytes.fromhex("ff")).hex().zfill(64)
-            for nibble in reversed(init_hash):
-                script.append(int(nibble, 16))
+            self.verify_input_nibble_message_from_public_keys(
+                script=script,
+                public_keys=trace_prover_public_keys[0],
+                n0=trace_words_lengths[0],
+                bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+                to_alt_stack=False,
+            )
+            script.extend([0, "OP_EQUALVERIFY", 0, "OP_EQUALVERIFY"])
+
+            self.verify_input_nibble_message_from_public_keys(
+                script=script,
+                public_keys=trace_prover_public_keys[1],
+                n0=trace_words_lengths[1],
+                bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+                to_alt_stack=False,
+            )
+
+            initial_program_counter = self.initial_program_counter_generation_service()
+            script.append(0)
+            for letter in reversed(initial_program_counter):
+                script.append(1)
+                script.append("OP_ROLL")
+                script.append(int(letter, 16))
+                script.append("OP_EQUAL")
+                script.append("OP_ADD")
+            script.append(len(initial_program_counter))
+            script.append("OP_LESSTHAN")
         else:
             bin_correct_choice = bin(choice - 1)[2:]
             while len(bin_correct_choice) % amount_of_bits_wrong_step_search != 0:

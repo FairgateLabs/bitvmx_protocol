@@ -21,10 +21,6 @@ class ExecutionTraceGenerationService:
         elif ExecutionTraceGenerationService.elf_file() == "test_input.elf":
             return "./execution_files/instruction_commitment_input.txt"
 
-    def static_addresses(self):
-        memory_regions = self.bitvmx_wrapper.get_static_addresses(elf_file=self.elf_file_name)
-        return memory_regions
-
     def __init__(self, base_path: str):
         self.base_path = base_path
         self.elf_file_name = self.elf_file()

@@ -29,8 +29,8 @@ class BitVMXWrapper:
         # self.fail_actor = "verifier"
         self.fail_actor = "prover"
         # self.fail_step = "1234567890"
-        # self.fail_step = "1"
-        self.fail_step = None
+        self.fail_step = "0"
+        # self.fail_step = None
         # self.fail_type = "--fail-execute"
         # self.fail_type = "--fail-hash"
         self.fail_type = "--fail-pc"
@@ -48,7 +48,7 @@ class BitVMXWrapper:
             and self.fail_input
         )
 
-        self.fail_read = True
+        self.fail_read = False
         self.fail_actor_read = "prover"
         # This is the latter one
         # self.fail_read_type = ReadErrorType.BEFORE
@@ -150,7 +150,11 @@ class BitVMXWrapper:
             print("Done executing command")
             execution_trace = result.stdout
             # TODO: remove when bugs are fixed
-            execution_trace = list(filter(lambda x: x != "", execution_trace.split("\n")))[-1]
+            try:
+                execution_trace = list(filter(lambda x: x != "", execution_trace.split("\n")))[-1]
+            except Exception:
+                pass
+
             return execution_trace
 
         except subprocess.CalledProcessError as e:

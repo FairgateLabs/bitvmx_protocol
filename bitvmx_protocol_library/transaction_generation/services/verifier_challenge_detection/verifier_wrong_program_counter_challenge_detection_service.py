@@ -48,20 +48,14 @@ class VerifierWrongProgramCounterChallengeDetectionService:
         #     execution_trace=last_correct_step_trace_series, trace_words_lengths=trace_words_lengths
         # )
 
-        if bitvmx_protocol_verifier_dto.first_wrong_step > 0:
-            if (
-                published_execution_trace.read_PC_address != first_wrong_trace.read_PC_address
-                or published_execution_trace.read_micro != first_wrong_trace.read_micro
-            ):
-                # assert first_wrong_trace.read_PC_address == last_correct_trace.write_PC_address
-                # assert first_wrong_trace.read_micro == last_correct_trace.write_micro
-                return (
-                    TriggerWrongProgramCounterChallengeTransactionService,
-                    TransactionVerifierStepType.TRIGGER_WRONG_PROGRAM_COUNTER,
-                )
-            return None, None
-        else:
-            # TODO: the first read PC should be hardcoded from compilation
-            raise Exception(
-                "We should just prove that we are in the first step and the first step is not correct"
+        if (
+            published_execution_trace.read_PC_address != first_wrong_trace.read_PC_address
+            or published_execution_trace.read_micro != first_wrong_trace.read_micro
+        ):
+            # assert first_wrong_trace.read_PC_address == last_correct_trace.write_PC_address
+            # assert first_wrong_trace.read_micro == last_correct_trace.write_micro
+            return (
+                TriggerWrongProgramCounterChallengeTransactionService,
+                TransactionVerifierStepType.TRIGGER_WRONG_PROGRAM_COUNTER,
             )
+        return None, None
