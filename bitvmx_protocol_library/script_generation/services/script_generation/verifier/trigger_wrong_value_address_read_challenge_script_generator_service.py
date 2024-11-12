@@ -58,6 +58,51 @@ class GenericTriggerWrongValueAddressReadChallengeScriptGeneratorService:
             to_alt_stack=True,
         )
 
+        words_lengths = [2, 3, 3]
+        for word_length in words_lengths:
+            for i in range(word_length - 1, -1, -1):
+                script.append("OP_FROMALTSTACK")
+                for _ in range(i * 4):
+                    script.extend(["OP_DUP", "OP_ADD"])
+                if i < word_length - 1:
+                    script.append("OP_ADD")
+
+        amount_of_published_bits = amount_of_bits_wrong_step_search * len(
+            choice_read_search_prover_public_keys_list
+        )
+
+        amount_of_remaining_bits = amount_of_published_bits
+
+        script.append(0)
+        while amount_of_remaining_bits > 24:
+            script.append("OP_FROMALTSTACK")
+            amount_of_remaining_bits -= amount_of_bits_wrong_step_search
+            for _ in range(amount_of_remaining_bits - 24):
+                script.extend(["OP_DUP", "OP_ADD"])
+            script.append("OP_ADD")
+
+        script.append(0)
+        while amount_of_remaining_bits > 12:
+            script.append("OP_FROMALTSTACK")
+            amount_of_remaining_bits -= amount_of_bits_wrong_step_search
+            for _ in range(amount_of_remaining_bits - 12):
+                script.extend(["OP_DUP", "OP_ADD"])
+            script.append("OP_ADD")
+
+        script.append(0)
+        while amount_of_remaining_bits > 0:
+            script.append("OP_FROMALTSTACK")
+            amount_of_remaining_bits -= amount_of_bits_wrong_step_search
+            for _ in range(amount_of_remaining_bits):
+                script.extend(["OP_DUP", "OP_ADD"])
+            script.append("OP_ADD")
+
+        for i in range(3, 1, -1):
+            script.append(i)
+            script.append("OP_ROLL")
+            script.append("OP_EQUALVERIFY")
+        script.append("OP_EQUALVERIFY")
+
         self.verify_input_nibble_message_from_public_keys(
             script=script,
             public_keys=trace_prover_public_keys[-self._trace_address_index - 1],
@@ -81,8 +126,19 @@ class GenericTriggerWrongValueAddressReadChallengeScriptGeneratorService:
             public_keys=read_trace_prover_public_keys[-read_trace_value_index - 1],
             n0=read_trace_words_lengths[-read_trace_value_index - 1],
             bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
-            to_alt_stack=True,
+            to_alt_stack=False,
         )
+
+        script.append(0)
+        amount_of_value_nibbles = read_trace_words_lengths[-read_trace_value_index - 1]
+        for i in range(amount_of_value_nibbles):
+            script.append(amount_of_value_nibbles - i)
+            script.append("OP_ROLL")
+            script.append("OP_FROMALTSTACK")
+            script.append("OP_EQUAL")
+            script.append("OP_ADD")
+
+        script.append("OP_TOALTSTACK")
 
         read_trace_address_index = BitVMXProtocolPropertiesDTO.read_write_address_position
 
@@ -91,10 +147,21 @@ class GenericTriggerWrongValueAddressReadChallengeScriptGeneratorService:
             public_keys=read_trace_prover_public_keys[-read_trace_address_index - 1],
             n0=read_trace_words_lengths[-read_trace_address_index - 1],
             bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
-            to_alt_stack=True,
+            to_alt_stack=False,
         )
 
-        script.append(1)
+        script.append("OP_FROMALTSTACK")
+
+        amount_of_address_nibbles = read_trace_words_lengths[-read_trace_address_index - 1]
+        for i in range(amount_of_address_nibbles):
+            script.append(amount_of_address_nibbles - i)
+            script.append("OP_ROLL")
+            script.append("OP_FROMALTSTACK")
+            script.append("OP_EQUAL")
+            script.append("OP_ADD")
+
+        script.append(amount_of_address_nibbles + amount_of_value_nibbles)
+        script.append("OP_LESSTHAN")
         return script
 
     @property
