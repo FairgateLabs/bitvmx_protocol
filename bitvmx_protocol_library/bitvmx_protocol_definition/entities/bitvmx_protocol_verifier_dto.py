@@ -3,6 +3,9 @@ from typing import Dict, List, Optional, Union
 from pydantic import BaseModel, Field, field_serializer
 
 from bitvmx_protocol_library.bitvmx_execution.entities.execution_trace_dto import ExecutionTraceDTO
+from bitvmx_protocol_library.bitvmx_execution.entities.read_execution_trace_dto import (
+    ReadExecutionTraceDTO,
+)
 from bitvmx_protocol_library.transaction_generation.entities.dtos.bitvmx_prover_signatures_dto import (
     BitVMXProverSignaturesDTO,
 )
@@ -23,7 +26,7 @@ class BitVMXProtocolVerifierDTO(BaseModel):
     prover_trace_witness: Optional[List[str]] = None
     prover_read_trace_witness: Optional[List[str]] = None
     published_execution_trace: Optional[ExecutionTraceDTO] = None
-    published_read_execution_trace: Optional[ExecutionTraceDTO] = None
+    published_read_execution_trace: Optional[ReadExecutionTraceDTO] = None
     real_execution_trace: Optional[ExecutionTraceDTO] = None
     first_wrong_step: Optional[int] = None
     read_revealed_step: Optional[int] = None

@@ -1,6 +1,6 @@
 from dependency_injector import containers, providers
 
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.generate_verifier_public_keys_service import (
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.public_keys_generation.generate_verifier_public_keys_service import (
     GenerateVerifierPublicKeysService,
 )
 from bitvmx_protocol_library.config import common_protocol_properties
