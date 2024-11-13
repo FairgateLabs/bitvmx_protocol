@@ -26,6 +26,7 @@ class ExecutionTraceCommitmentGenerationService:
 
         key_list = []
         instruction_dict = {}
+        opcode_dict = {}
         pattern = (
             r"PC:\s*(0x[0-9A-Fa-f]+)\s*Micro:\s*(\d+)\s*Opcode:\s*(0x[0-9A-Fa-f]+)\s*Key:\s*(\w+)"
         )
@@ -42,5 +43,6 @@ class ExecutionTraceCommitmentGenerationService:
             composed_key = pc + micro
             key_list.append(composed_key)
             instruction_dict[composed_key] = mapping_dict[key]
+            opcode_dict[composed_key] = match.group(3)[2:]
         # Just in case, but this should not be necessary since it's ordered in origin
-        return key_list, instruction_dict
+        return key_list, instruction_dict, opcode_dict

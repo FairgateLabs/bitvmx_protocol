@@ -100,7 +100,9 @@ class ExecutionChallengeTransactionService:
             bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
 
-        key_list, instruction_dict = self.execution_trace_commitment_generation_service()
+        key_list, instruction_dict, opcode_dict = (
+            self.execution_trace_commitment_generation_service()
+        )
         pc_read_addr = real_values[6]
         pc_read_micro = real_values[7]
         instruction_index = pc_read_addr + pc_read_micro

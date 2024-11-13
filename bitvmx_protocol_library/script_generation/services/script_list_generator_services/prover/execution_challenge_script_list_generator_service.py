@@ -134,11 +134,14 @@ class ExecutionChallengeScriptListGeneratorService:
         # bitcoin_script_list = BitcoinScriptList(script_list)
 
         # New method
-        key_list, instruction_dict = self.execution_trace_commitment_generation_service()
+        key_list, instruction_dict, opcode_dict = (
+            self.execution_trace_commitment_generation_service()
+        )
 
         bitvmx_execution_script_list = BitVMXExecutionScriptList(
             key_list=key_list,
             instruction_dict=instruction_dict,
+            opcode_dict=opcode_dict,
             signature_public_keys=[prover_signature_public_key],
             public_keys=public_keys,
             trace_words_lengths=trace_words_lengths,
