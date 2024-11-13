@@ -451,19 +451,29 @@ class BitVMXBitcoinScriptsGeneratorService:
             read_trace_prover_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.read_trace_prover_public_keys,
             amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
-        trigger_wrong_latter_step_1_challenge_script = (
-            self.trigger_wrong_latter_step_1_challenge_script_generator_service(
-                signature_public_keys=[
-                    bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
-                ],
-            )
+        trigger_wrong_latter_step_1_challenge_script = self.trigger_wrong_latter_step_1_challenge_script_generator_service(
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+            ],
+            trace_words_lengths=trace_words_lengths,
+            read_trace_words_lengths=read_trace_words_lengths,
+            amount_of_bits_wrong_step_search=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            choice_read_search_prover_public_keys_list=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.choice_read_search_prover_public_keys_list,
+            trace_prover_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
+            read_trace_prover_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.read_trace_prover_public_keys,
+            amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
-        trigger_wrong_latter_step_2_challenge_script = (
-            self.trigger_wrong_latter_step_2_challenge_script_generator_service(
-                signature_public_keys=[
-                    bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
-                ],
-            )
+        trigger_wrong_latter_step_2_challenge_script = self.trigger_wrong_latter_step_2_challenge_script_generator_service(
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+            ],
+            trace_words_lengths=trace_words_lengths,
+            read_trace_words_lengths=read_trace_words_lengths,
+            amount_of_bits_wrong_step_search=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            choice_read_search_prover_public_keys_list=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.choice_read_search_prover_public_keys_list,
+            trace_prover_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
+            read_trace_prover_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.read_trace_prover_public_keys,
+            amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
         return BitVMXBitcoinScriptsDTO(
