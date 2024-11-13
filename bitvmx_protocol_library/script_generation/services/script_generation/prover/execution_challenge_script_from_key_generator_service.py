@@ -2,6 +2,9 @@ from typing import Dict, List
 
 from bitcoinutils.keys import PublicKey
 
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
+    BitVMXProtocolPropertiesDTO,
+)
 from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin_script import (
     BitcoinScript,
 )
@@ -20,6 +23,7 @@ class ExecutionChallengeScriptFromKeyGeneratorService:
         trace_words_lengths: List[int],
         bits_per_digit_checksum: int,
         instruction_dict: Dict[str, str],
+        opcode_dict: Dict[str, str],
         trace_to_script_mapping: List[int],
     ):
         script = BitcoinScript()
@@ -32,13 +36,28 @@ class ExecutionChallengeScriptFromKeyGeneratorService:
         verify_input_nibble_message_from_public_keys = VerifyDigitSignatureNibblesService()
 
         for i in complementary_trace_to_script_mapping:
-            verify_input_nibble_message_from_public_keys(
-                script,
-                public_keys[i],
-                trace_words_lengths[i],
-                bits_per_digit_checksum,
-                to_alt_stack=True,
-            )
+            if (
+                len(trace_words_lengths) - i - 1
+                == BitVMXProtocolPropertiesDTO.read_pc_opcode_position
+            ):
+                verify_input_nibble_message_from_public_keys(
+                    script,
+                    public_keys[i],
+                    trace_words_lengths[i],
+                    bits_per_digit_checksum,
+                    to_alt_stack=False,
+                )
+                current_opcode = opcode_dict[key]
+                for letter in reversed(current_opcode):
+                    script.extend(["OP_DUP", int(letter, 16), "OP_EQUALVERIFY", "OP_TOALTSTACK"])
+            else:
+                verify_input_nibble_message_from_public_keys(
+                    script,
+                    public_keys[i],
+                    trace_words_lengths[i],
+                    bits_per_digit_checksum,
+                    to_alt_stack=True,
+                )
 
         total_length = 0
         current_micro = key[-2:]

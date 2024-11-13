@@ -29,6 +29,7 @@ def _get_tag_hashed_merkle_root(
     trace_words_lengths: List[int],
     bits_per_digit_checksum: int,
     instruction_dict: Dict[str, str],
+    opcode_dict: Dict[str, str],
     trace_to_script_mapping: List[int],
     depth: int,
     shared_list: Optional[ListProxy] = None,
@@ -51,6 +52,7 @@ def _get_tag_hashed_merkle_root(
             trace_words_lengths,
             bits_per_digit_checksum,
             instruction_dict,
+            opcode_dict,
             trace_to_script_mapping,
         )
         if shared_list:
@@ -79,6 +81,7 @@ def _get_tag_hashed_merkle_root(
                         trace_words_lengths,
                         bits_per_digit_checksum,
                         instruction_dict,
+                        opcode_dict,
                         trace_to_script_mapping,
                         depth + 1,
                         new_shared_list,
@@ -95,6 +98,7 @@ def _get_tag_hashed_merkle_root(
                     trace_words_lengths,
                     bits_per_digit_checksum,
                     instruction_dict,
+                    opcode_dict,
                     trace_to_script_mapping,
                     depth + 1,
                 )
@@ -116,6 +120,7 @@ def _get_tag_hashed_merkle_root(
                         trace_words_lengths,
                         bits_per_digit_checksum,
                         instruction_dict,
+                        opcode_dict,
                         trace_to_script_mapping,
                         depth + 1,
                         new_left_shared_list,
@@ -130,6 +135,7 @@ def _get_tag_hashed_merkle_root(
                         trace_words_lengths,
                         bits_per_digit_checksum,
                         instruction_dict,
+                        opcode_dict,
                         trace_to_script_mapping,
                         depth + 1,
                         new_right_shared_list,
@@ -150,6 +156,7 @@ def _get_tag_hashed_merkle_root(
                     trace_words_lengths,
                     bits_per_digit_checksum,
                     instruction_dict,
+                    opcode_dict,
                     trace_to_script_mapping,
                     depth + 1,
                 )
@@ -160,6 +167,7 @@ def _get_tag_hashed_merkle_root(
                     trace_words_lengths,
                     bits_per_digit_checksum,
                     instruction_dict,
+                    opcode_dict,
                     trace_to_script_mapping,
                     depth + 1,
                 )
@@ -183,6 +191,7 @@ def _traverse_level(
     trace_words_lengths: List[int],
     bits_per_digit_checksum: int,
     instruction_dict: Dict[str, str],
+    opcode_dict: Dict[str, str],
     trace_to_script_mapping: List[int],
     shared_list: Optional[ListProxy] = None,
 ):
@@ -198,6 +207,7 @@ def _traverse_level(
                 trace_words_lengths,
                 bits_per_digit_checksum,
                 instruction_dict,
+                opcode_dict,
                 trace_to_script_mapping,
             )
             if shared_list is None:
@@ -225,6 +235,7 @@ def _traverse_level(
                         trace_words_lengths,
                         bits_per_digit_checksum,
                         instruction_dict,
+                        opcode_dict,
                         trace_to_script_mapping,
                         new_left_shared_list,
                     ),
@@ -241,6 +252,7 @@ def _traverse_level(
                         trace_words_lengths,
                         bits_per_digit_checksum,
                         instruction_dict,
+                        opcode_dict,
                         trace_to_script_mapping,
                         new_right_shared_list,
                     ),
@@ -262,6 +274,7 @@ def _traverse_level(
                     trace_words_lengths,
                     bits_per_digit_checksum,
                     instruction_dict,
+                    opcode_dict,
                     trace_to_script_mapping,
                 )
                 b = _traverse_level(
@@ -274,6 +287,7 @@ def _traverse_level(
                     trace_words_lengths,
                     bits_per_digit_checksum,
                     instruction_dict,
+                    opcode_dict,
                     trace_to_script_mapping,
                 )
 
@@ -321,6 +335,7 @@ def _traverse_level(
                 trace_words_lengths,
                 bits_per_digit_checksum,
                 instruction_dict,
+                opcode_dict,
                 trace_to_script_mapping,
             )
         )
@@ -335,6 +350,7 @@ class BitVMXExecutionScriptList(BaseModel):
 
     key_list: List[str]
     instruction_dict: Dict[str, str]
+    opcode_dict: Dict[str, str]
     signature_public_keys: List[str]
     public_keys: List[List[str]]
     trace_words_lengths: List[int]
@@ -376,6 +392,7 @@ class BitVMXExecutionScriptList(BaseModel):
                 self.trace_words_lengths,
                 self.bits_per_digit_checksum,
                 self.instruction_dict,
+                self.opcode_dict,
                 self.trace_to_script_mapping(),
                 0,
             )
@@ -420,6 +437,7 @@ class BitVMXExecutionScriptList(BaseModel):
             self.trace_words_lengths,
             self.bits_per_digit_checksum,
             self.instruction_dict,
+            self.opcode_dict,
             self.trace_to_script_mapping(),
         )
         print("End of control block computation in " + str(time() - init_time) + " seconds.")
@@ -438,5 +456,6 @@ class BitVMXExecutionScriptList(BaseModel):
             self.trace_words_lengths,
             self.bits_per_digit_checksum,
             self.instruction_dict,
+            self.opcode_dict,
             self.trace_to_script_mapping(),
         )
