@@ -22,6 +22,11 @@ from bitvmx_protocol_library.winternitz_keys_handling.scripts.verify_digit_signa
 class TriggerInputEquivocationChallengeScriptsGeneratorService:
     def __init__(self):
         self.verify_input_nibble_message_from_public_keys = VerifyDigitSignatureNibblesService()
+        self.input_and_constant_addresses_generation_service = (
+            InputAndConstantAddressesGenerationService(
+                instruction_commitment=ExecutionTraceGenerationService.commitment_file()
+            )
+        )
 
     def __call__(
         self,
@@ -38,12 +43,7 @@ class TriggerInputEquivocationChallengeScriptsGeneratorService:
 
         script_list = BitcoinScriptList()
 
-        input_and_constant_addresses_generation_service = (
-            InputAndConstantAddressesGenerationService(
-                instruction_commitment=ExecutionTraceGenerationService.commitment_file()
-            )
-        )
-        static_addresses = input_and_constant_addresses_generation_service(
+        static_addresses = self.input_and_constant_addresses_generation_service(
             input_length=amount_of_input_words
         )
 

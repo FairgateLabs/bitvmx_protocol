@@ -1,7 +1,6 @@
 import re
 
 from bitvmx_protocol_library.bitvmx_execution.entities.memory_region_dto import (
-    ConstantsMemoryRegionDTO,
     InputMemoryRegionDTO,
     MemoryRegionsDTO,
 )
@@ -18,24 +17,15 @@ class InputAndConstantAddressesGenerationService:
         match = re.search(r"Start:\s+(0x[0-9a-fA-F]+)", input_line)
         init_input_address = match.group(1)[2:]
         constant_lines = list(filter(lambda x: x.startswith("Address:"), mapping_lines))
-        constant_memory_regions = []
-        current_constant_memory_region = ConstantsMemoryRegionDTO(
-            address="FFFFFFFF", amount_of_words=0, values=[]
-        )
+        constant_memory_regions = {}
         while len(constant_lines) > 0:
             current_line = constant_lines.pop(0)
             match = re.search(
-                r"Address:\s+(0x[0-9a-fA-F]+)\s+value:\s+(0x[0-9a-fA-F]+)", current_line
+                r"Address:\s+(0x[0-9a-fA-F]+)\s+value:\s+(0x[0-9a-fA-F]+)\n", current_line
             )
             address = match.group(1)[2:]
             value = match.group(2)[2:]
-            if int(address, 16) == (int(current_constant_memory_region.address, 16) + 4):
-                current_constant_memory_region.amount_of_words += 1
-                current_constant_memory_region.values.append(value)
-            else:
-                current_constant_memory_region = ConstantsMemoryRegionDTO(
-                    address=address, amount_of_words=1, values=[value]
-                )
+            constant_memory_regions[address] = value
         return MemoryRegionsDTO(
             input=InputMemoryRegionDTO(
                 address=init_input_address,

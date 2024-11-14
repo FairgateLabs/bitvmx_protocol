@@ -104,11 +104,6 @@ class BitVMXBitcoinScriptsGeneratorService:
         self.trigger_constant_equivocation_challenge_scripts_generator_service = (
             TriggerConstantEquivocationChallengeScriptsGeneratorService()
         )
-        self.input_and_constant_addresses_generation_service = (
-            InputAndConstantAddressesGenerationService(
-                instruction_commitment=ExecutionTraceGenerationService.commitment_file()
-            )
-        )
         self.trigger_wrong_latter_step_1_challenge_script_generator_service = (
             TriggerWrongLatterStep1ChallengeScriptGeneratorService()
         )
@@ -350,7 +345,11 @@ class BitVMXBitcoinScriptsGeneratorService:
             amount_of_nibbles_hash=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
             amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
-
+        self.input_and_constant_addresses_generation_service = (
+            InputAndConstantAddressesGenerationService(
+                instruction_commitment=ExecutionTraceGenerationService.commitment_file()
+            )
+        )
         static_addresses = self.input_and_constant_addresses_generation_service(
             input_length=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_input_words
         )
@@ -370,20 +369,6 @@ class BitVMXBitcoinScriptsGeneratorService:
             bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.read_1_value_position
         ]
 
-        trigger_input_1_equivocation_challenge_scripts_generator_service = self.trigger_input_equivocation_challenge_scripts_generator_service(
-            signature_public_keys=[
-                bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
-            ],
-            base_input_address=static_addresses.input.address,
-            amount_of_input_words=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_input_words,
-            address_public_keys=address_1_public_keys,
-            address_amount_of_nibbles=address_1_amount_of_nibbles,
-            trace_value_public_keys=value_1_public_keys,
-            publish_hash_value_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.input_public_keys,
-            value_amount_of_nibbles=value_1_amount_of_nibbles,
-            bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
-        )
-
         address_2_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys[
             -1
             - bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.read_2_address_position
@@ -399,6 +384,20 @@ class BitVMXBitcoinScriptsGeneratorService:
             bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.read_2_value_position
         ]
 
+        trigger_input_1_equivocation_challenge_scripts_generator_service = self.trigger_input_equivocation_challenge_scripts_generator_service(
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+            ],
+            base_input_address=static_addresses.input.address,
+            amount_of_input_words=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_input_words,
+            address_public_keys=address_1_public_keys,
+            address_amount_of_nibbles=address_1_amount_of_nibbles,
+            trace_value_public_keys=value_1_public_keys,
+            publish_hash_value_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.input_public_keys,
+            value_amount_of_nibbles=value_1_amount_of_nibbles,
+            bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+        )
+
         trigger_input_2_equivocation_challenge_scripts_generator_service = self.trigger_input_equivocation_challenge_scripts_generator_service(
             signature_public_keys=[
                 bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
@@ -412,19 +411,27 @@ class BitVMXBitcoinScriptsGeneratorService:
             value_amount_of_nibbles=value_2_amount_of_nibbles,
             bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
-        trigger_constant_1_equivocation_challenge_scripts_generator_service = (
-            self.trigger_constant_equivocation_challenge_scripts_generator_service(
-                signature_public_keys=[
-                    bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
-                ],
-            )
+        trigger_constant_1_equivocation_challenge_scripts_generator_service = self.trigger_constant_equivocation_challenge_scripts_generator_service(
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+            ],
+            constant_memory_regions=static_addresses.constants,
+            address_public_keys=address_1_public_keys,
+            address_amount_of_nibbles=address_1_amount_of_nibbles,
+            trace_value_public_keys=value_1_public_keys,
+            value_amount_of_nibbles=value_1_amount_of_nibbles,
+            bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
-        trigger_constant_2_equivocation_challenge_scripts_generator_service = (
-            self.trigger_constant_equivocation_challenge_scripts_generator_service(
-                signature_public_keys=[
-                    bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
-                ],
-            )
+        trigger_constant_2_equivocation_challenge_scripts_generator_service = self.trigger_constant_equivocation_challenge_scripts_generator_service(
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+            ],
+            constant_memory_regions=static_addresses.constants,
+            address_public_keys=address_2_public_keys,
+            address_amount_of_nibbles=address_2_amount_of_nibbles,
+            trace_value_public_keys=value_2_public_keys,
+            value_amount_of_nibbles=value_2_amount_of_nibbles,
+            bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
         trigger_wrong_value_address_read_1_challenge_script = self.trigger_wrong_value_address_read_1_challenge_script_generator_service(

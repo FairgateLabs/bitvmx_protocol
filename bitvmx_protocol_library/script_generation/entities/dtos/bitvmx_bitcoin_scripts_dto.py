@@ -4,6 +4,12 @@ from typing import Dict, List
 from bitcoinutils.keys import P2trAddress, PublicKey
 from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
+from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_generation_service import (
+    ExecutionTraceGenerationService,
+)
+from bitvmx_protocol_library.bitvmx_execution.services.input_and_constant_addresses_generation_service import (
+    InputAndConstantAddressesGenerationService,
+)
 from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin_script import (
     BitcoinScript,
 )
@@ -191,6 +197,19 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             raise Exception("Input address out of input region")
 
     @staticmethod
+    def _get_index_from_address_constant(address: str, amount_of_input_words: int):
+        input_and_constant_addresses_generation_service = (
+            InputAndConstantAddressesGenerationService(
+                instruction_commitment=ExecutionTraceGenerationService.commitment_file()
+            )
+        )
+        static_addresses = input_and_constant_addresses_generation_service(
+            input_length=amount_of_input_words
+        )
+        addresses = list(sorted(static_addresses.constants.keys()))
+        return addresses.index(address)
+
+    @staticmethod
     def get_index_from_address(address: str, base_input_address: str):
         int_address = int(address, 16)
         int_base_input_address = int(base_input_address, 16)
@@ -235,8 +254,12 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             + index_from_address
         )
 
-    def trigger_constant_1_equivocation_challenge_index(self, address: str) -> int:
-        index_from_address = 0
+    def trigger_constant_1_equivocation_challenge_index(
+        self, address: str, amount_of_input_words: int
+    ) -> int:
+        index_from_address = self._get_index_from_address_constant(
+            address=address, amount_of_input_words=amount_of_input_words
+        )
         return (
             len(self.trigger_challenge_scripts)
             + len(self.wrong_hash_challenge_script_list)
@@ -247,8 +270,12 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             + index_from_address
         )
 
-    def trigger_constant_2_equivocation_challenge_index(self, address: str) -> int:
-        index_from_address = 0
+    def trigger_constant_2_equivocation_challenge_index(
+        self, address: str, amount_of_input_words: int
+    ) -> int:
+        index_from_address = self._get_index_from_address_constant(
+            address=address, amount_of_input_words=amount_of_input_words
+        )
         return (
             len(self.trigger_challenge_scripts)
             + len(self.wrong_hash_challenge_script_list)
