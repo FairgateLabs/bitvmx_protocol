@@ -499,14 +499,14 @@ class BitVMXBitcoinScriptsGeneratorService:
             self.trigger_wrong_halt_step_challenge_script_generator_service(
                 signature_public_keys=[
                     bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
-                ]
+                ],
             )
         )
         trigger_no_halt_in_halt_step_challenge_script = (
             self.trigger_no_halt_in_halt_step_challenge_script_generator_service(
                 signature_public_keys=[
                     bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
-                ]
+                ],
             )
         )
 

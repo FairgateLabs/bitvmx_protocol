@@ -17,5 +17,6 @@ class TriggerNoHaltInHaltStepChallengeScriptGeneratorService:
                     "OP_CHECKSIGVERIFY",
                 ]
             )
+        # script.append("OP_DROP")
         script.append(1)
         return script

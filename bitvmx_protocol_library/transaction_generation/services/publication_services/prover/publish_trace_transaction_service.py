@@ -90,7 +90,9 @@ class PublishTraceTransactionService:
         # current_trace["read2_address"] = str(int("90000000", 16))
         # current_trace["read2_value"] = str(int("deaddead", 16))
 
-        # CHECK NO HALT COMBINED WITH FAIL HASH ON LAST STEP
+        # CHECK NO HALT COMBINED WITH FAIL HASH ON LAST STEP (29 with input)
+        current_trace["read_pc_opcode"] = "200"
+
         current_trace_values = current_trace[:13].to_list()
         current_trace_values.reverse()
         trace_array = []

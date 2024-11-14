@@ -55,7 +55,7 @@ class BitVMXProtocolPropertiesDTO(BaseModel):
 
     @property
     def amount_of_bytes_halt_step(self) -> int:
-        return 8
+        return 4
 
     @property
     def amount_of_nibbles_halt_step(self) -> int:
