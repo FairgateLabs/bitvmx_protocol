@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import List
+from typing import Dict, List
 
 from pydantic import BaseModel
 
@@ -20,4 +20,4 @@ class ConstantsMemoryRegionDTO(MemoryRegionDTO):
 
 class MemoryRegionsDTO(BaseModel):
     input: InputMemoryRegionDTO
-    constants: List[ConstantsMemoryRegionDTO]
+    constants: Dict[str, str]
