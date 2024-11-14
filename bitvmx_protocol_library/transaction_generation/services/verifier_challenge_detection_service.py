@@ -11,6 +11,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection.verifier_execution_challenge_detection_service import (
     VerifierExecutionChallengeDetectionService,
 )
+from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection.verifier_read_constant_equivocation_challenge_detection_service import (
+    VerifierReadConstantEquivocationChallengeDetectionService,
+)
 from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection.verifier_read_input_equivocation_challenge_detection_service import (
     VerifierReadInputEquivocationChallengeDetectionService,
 )
@@ -33,6 +36,7 @@ class VerifierChallengeDetectionService:
         self.verifier_challenge_detection_services = [
             VerifierWrongProgramCounterChallengeDetectionService(),
             VerifierReadInputEquivocationChallengeDetectionService(),
+            VerifierReadConstantEquivocationChallengeDetectionService(),
             VerifierWrongHashChallengeDetectionService(),
             VerifierReadSearchChallengeDetectionService(),
             VerifierExecutionChallengeDetectionService(),

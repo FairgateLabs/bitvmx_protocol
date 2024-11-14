@@ -18,6 +18,8 @@ class TransactionVerifierStepType(Enum):
     TRIGGER_WRONG_HASH_CHALLENGE = "trigger_wrong_hash"
     TRIGGER_INPUT_EQUIVOCATION_CHALLENGE_1 = "trigger_input_equivocation_1"
     TRIGGER_INPUT_EQUIVOCATION_CHALLENGE_2 = "trigger_input_equivocation_2"
+    TRIGGER_CONSTANT_EQUIVOCATION_CHALLENGE_1 = "trigger_constant_equivocation_1"
+    TRIGGER_CONSTANT_EQUIVOCATION_CHALLENGE_2 = "trigger_constant_equivocation_2"
     TRIGGER_WRONG_PROGRAM_COUNTER = "trigger_wrong_program_counter"
     TRIGGER_WRONG_HASH_READ_SEARCH_CHALLENGE = "trigger_wrong_hash_read_challenge"
     TRIGGER_WRONG_LATTER_STEP_CHALLENGE_1 = "trigger_wrong_latter_step_challenge_1"

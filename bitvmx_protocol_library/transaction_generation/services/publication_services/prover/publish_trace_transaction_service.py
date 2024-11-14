@@ -86,6 +86,9 @@ class PublishTraceTransactionService:
             index=first_wrong_step,
             input_hex=bitvmx_protocol_prover_dto.input_hex,
         )
+        # CHECK CONSTANT EQUIVOCATION COMBINED WITH FAIL HASH
+        # current_trace["read2_address"] = str(int("90000000", 16))
+        # current_trace["read2_value"] = str(int("deaddead", 16))
         current_trace_values = current_trace[:13].to_list()
         current_trace_values.reverse()
         trace_array = []
