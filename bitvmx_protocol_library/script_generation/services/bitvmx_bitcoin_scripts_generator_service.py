@@ -31,8 +31,14 @@ from bitvmx_protocol_library.script_generation.services.script_generation.verifi
 from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_generic_challenge_script_generator_service import (
     TriggerGenericChallengeScriptGeneratorService,
 )
+from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_no_halt_in_halt_step_challenge_script_generator_service import (
+    TriggerNoHaltInHaltStepChallengeScriptGeneratorService,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_protocol_script_generator_service import (
     TriggerProtocolScriptGeneratorService,
+)
+from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_wrong_halt_step_challenge_script_generator_service import (
+    TriggerWrongHaltStepChallengeScriptGeneratorService,
 )
 from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_wrong_latter_step_challenge_script_generator_service import (
     TriggerWrongLatterStep1ChallengeScriptGeneratorService,
@@ -115,6 +121,12 @@ class BitVMXBitcoinScriptsGeneratorService:
         )
         self.trigger_wrong_value_address_read_2_challenge_script_generator_service = (
             TriggerWrongValueAddressRead2ChallengeScriptGeneratorService()
+        )
+        self.trigger_wrong_halt_step_challenge_script_generator_service = (
+            TriggerWrongHaltStepChallengeScriptGeneratorService()
+        )
+        self.trigger_no_halt_in_halt_step_challenge_script_generator_service = (
+            TriggerNoHaltInHaltStepChallengeScriptGeneratorService()
         )
 
     def __call__(
@@ -483,6 +495,21 @@ class BitVMXBitcoinScriptsGeneratorService:
             amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
+        trigger_wrong_halt_step_challenge_script = (
+            self.trigger_wrong_halt_step_challenge_script_generator_service(
+                signature_public_keys=[
+                    bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+                ]
+            )
+        )
+        trigger_no_halt_in_halt_step_challenge_script = (
+            self.trigger_no_halt_in_halt_step_challenge_script_generator_service(
+                signature_public_keys=[
+                    bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+                ]
+            )
+        )
+
         return BitVMXBitcoinScriptsDTO(
             hash_result_script=hash_result_script,
             trigger_protocol_script=trigger_protocol_script,
@@ -505,4 +532,6 @@ class BitVMXBitcoinScriptsGeneratorService:
             trigger_wrong_value_address_read_2_challenge_script=trigger_wrong_value_address_read_2_challenge_script,
             trigger_wrong_latter_step_1_challenge_script=trigger_wrong_latter_step_1_challenge_script,
             trigger_wrong_latter_step_2_challenge_script=trigger_wrong_latter_step_2_challenge_script,
+            trigger_wrong_halt_step_challenge_script=trigger_wrong_halt_step_challenge_script,
+            trigger_no_halt_in_halt_step_challenge_script=trigger_no_halt_in_halt_step_challenge_script,
         )

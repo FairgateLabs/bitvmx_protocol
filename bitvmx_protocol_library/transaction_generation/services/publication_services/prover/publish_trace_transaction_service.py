@@ -89,6 +89,8 @@ class PublishTraceTransactionService:
         # CHECK CONSTANT EQUIVOCATION COMBINED WITH FAIL HASH
         # current_trace["read2_address"] = str(int("90000000", 16))
         # current_trace["read2_value"] = str(int("deaddead", 16))
+
+        # CHECK NO HALT COMBINED WITH FAIL HASH ON LAST STEP
         current_trace_values = current_trace[:13].to_list()
         current_trace_values.reverse()
         trace_array = []

@@ -23,6 +23,13 @@ class ExecutionTraceDTO(BaseModel):
     write_PC_address: str
     write_micro: str
 
+    def is_halt(self):
+        return (
+            (int(self.opcode, 16) == 115)
+            and (int(self.read_1_value, 16) == 93)
+            and (int(self.read_2_value, 16) == 0)
+        )
+
     @staticmethod
     def from_trace_values_list(trace_values_list: List[str]) -> "ExecutionTraceDTO":
         reversed_trace_values_list = list(map(lambda x: x[::-1], trace_values_list))
