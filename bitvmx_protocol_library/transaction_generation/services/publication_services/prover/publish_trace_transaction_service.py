@@ -93,6 +93,11 @@ class PublishTraceTransactionService:
         # CHECK NO HALT COMBINED WITH FAIL HASH ON LAST STEP (29 with input)
         current_trace["read_pc_opcode"] = "200"
 
+        # CHECK WRONG STEP COMBINED WITH FAIL HASH (less than 29)
+        # current_trace["read_pc_opcode"] = "115"
+        # current_trace["read1_value"] = "93"
+        # current_trace["read2_value"] = "0"
+
         current_trace_values = current_trace[:13].to_list()
         current_trace_values.reverse()
         trace_array = []
