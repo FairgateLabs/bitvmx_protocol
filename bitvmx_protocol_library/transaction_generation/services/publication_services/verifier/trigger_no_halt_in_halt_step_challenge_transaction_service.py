@@ -18,6 +18,9 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extract
 from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_full_choice_witness_service import (
     GetFullChoiceWitnessService,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_hash_publication_witness_service import (
+    GetHashPublicationWitnessService,
+)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
 )
@@ -27,6 +30,7 @@ class TriggerNoHaltInHaltStepChallengeTransactionService:
     def __init__(self, verifier_private_key):
         self.get_choice_witness_service = GetFullChoiceWitnessService()
         self.get_execution_trace_witness_service = GetExecutionTraceWitnessService()
+        self.get_hash_publication_witness_service = GetHashPublicationWitnessService()
 
     def __call__(
         self,
@@ -86,10 +90,15 @@ class TriggerNoHaltInHaltStepChallengeTransactionService:
             bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
         )
 
+        hash_publication_witness = self.get_hash_publication_witness_service(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
+        )
+
         trigger_no_halt_in_halt_step_witness = (
             execution_trace_witness.opcode
             + execution_trace_witness.read_2_value
             + execution_trace_witness.read_1_value
+            + hash_publication_witness.halt_step
             + choices_witness
         )
 

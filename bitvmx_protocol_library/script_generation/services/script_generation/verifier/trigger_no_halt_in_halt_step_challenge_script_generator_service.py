@@ -50,13 +50,13 @@ class TriggerNoHaltInHaltStepChallengeScriptGeneratorService:
                 to_alt_stack=True,
             )
 
-        # self.verify_input_nibble_message_from_public_keys(
-        #     script=script,
-        #     public_keys=halt_step_public_keys,
-        #     n0=amount_of_nibbles_halt_step,
-        #     bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
-        #     to_alt_stack=True,
-        # )
+        self.verify_input_nibble_message_from_public_keys(
+            script=script,
+            public_keys=halt_step_public_keys,
+            n0=amount_of_nibbles_halt_step,
+            bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
+            to_alt_stack=True,
+        )
 
         read_1_value_index = BitVMXProtocolPropertiesDTO.read_1_value_position
         self.verify_input_nibble_message_from_public_keys(
