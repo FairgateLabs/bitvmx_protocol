@@ -12,6 +12,12 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_private_dto import (
     BitVMXProtocolVerifierPrivateDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_execution_trace_witness_service import (
+    GetExecutionTraceWitnessService,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_full_choice_witness_service import (
+    GetFullChoiceWitnessService,
+)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
 )
@@ -19,7 +25,8 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 
 class TriggerNoHaltInHaltStepChallengeTransactionService:
     def __init__(self, verifier_private_key):
-        pass
+        self.get_choice_witness_service = GetFullChoiceWitnessService()
+        self.get_execution_trace_witness_service = GetExecutionTraceWitnessService()
 
     def __call__(
         self,
@@ -30,8 +37,8 @@ class TriggerNoHaltInHaltStepChallengeTransactionService:
         trigger_challenge_taptree = (
             bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_taptree()
         )
-        trigger_challenge_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_address(
-            destroyed_public_key=bitvmx_protocol_setup_properties_dto.unspendable_public_key
+        trigger_challenge_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list.get_taproot_address(
+            public_key=bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
 
         current_script_index = (
@@ -71,7 +78,22 @@ class TriggerNoHaltInHaltStepChallengeTransactionService:
 
         trigger_input_equivocation_signatures = [trigger_input_equivocation_signature]
 
-        trigger_no_halt_in_halt_step_witness = []
+        choices_witness = self.get_choice_witness_service(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+        )
+
+        execution_trace_witness = self.get_execution_trace_witness_service(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
+        )
+
+        trigger_no_halt_in_halt_step_witness = (
+            execution_trace_witness.opcode
+            + execution_trace_witness.read_2_value
+            + execution_trace_witness.read_1_value
+            + choices_witness
+        )
+
+        # trigger_no_halt_in_halt_step_witness = execution_trace_witness.opcode
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_equivocation_tx.witnesses.append(
             TxWitnessInput(
