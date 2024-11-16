@@ -91,9 +91,13 @@ class PublishHashTransactionService:
         halt_step_witness = self.generate_witness_from_input_nibbles_service(
             step=1,
             case=1,
-            input_numbers=_hex_to_witness(
-                hex_str=hex(last_step)[2:],
-                length=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_halt_step,
+            input_numbers=list(
+                reversed(
+                    _hex_to_witness(
+                        hex_str=hex(last_step)[2:],
+                        length=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_halt_step,
+                    )
+                )
             ),
             bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )

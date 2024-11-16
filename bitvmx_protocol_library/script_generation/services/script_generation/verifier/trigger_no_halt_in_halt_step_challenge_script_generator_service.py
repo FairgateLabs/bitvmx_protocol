@@ -58,6 +58,51 @@ class TriggerNoHaltInHaltStepChallengeScriptGeneratorService:
             to_alt_stack=True,
         )
 
+        words_lengths = [2, 3, 3]
+        for word_length in words_lengths:
+            for i in range(word_length - 1, -1, -1):
+                script.append("OP_FROMALTSTACK")
+                for _ in range(i * 4):
+                    script.extend(["OP_DUP", "OP_ADD"])
+                if i < word_length - 1:
+                    script.append("OP_ADD")
+
+        amount_of_published_bits = amount_of_bits_wrong_step_search * len(
+            choice_search_prover_public_keys_list
+        )
+
+        amount_of_remaining_bits = amount_of_published_bits
+
+        script.append(0)
+        while amount_of_remaining_bits > 24:
+            script.append("OP_FROMALTSTACK")
+            amount_of_remaining_bits -= amount_of_bits_wrong_step_search
+            for _ in range(amount_of_remaining_bits - 24):
+                script.extend(["OP_DUP", "OP_ADD"])
+            script.append("OP_ADD")
+
+        script.append(0)
+        while amount_of_remaining_bits > 12:
+            script.append("OP_FROMALTSTACK")
+            amount_of_remaining_bits -= amount_of_bits_wrong_step_search
+            for _ in range(amount_of_remaining_bits - 12):
+                script.extend(["OP_DUP", "OP_ADD"])
+            script.append("OP_ADD")
+
+        script.append(0)
+        while amount_of_remaining_bits > 0:
+            script.append("OP_FROMALTSTACK")
+            amount_of_remaining_bits -= amount_of_bits_wrong_step_search
+            for _ in range(amount_of_remaining_bits):
+                script.extend(["OP_DUP", "OP_ADD"])
+            script.append("OP_ADD")
+
+        for i in range(3, 1, -1):
+            script.append(i)
+            script.append("OP_ROLL")
+            script.append("OP_EQUALVERIFY")
+        script.append("OP_EQUALVERIFY")
+
         read_1_value_index = BitVMXProtocolPropertiesDTO.read_1_value_position
         self.verify_input_nibble_message_from_public_keys(
             script=script,
