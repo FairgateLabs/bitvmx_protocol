@@ -47,7 +47,7 @@ class TriggerWrongHashChallengeTransactionService:
             bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_taptree()
         )
         trigger_challenge_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_address(
-            bitvmx_protocol_setup_properties_dto.unspendable_public_key
+            destroyed_public_key=bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
 
         wrong_hash_control_block = ControlBlock(

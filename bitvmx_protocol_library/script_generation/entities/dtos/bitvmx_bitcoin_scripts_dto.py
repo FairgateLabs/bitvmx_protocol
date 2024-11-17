@@ -48,6 +48,8 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     trigger_wrong_value_address_read_2_challenge_script: BitcoinScript
     trigger_wrong_latter_step_1_challenge_script: BitcoinScript
     trigger_wrong_latter_step_2_challenge_script: BitcoinScript
+    trigger_wrong_halt_step_challenge_script: BitcoinScript
+    trigger_no_halt_in_halt_step_challenge_script: BitcoinScript
     cached_trigger_read_challenge_address: Dict[str, str] = Field(default_factory=dict)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -103,6 +105,8 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             + self.input_2_equivocation_challenge_scripts
             + self.constants_1_equivocation_challenge_scripts
             + self.constants_2_equivocation_challenge_scripts
+            + BitcoinScriptList(self.trigger_wrong_halt_step_challenge_script)
+            + BitcoinScriptList(self.trigger_no_halt_in_halt_step_challenge_script)
         )
 
     def trigger_challenge_address(self, destroyed_public_key: PublicKey) -> P2trAddress:
@@ -287,6 +291,31 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             + index_from_address
         )
 
+    def trigger_wrong_halt_step_challenge_index(self):
+        return (
+            len(self.trigger_challenge_scripts)
+            + len(self.wrong_hash_challenge_script_list)
+            + len(self.wrong_program_counter_challenge_scripts_list)
+            + 1
+            + len(self.input_1_equivocation_challenge_scripts)
+            + len(self.input_2_equivocation_challenge_scripts)
+            + len(self.constants_1_equivocation_challenge_scripts)
+            + len(self.constants_2_equivocation_challenge_scripts)
+        )
+
+    def trigger_no_halt_in_halt_step_challenge_index(self):
+        return (
+            len(self.trigger_challenge_scripts)
+            + len(self.wrong_hash_challenge_script_list)
+            + len(self.wrong_program_counter_challenge_scripts_list)
+            + 1
+            + len(self.input_1_equivocation_challenge_scripts)
+            + len(self.input_2_equivocation_challenge_scripts)
+            + len(self.constants_1_equivocation_challenge_scripts)
+            + len(self.constants_2_equivocation_challenge_scripts)
+            + 1
+        )
+
     def trigger_read_wrong_hash_challenge_index(self, choice: int):
         return self.trigger_read_wrong_hash_challenge_scripts.list_index_from_choice(choice=choice)
 
@@ -461,6 +490,22 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     ) -> str:
         return BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(
             script=trigger_wrong_latter_step_2_challenge_script
+        )
+
+    @field_serializer("trigger_wrong_halt_step_challenge_script", when_used="always")
+    def serialize_trigger_wrong_halt_step_challenge_script(
+        trigger_wrong_halt_step_challenge_script: BitcoinScript,
+    ) -> str:
+        return BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(
+            script=trigger_wrong_halt_step_challenge_script
+        )
+
+    @field_serializer("trigger_no_halt_in_halt_step_challenge_script", when_used="always")
+    def serialize_trigger_no_halt_in_halt_step_challenge_script(
+        trigger_no_halt_in_halt_step_challenge_script: BitcoinScript,
+    ) -> str:
+        return BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(
+            script=trigger_no_halt_in_halt_step_challenge_script
         )
 
     # @field_serializer("trigger_read_challenge_scripts", when_used="always")

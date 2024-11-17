@@ -114,7 +114,7 @@ class TriggerProtocolTransactionService:
             input_hex=decomposed_witness.input_hex,
         )
 
-        bitvmx_protocol_verifier_dto.published_halt_step = decomposed_witness.halt_step
+        bitvmx_protocol_verifier_dto.published_halt_step = decomposed_witness.halt_step[::-1]
         bitvmx_protocol_verifier_dto.input_hex = decomposed_witness.input_hex
 
         if not last_step_trace["step_hash"] == decomposed_witness.hash_result:
