@@ -23,11 +23,23 @@ class ExecutionTraceDTO(BaseModel):
     write_PC_address: str
     write_micro: str
 
+    @staticmethod
+    def halt_opcode() -> int:
+        return 115
+
+    @staticmethod
+    def halt_read_1_value() -> int:
+        return 93
+
+    @staticmethod
+    def halt_read_2_value() -> int:
+        return 0
+
     def is_halt(self):
         return (
-            (int(self.opcode, 16) == 115)
-            and (int(self.read_1_value, 16) == 93)
-            and (int(self.read_2_value, 16) == 0)
+            (int(self.opcode, 16) == self.halt_opcode())
+            and (int(self.read_1_value, 16) == self.halt_read_1_value())
+            and (int(self.read_2_value, 16) == self.halt_read_2_value())
         )
 
     @staticmethod

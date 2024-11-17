@@ -94,7 +94,7 @@ class PublishHashTransactionService:
             input_numbers=list(
                 reversed(
                     _hex_to_witness(
-                        hex_str=hex(last_step)[2:],
+                        hex_str=hex(last_step - 1)[2:],
                         length=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_halt_step,
                     )
                 )

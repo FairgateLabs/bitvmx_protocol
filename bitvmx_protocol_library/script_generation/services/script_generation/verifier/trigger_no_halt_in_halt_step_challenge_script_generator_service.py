@@ -2,6 +2,7 @@ from typing import List
 
 from bitcoinutils.keys import PublicKey
 
+from bitvmx_protocol_library.bitvmx_execution.entities.execution_trace_dto import ExecutionTraceDTO
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
 )
@@ -109,8 +110,17 @@ class TriggerNoHaltInHaltStepChallengeScriptGeneratorService:
             public_keys=trace_prover_public_keys[-read_1_value_index - 1],
             n0=trace_words_lengths[-read_1_value_index - 1],
             bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
-            to_alt_stack=True,
+            to_alt_stack=False,
         )
+
+        script.append(0)
+        for letter in hex(ExecutionTraceDTO.halt_read_1_value())[2:].zfill(8):
+            script.append(1)
+            script.append("OP_ROLL")
+            script.append(int(letter, 16))
+            script.append("OP_EQUAL")
+            script.append("OP_ADD")
+        script.append("OP_TOALTSTACK")
 
         read_2_value_index = BitVMXProtocolPropertiesDTO.read_2_value_position
         self.verify_input_nibble_message_from_public_keys(
@@ -118,8 +128,17 @@ class TriggerNoHaltInHaltStepChallengeScriptGeneratorService:
             public_keys=trace_prover_public_keys[-read_2_value_index - 1],
             n0=trace_words_lengths[-read_2_value_index - 1],
             bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
-            to_alt_stack=True,
+            to_alt_stack=False,
         )
+
+        script.append("OP_FROMALTSTACK")
+        for letter in hex(115)[2:].zfill(8):
+            script.append(1)
+            script.append("OP_ROLL")
+            script.append(int(letter, 16))
+            script.append("OP_EQUAL")
+            script.append("OP_ADD")
+        script.append("OP_TOALTSTACK")
 
         read_pc_opcode_index = BitVMXProtocolPropertiesDTO.read_pc_opcode_position
         self.verify_input_nibble_message_from_public_keys(
@@ -127,7 +146,17 @@ class TriggerNoHaltInHaltStepChallengeScriptGeneratorService:
             public_keys=trace_prover_public_keys[-read_pc_opcode_index - 1],
             n0=trace_words_lengths[-read_pc_opcode_index - 1],
             bits_per_digit_checksum=amount_of_bits_per_digit_checksum,
-            to_alt_stack=True,
+            to_alt_stack=False,
         )
-        script.append(1)
+
+        script.append("OP_FROMALTSTACK")
+        for letter in hex(115)[2:].zfill(8):
+            script.append(1)
+            script.append("OP_ROLL")
+            script.append(int(letter, 16))
+            script.append("OP_EQUAL")
+            script.append("OP_ADD")
+        script.append(8 * 3)
+        script.append("OP_LESSTHAN")
+
         return script

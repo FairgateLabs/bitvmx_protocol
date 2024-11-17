@@ -32,7 +32,7 @@ class VerifierWrongHaltStepChallengeDetectionService:
             2,
         )
         published_halt_step = int(bitvmx_protocol_verifier_dto.published_halt_step, 16)
-        if (published_step + 1) != published_halt_step and published_execution_trace.is_halt():
+        if published_step != published_halt_step and published_execution_trace.is_halt():
             return (
                 TriggerWrongHaltStepChallengeTransactionService,
                 TransactionVerifierStepType.TRIGGER_WRONG_HALT_STEP_CHALLENGE,

@@ -32,7 +32,7 @@ class VerifierNoHaltInHaltStepChallengeDetectionService:
             2,
         )
         published_halt_step = int(bitvmx_protocol_verifier_dto.published_halt_step, 16)
-        if (published_step + 1) == published_halt_step and not published_execution_trace.is_halt():
+        if published_step == published_halt_step and not published_execution_trace.is_halt():
             return (
                 TriggerNoHaltInHaltStepChallengeTransactionService,
                 TransactionVerifierStepType.TRIGGER_NO_HALT_IN_HALT_STEP_CHALLENGE,
