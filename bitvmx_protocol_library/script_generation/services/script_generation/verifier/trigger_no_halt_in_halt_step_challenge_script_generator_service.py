@@ -114,7 +114,7 @@ class TriggerNoHaltInHaltStepChallengeScriptGeneratorService:
         )
 
         script.append(0)
-        for letter in hex(ExecutionTraceDTO.halt_read_1_value())[2:].zfill(8):
+        for letter in hex(ExecutionTraceDTO.halt_read_1_value())[2:].zfill(8)[::-1]:
             script.append(1)
             script.append("OP_ROLL")
             script.append(int(letter, 16))
@@ -132,7 +132,7 @@ class TriggerNoHaltInHaltStepChallengeScriptGeneratorService:
         )
 
         script.append("OP_FROMALTSTACK")
-        for letter in hex(115)[2:].zfill(8):
+        for letter in hex(ExecutionTraceDTO.halt_read_2_value())[2:].zfill(8)[::-1]:
             script.append(1)
             script.append("OP_ROLL")
             script.append(int(letter, 16))
@@ -150,7 +150,7 @@ class TriggerNoHaltInHaltStepChallengeScriptGeneratorService:
         )
 
         script.append("OP_FROMALTSTACK")
-        for letter in hex(115)[2:].zfill(8):
+        for letter in hex(ExecutionTraceDTO.halt_opcode())[2:].zfill(8)[::-1]:
             script.append(1)
             script.append("OP_ROLL")
             script.append(int(letter, 16))
