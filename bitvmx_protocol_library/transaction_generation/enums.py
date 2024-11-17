@@ -26,3 +26,5 @@ class TransactionVerifierStepType(Enum):
     TRIGGER_WRONG_LATTER_STEP_CHALLENGE_2 = "trigger_wrong_latter_step_challenge_2"
     TRIGGER_WRONG_VALUE_ADDRESS_READ_CHALLENGE_1 = "trigger_wrong_value_address_read_challenge_1"
     TRIGGER_WRONG_VALUE_ADDRESS_READ_CHALLENGE_2 = "trigger_wrong_value_address_read_challenge_2"
+    TRIGGER_WRONG_HALT_STEP_CHALLENGE = "trigger_wrong_halt_step_challenge"
+    TRIGGER_NO_HALT_IN_HALT_STEP_CHALLENGE = "trigger_no_halt_in_halt_step_challenge"

@@ -24,6 +24,25 @@ class ExecutionTraceDTO(BaseModel):
     write_micro: str
 
     @staticmethod
+    def halt_opcode() -> int:
+        return 115
+
+    @staticmethod
+    def halt_read_1_value() -> int:
+        return 93
+
+    @staticmethod
+    def halt_read_2_value() -> int:
+        return 0
+
+    def is_halt(self):
+        return (
+            (int(self.opcode, 16) == self.halt_opcode())
+            and (int(self.read_1_value, 16) == self.halt_read_1_value())
+            and (int(self.read_2_value, 16) == self.halt_read_2_value())
+        )
+
+    @staticmethod
     def from_trace_values_list(trace_values_list: List[str]) -> "ExecutionTraceDTO":
         reversed_trace_values_list = list(map(lambda x: x[::-1], trace_values_list))
         return ExecutionTraceDTO(
