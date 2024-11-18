@@ -33,6 +33,7 @@ class BitVMXProtocolVerifierDTO(BaseModel):
     read_search_target: Optional[int] = None
     input_hex: Optional[str] = None
     published_halt_step: Optional[str] = None
+    published_halt_hash: Optional[str] = None
 
     @field_serializer("last_confirmed_step", when_used="always")
     def serialize_last_confirmed_step(

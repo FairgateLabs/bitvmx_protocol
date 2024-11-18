@@ -118,9 +118,7 @@ class TriggerProtocolTransactionService:
         bitvmx_protocol_verifier_dto.input_hex = decomposed_witness.input_hex
 
         if not last_step_trace["step_hash"] == decomposed_witness.hash_result:
-            bitvmx_protocol_verifier_dto.published_hashes_dict[last_step_index] = (
-                decomposed_witness.hash_result
-            )
+            bitvmx_protocol_verifier_dto.published_halt_hash = decomposed_witness.hash_result
             trigger_protocol_signatures = bitvmx_protocol_verifier_dto.trigger_protocol_signatures
 
             trigger_protocol_script_generator = TriggerProtocolScriptGeneratorService()
