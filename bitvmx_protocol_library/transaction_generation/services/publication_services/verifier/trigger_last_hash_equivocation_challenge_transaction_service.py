@@ -12,6 +12,15 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_private_dto import (
     BitVMXProtocolVerifierPrivateDTO,
 )
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_choice_witness_service import (
+    GetChoiceWitnessService,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_hash_publication_witness_service import (
+    GetHashPublicationWitnessService,
+)
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_wrong_hash_witness_service import (
+    GetWrongHashWitnessService,
+)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
 )
@@ -19,7 +28,9 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 
 class TriggerLastHashEquivocationChallengeTransactionService:
     def __init__(self, verifier_private_key):
-        pass
+        self.get_wrong_hash_witness_service = GetWrongHashWitnessService()
+        self.get_choice_witness_service = GetChoiceWitnessService()
+        self.get_hash_publication_witness_service = GetHashPublicationWitnessService()
 
     def __call__(
         self,
@@ -43,6 +54,20 @@ class TriggerLastHashEquivocationChallengeTransactionService:
             scripts=trigger_challenge_taptree,
             index=current_index,
             is_odd=trigger_challenge_scripts_address.is_odd(),
+        )
+
+        wrong_hash_witness = self.get_wrong_hash_witness_service(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
+        )
+
+        choices_witness = self.get_choice_witness_service(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+            bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
+        )
+
+        hash_publication_witness = self.get_hash_publication_witness_service(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
         )
 
         private_key = PrivateKey(
@@ -70,7 +95,9 @@ class TriggerLastHashEquivocationChallengeTransactionService:
 
         trigger_last_hash_equivocation_signatures = [last_hash_equivocation_challenge_signature]
 
-        trigger_last_hash_equivocation_witness = []
+        trigger_last_hash_equivocation_witness = (
+            hash_publication_witness.final_hash + wrong_hash_witness + choices_witness
+        )
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_equivocation_tx.witnesses.append(
             TxWitnessInput(
