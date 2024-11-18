@@ -215,6 +215,8 @@ class PublishChoiceSearchTransactionService:
                 index=index,
                 input_hex=bitvmx_protocol_verifier_dto.input_hex,
             )["step_hash"]
-            if not current_hash == previous_published_hashes_dict[index]:
+            if not current_hash == previous_published_hashes_dict[index] or index >= int(
+                bitvmx_protocol_verifier_dto.published_halt_step, 16
+            ):
                 return j, previous_published_hashes_dict
         raise Exception("There was some error when choosing the wrong step")

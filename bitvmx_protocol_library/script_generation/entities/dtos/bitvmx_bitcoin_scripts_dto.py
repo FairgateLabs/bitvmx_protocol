@@ -20,6 +20,7 @@ from bitvmx_protocol_library.script_generation.entities.business_objects.bitvmx_
     BitVMXExecutionScriptList,
 )
 from bitvmx_protocol_library.script_generation.entities.business_objects.bitvmx_wrong_hash_script_list import (
+    BitVMXLastHashEquivocationScriptList,
     BitVMXWrongHashScriptList,
     BitVMXWrongProgramCounterScriptList,
 )
@@ -34,6 +35,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     trigger_challenge_scripts: BitcoinScriptList
     execution_challenge_script_list: BitVMXExecutionScriptList
     wrong_hash_challenge_script_list: BitVMXWrongHashScriptList
+    last_hash_equivocation_script_list: BitVMXLastHashEquivocationScriptList
     wrong_program_counter_challenge_scripts_list: BitVMXWrongProgramCounterScriptList
     input_1_equivocation_challenge_scripts: BitcoinScriptList
     input_2_equivocation_challenge_scripts: BitcoinScriptList
@@ -88,6 +90,9 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             elif field_type == BitVMXWrongProgramCounterScriptList:
                 if not isinstance(data[field_name], BitVMXWrongProgramCounterScriptList):
                     data[field_name] = BitVMXWrongProgramCounterScriptList(**data[field_name])
+            elif field_type == BitVMXLastHashEquivocationScriptList:
+                if not isinstance(data[field_name], BitVMXLastHashEquivocationScriptList):
+                    data[field_name] = BitVMXLastHashEquivocationScriptList(**data[field_name])
             elif field_type == Dict[str, str]:
                 pass
             else:
@@ -107,6 +112,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             + self.constants_2_equivocation_challenge_scripts
             + BitcoinScriptList(self.trigger_wrong_halt_step_challenge_script)
             + BitcoinScriptList(self.trigger_no_halt_in_halt_step_challenge_script)
+            + self.last_hash_equivocation_script_list.script_list()
         )
 
     def trigger_challenge_address(self, destroyed_public_key: PublicKey) -> P2trAddress:
@@ -315,6 +321,19 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             + len(self.constants_2_equivocation_challenge_scripts)
             + 1
         )
+
+    def trigger_last_hash_equivocation_challenge_index(self, choice: int) -> int:
+        return (
+            len(self.trigger_challenge_scripts)
+            + len(self.wrong_hash_challenge_script_list)
+            + len(self.wrong_program_counter_challenge_scripts_list)
+            + 1
+            + len(self.input_1_equivocation_challenge_scripts)
+            + len(self.input_2_equivocation_challenge_scripts)
+            + len(self.constants_1_equivocation_challenge_scripts)
+            + len(self.constants_2_equivocation_challenge_scripts)
+            + 2
+        ) + self.last_hash_equivocation_script_list.list_index_from_choice(choice=choice)
 
     def trigger_read_wrong_hash_challenge_index(self, choice: int):
         return self.trigger_read_wrong_hash_challenge_scripts.list_index_from_choice(choice=choice)

@@ -91,7 +91,7 @@ class PublishTraceTransactionService:
         # current_trace["read2_value"] = str(int("deaddead", 16))
 
         # CHECK NO HALT COMBINED WITH FAIL HASH ON LAST STEP (29 with input)
-        current_trace["read_pc_opcode"] = "114"
+        # current_trace["read_pc_opcode"] = "114"
 
         # CHECK WRONG STEP COMBINED WITH FAIL HASH (less than 29)
         # current_trace["read_pc_opcode"] = "115"

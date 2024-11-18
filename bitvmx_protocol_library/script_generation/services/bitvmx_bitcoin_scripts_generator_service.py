@@ -57,6 +57,9 @@ from bitvmx_protocol_library.script_generation.services.script_list_generator_se
 from bitvmx_protocol_library.script_generation.services.script_list_generator_services.verifier.trigger_input_equivocation_challenge_scripts_generator_service import (
     TriggerInputEquivocationChallengeScriptsGeneratorService,
 )
+from bitvmx_protocol_library.script_generation.services.script_list_generator_services.verifier.trigger_last_hash_equivocation_challenge_scripts_generator_service import (
+    TriggerLastHashEquivocationChallengeScriptsGeneratorService,
+)
 from bitvmx_protocol_library.script_generation.services.script_list_generator_services.verifier.trigger_read_challenge_scripts_generator_service import (
     TriggerReadChallengeScriptsGeneratorService,
 )
@@ -103,6 +106,9 @@ class BitVMXBitcoinScriptsGeneratorService:
         )
         self.trigger_wrong_read_hash_challenge_scripts_generator_service = (
             TriggerWrongReadHashChallengeScriptsGeneratorService()
+        )
+        self.trigger_last_hash_equivocation_challenge_scripts_generator_service = (
+            TriggerLastHashEquivocationChallengeScriptsGeneratorService()
         )
         self.trigger_input_equivocation_challenge_scripts_generator_service = (
             TriggerInputEquivocationChallengeScriptsGeneratorService()
@@ -254,6 +260,22 @@ class BitVMXBitcoinScriptsGeneratorService:
         )
 
         wrong_program_counter_challenge_scripts_list = self.trigger_wrong_program_counter_script_list_generator_service(
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+            ],
+            trace_words_lengths=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.trace_words_lengths[
+                ::-1
+            ],
+            amount_of_bits_wrong_step_search=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            hash_search_public_keys_list=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.hash_search_public_keys_list,
+            choice_search_prover_public_keys_list=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list,
+            trace_prover_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
+            hash_result_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.hash_result_public_keys,
+            amount_of_nibbles_hash=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
+            amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+        )
+
+        last_hash_equivocation_challenge_scripts_list = self.trigger_last_hash_equivocation_challenge_scripts_generator_service(
             signature_public_keys=[
                 bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
             ],
@@ -529,6 +551,7 @@ class BitVMXBitcoinScriptsGeneratorService:
             trigger_challenge_scripts=trigger_challenge_scripts,
             execution_challenge_script_list=execution_challenge_script_list,
             wrong_hash_challenge_script_list=wrong_hash_challenge_scripts_list,
+            last_hash_equivocation_script_list=last_hash_equivocation_challenge_scripts_list,
             wrong_program_counter_challenge_scripts_list=wrong_program_counter_challenge_scripts_list,
             input_1_equivocation_challenge_scripts=trigger_input_1_equivocation_challenge_scripts_generator_service,
             input_2_equivocation_challenge_scripts=trigger_input_2_equivocation_challenge_scripts_generator_service,

@@ -6,6 +6,9 @@ from pydantic import BaseModel
 from bitvmx_protocol_library.script_generation.entities.business_objects.bitcoin_script_list import (
     BitcoinScriptList,
 )
+from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_last_hash_equivocation_challenge_script_generator_service import (
+    TriggerLastHashEquivocationChallengeScriptGeneratorService,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_wrong_hash_challenge_script_generator_service import (
     TriggerWrongHashChallengeScriptGeneratorService,
 )
@@ -14,7 +17,7 @@ from bitvmx_protocol_library.script_generation.services.script_generation.verifi
 )
 
 
-class BitVMXAbstractSha256ScriptList(BaseModel, ABC):
+class BitVMXAbstractHashScriptList(BaseModel, ABC):
     signature_public_keys: List[str]
     trace_words_lengths: List[int]
     amount_of_bits_wrong_step_search: int
@@ -163,14 +166,19 @@ class BitVMXAbstractSha256ScriptList(BaseModel, ABC):
         raise NotImplementedError
 
 
-class BitVMXWrongHashScriptList(BitVMXAbstractSha256ScriptList):
+class BitVMXWrongHashScriptList(BitVMXAbstractHashScriptList):
     @property
     def script_generator_service(self):
         return TriggerWrongHashChallengeScriptGeneratorService
 
 
-class BitVMXWrongProgramCounterScriptList(BitVMXAbstractSha256ScriptList):
-
+class BitVMXWrongProgramCounterScriptList(BitVMXAbstractHashScriptList):
     @property
     def script_generator_service(self):
         return TriggerWrongProgramCounterChallengeScriptGeneratorService
+
+
+class BitVMXLastHashEquivocationScriptList(BitVMXAbstractHashScriptList):
+    @property
+    def script_generator_service(self):
+        return TriggerLastHashEquivocationChallengeScriptGeneratorService

@@ -12,25 +12,14 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_private_dto import (
     BitVMXProtocolVerifierPrivateDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_execution_trace_witness_service import (
-    GetExecutionTraceWitnessService,
-)
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_full_choice_witness_service import (
-    GetFullChoiceWitnessService,
-)
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_hash_publication_witness_service import (
-    GetHashPublicationWitnessService,
-)
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
 )
 
 
-class TriggerNoHaltInHaltStepChallengeTransactionService:
+class TriggerLastHashEquivocationChallengeTransactionService:
     def __init__(self, verifier_private_key):
-        self.get_choice_witness_service = GetFullChoiceWitnessService()
-        self.get_execution_trace_witness_service = GetExecutionTraceWitnessService()
-        self.get_hash_publication_witness_service = GetHashPublicationWitnessService()
+        pass
 
     def __call__(
         self,
@@ -45,26 +34,25 @@ class TriggerNoHaltInHaltStepChallengeTransactionService:
             public_key=bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
 
-        current_script_index = (
-            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_no_halt_in_halt_step_challenge_index()
+        current_index = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_last_hash_equivocation_challenge_index(
+            choice=bitvmx_protocol_verifier_dto.first_wrong_step
         )
 
-        current_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list[
-            current_script_index
-        ]
-
-        trigger_no_halt_in_halt_step_control_block = ControlBlock(
+        last_hash_equivocation_control_block = ControlBlock(
             bitvmx_protocol_setup_properties_dto.unspendable_public_key,
             scripts=trigger_challenge_taptree,
-            index=current_script_index,
+            index=current_index,
             is_odd=trigger_challenge_scripts_address.is_odd(),
         )
 
         private_key = PrivateKey(
             b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.verifier_signature_private_key)
         )
+        current_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list[
+            current_index
+        ]
 
-        trigger_input_equivocation_signature = private_key.sign_taproot_input(
+        last_hash_equivocation_challenge_signature = private_key.sign_taproot_input(
             bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_equivocation_tx,
             0,
             [trigger_challenge_scripts_address.to_script_pub_key()],
@@ -80,39 +68,17 @@ class TriggerNoHaltInHaltStepChallengeTransactionService:
             tweak=False,
         )
 
-        trigger_no_halt_in_halt_step_equivocation_signatures = [
-            trigger_input_equivocation_signature
-        ]
+        trigger_last_hash_equivocation_signatures = [last_hash_equivocation_challenge_signature]
 
-        choices_witness = self.get_choice_witness_service(
-            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-        )
-
-        execution_trace_witness = self.get_execution_trace_witness_service(
-            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
-        )
-
-        hash_publication_witness = self.get_hash_publication_witness_service(
-            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
-        )
-
-        trigger_no_halt_in_halt_step_witness = (
-            execution_trace_witness.opcode
-            + execution_trace_witness.read_2_value
-            + execution_trace_witness.read_1_value
-            + hash_publication_witness.halt_step
-            + choices_witness
-        )
-
-        # trigger_no_halt_in_halt_step_witness = execution_trace_witness.opcode
+        trigger_last_hash_equivocation_witness = []
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_equivocation_tx.witnesses.append(
             TxWitnessInput(
-                trigger_no_halt_in_halt_step_witness
-                + trigger_no_halt_in_halt_step_equivocation_signatures
+                trigger_last_hash_equivocation_witness
+                + trigger_last_hash_equivocation_signatures
                 + [
                     current_script.to_hex(),
-                    trigger_no_halt_in_halt_step_control_block.to_hex(),
+                    last_hash_equivocation_control_block.to_hex(),
                 ]
             )
         )
@@ -122,7 +88,7 @@ class TriggerNoHaltInHaltStepChallengeTransactionService:
         )
 
         print(
-            "Trigger no halt in halt step challenge transaction: "
+            "Trigger last hash equivocation challenge transaction: "
             + bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_equivocation_tx.get_txid()
         )
         return bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_equivocation_tx
