@@ -111,7 +111,7 @@ class GenerateSignaturesService:
             )
             search_choice_signatures.append(current_search_choice_signature)
 
-        trace_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script.get_taproot_address(
+        trace_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script_list.get_taproot_address(
             self.destroyed_public_key
         )
         trace_signature = self.private_key.sign_taproot_input(

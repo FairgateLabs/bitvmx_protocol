@@ -86,7 +86,7 @@ class TransactionGeneratorFromPublicKeysService:
         search_hash_tx_list = []
         search_choice_tx_list = []
 
-        trace_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script.get_taproot_address(
+        trace_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script_list.get_taproot_address(
             destroyed_public_key
         )
 

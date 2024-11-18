@@ -22,6 +22,9 @@ from bitvmx_protocol_library.script_generation.services.script_generation.prover
 from bitvmx_protocol_library.script_generation.services.script_generation.prover.hash_result_script_generator_service import (
     HashResultScriptGeneratorService,
 )
+from bitvmx_protocol_library.script_generation.services.script_generation.prover.trigger_wrong_trace_step_script_generator_service import (
+    TriggerWrongTraceStepScriptGeneratorService,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.verifier.commit_read_search_choice_script_generator_service import (
     CommitReadSearchChoiceScriptGeneratorService,
 )
@@ -134,6 +137,9 @@ class BitVMXBitcoinScriptsGeneratorService:
         self.trigger_no_halt_in_halt_step_challenge_script_generator_service = (
             TriggerNoHaltInHaltStepChallengeScriptGeneratorService()
         )
+        self.trigger_wrong_trace_step_script_generator_service = (
+            TriggerWrongTraceStepScriptGeneratorService()
+        )
 
     def __call__(
         self,
@@ -223,6 +229,12 @@ class BitVMXBitcoinScriptsGeneratorService:
             ][
                 0
             ],
+        )
+
+        trigger_wrong_trace_step_script = self.trigger_wrong_trace_step_script_generator_service(
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+            ]
         )
 
         trigger_execution_script = self.verifier_challenge_execution_script_generator_service(
@@ -560,6 +572,7 @@ class BitVMXBitcoinScriptsGeneratorService:
             hash_read_search_scripts=hash_read_search_scripts,
             choice_read_search_scripts=choice_read_search_scripts,
             read_trace_script=read_trace_script,
+            trigger_wrong_trace_step_script=trigger_wrong_trace_step_script,
             trigger_read_wrong_hash_challenge_scripts=trigger_read_wrong_hash_challenge_scripts,
             trigger_wrong_value_address_read_1_challenge_script=trigger_wrong_value_address_read_1_challenge_script,
             trigger_wrong_value_address_read_2_challenge_script=trigger_wrong_value_address_read_2_challenge_script,
