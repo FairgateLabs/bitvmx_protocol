@@ -9,17 +9,18 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_full_choice_witness_service import (
-    GetFullChoiceWitnessService,
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_full_verifier_choice_witness_service import (
+    GetFullVerifierChoiceWitnessService,
 )
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
+    transaction_info_service,
 )
 
 
 class TriggerWrongTraceStepTransactionService:
     def __init__(self):
-        self.get_full_choice_witness_service = GetFullChoiceWitnessService()
+        self.get_full_verifier_choice_witness_service = GetFullVerifierChoiceWitnessService()
 
     def __call__(
         self,
@@ -67,11 +68,30 @@ class TriggerWrongTraceStepTransactionService:
             tweak=False,
         )
 
+        trigger_protocol_tx = transaction_info_service(
+            tx_id=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_protocol_tx.get_txid()
+        )
+
+        trigger_protocol_witness = trigger_protocol_tx.inputs[0].witness
+        halt_step_witness_length = 2 * len(
+            bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.halt_step_public_keys
+        )
+        verifier_halt_step_witness = trigger_protocol_witness[
+            halt_step_witness_length : 2 * halt_step_witness_length
+        ]
+
+        full_choice_witness = self.get_full_verifier_choice_witness_service(
+            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto
+        )
+
+        trigger_wrong_trace_step_witness = verifier_halt_step_witness + full_choice_witness
+
         trigger_wrong_trace_step_signatures = [trigger_wrong_trace_step_signature]
 
         bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trace_tx.witnesses.append(
             TxWitnessInput(
-                trigger_wrong_trace_step_signatures
+                trigger_wrong_trace_step_witness
+                + trigger_wrong_trace_step_signatures
                 + [
                     current_script.to_hex(),
                     trigger_wrong_trace_step_control_block.to_hex(),

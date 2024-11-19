@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
@@ -16,11 +16,11 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
     BitVMXProtocolVerifierDTO,
 )
-from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_protocol_script_generator_service import (
-    TriggerProtocolScriptGeneratorService,
-)
 from bitvmx_protocol_library.winternitz_keys_handling.functions.witness_functions import (
     decrypt_first_item,
+)
+from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_nibbles_service import (
+    GenerateWitnessFromInputNibblesService,
 )
 from blockchain_query_services.entities.transaction_info_service.transaction_info_bo import (
     TransactionInfoBO,
@@ -32,8 +32,11 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 
 class HashResultWitness(BaseModel):
     hash_result: str
+    hash_result_witness: List[str]
     input_hex: Optional[str] = None
+    input_hex_witness: Optional[List[str]] = None
     halt_step: str
+    halt_step_witness: List[str]
 
 
 def _decompose_witness(
@@ -49,13 +52,13 @@ def _decompose_witness(
         bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum
     )
 
-    hash_result, remaining_witness = decrypt_first_item(
+    hash_result, hash_result_witness, remaining_witness = decrypt_first_item(
         witness=current_witness,
         amount_of_nibbles=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash,
         amount_of_bits_per_digit=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit,
         bits_per_digit_checksum=bits_per_digit_checksum,
     )
-    halt_step, remaining_witness = decrypt_first_item(
+    halt_step, halt_step_witness, remaining_witness = decrypt_first_item(
         witness=remaining_witness,
         amount_of_nibbles=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_halt_step,
         amount_of_bits_per_digit=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit,
@@ -66,27 +69,47 @@ def _decompose_witness(
         > 0
     ):
         input_hex = ""
+        input_hex_witness = []
         for i in range(
             bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_input_words
         ):
-            next_input_hex, remaining_witness = decrypt_first_item(
+            next_input_hex, next_input_hex_witness, remaining_witness = decrypt_first_item(
                 witness=remaining_witness,
                 amount_of_nibbles=8,
                 amount_of_bits_per_digit=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit,
                 bits_per_digit_checksum=bits_per_digit_checksum,
             )
             input_hex += next_input_hex
+            input_hex_witness += next_input_hex_witness
     else:
         input_hex = None
+        input_hex_witness = None
 
-    return HashResultWitness(hash_result=hash_result, halt_step=halt_step, input_hex=input_hex)
+    return HashResultWitness(
+        hash_result=hash_result,
+        hash_result_witness=hash_result_witness,
+        halt_step=halt_step,
+        halt_step_witness=halt_step_witness,
+        input_hex=input_hex,
+        input_hex_witness=input_hex_witness,
+    )
+
+
+def _hex_to_witness(hex_str: str, length: int) -> List[int]:
+    int_array = list(map(lambda x: int(x, 16), hex_str))
+    while len(int_array) < length:
+        int_array.insert(0, 0)
+    return int_array
 
 
 class TriggerProtocolTransactionService:
 
-    def __init__(self):
+    def __init__(self, verifier_private_key):
         self.execution_trace_generation_service = ExecutionTraceGenerationService("verifier_files/")
         self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
+        self.generate_witness_from_input_nibbles_service = GenerateWitnessFromInputNibblesService(
+            verifier_private_key
+        )
 
     def __call__(
         self,
@@ -121,30 +144,50 @@ class TriggerProtocolTransactionService:
             bitvmx_protocol_verifier_dto.published_halt_hash = decomposed_witness.hash_result
             trigger_protocol_signatures = bitvmx_protocol_verifier_dto.trigger_protocol_signatures
 
-            trigger_protocol_script_generator = TriggerProtocolScriptGeneratorService()
-            trigger_protocol_script = trigger_protocol_script_generator(
-                signature_public_keys=bitvmx_protocol_setup_properties_dto.signature_public_keys
+            trigger_protocol_taptree = (
+                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_protocol_scripts_list.to_scripts_tree()
             )
-            trigger_protocol_script_address = (
-                bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
-                    [[trigger_protocol_script]]
-                )
+
+            trigger_protocol_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_protocol_scripts_list.get_taproot_address(
+                public_key=bitvmx_protocol_setup_properties_dto.unspendable_public_key
             )
+
+            current_index = 0
+            current_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_protocol_scripts_list[
+                current_index
+            ]
 
             trigger_protocol_control_block = ControlBlock(
                 bitvmx_protocol_setup_properties_dto.unspendable_public_key,
-                scripts=[[trigger_protocol_script]],
-                index=0,
+                scripts=trigger_protocol_taptree,
+                index=current_index,
                 is_odd=trigger_protocol_script_address.is_odd(),
             )
 
-            trigger_protocol_witness = []
+            verifier_halt_step_witness = self.generate_witness_from_input_nibbles_service(
+                step=2,
+                case=0,
+                input_numbers=list(
+                    reversed(
+                        _hex_to_witness(
+                            hex_str=bitvmx_protocol_verifier_dto.published_halt_step,
+                            length=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_halt_step,
+                        )
+                    )
+                ),
+                bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            )
+
+            prover_halt_step_witness = decomposed_witness.halt_step_witness
+
+            trigger_protocol_witness = prover_halt_step_witness + verifier_halt_step_witness
+
             bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_protocol_tx.witnesses.append(
                 TxWitnessInput(
                     trigger_protocol_witness
                     + trigger_protocol_signatures
                     + [
-                        trigger_protocol_script.to_hex(),
+                        current_script.to_hex(),
                         trigger_protocol_control_block.to_hex(),
                     ]
                 )

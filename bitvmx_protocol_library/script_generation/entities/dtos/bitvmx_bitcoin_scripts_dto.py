@@ -41,7 +41,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     input_2_equivocation_challenge_scripts: BitcoinScriptList
     constants_1_equivocation_challenge_scripts: BitcoinScriptList
     constants_2_equivocation_challenge_scripts: BitcoinScriptList
-    cached_trigger_challenge_address: Dict[str, str] = Field(default_factory=dict)
+    cached_trigger_trace_challenge_address: Dict[str, str] = Field(default_factory=dict)
     hash_read_search_scripts: List[BitcoinScript]
     choice_read_search_scripts: List[BitcoinScript]
     read_trace_script: BitcoinScript
@@ -101,7 +101,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         super().__init__(**data)
 
     @property
-    def trigger_challenge_scripts_list(self) -> BitcoinScriptList:
+    def trigger_trace_challenge_scripts_list(self) -> BitcoinScriptList:
         return (
             self.trigger_challenge_scripts
             + self.wrong_hash_challenge_script_list.script_list()
@@ -117,6 +117,10 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         )
 
     @property
+    def trigger_protocol_scripts_list(self) -> BitcoinScriptList:
+        return BitcoinScriptList(self.trigger_protocol_script)
+
+    @property
     def trace_script_list(self) -> BitcoinScriptList:
         return BitcoinScriptList([self.trace_script, self.trigger_wrong_trace_step_script])
 
@@ -128,16 +132,20 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     def trigger_wrong_trace_step_index() -> int:
         return 1
 
-    def trigger_challenge_address(self, destroyed_public_key: PublicKey) -> P2trAddress:
-        if destroyed_public_key.to_hex() in self.cached_trigger_challenge_address:
-            return P2trAddress(self.cached_trigger_challenge_address[destroyed_public_key.to_hex()])
-        trigger_challenge_address = self.trigger_challenge_scripts_list.get_taproot_address(
-            public_key=destroyed_public_key
+    def trigger_trace_challenge_address(self, destroyed_public_key: PublicKey) -> P2trAddress:
+        if destroyed_public_key.to_hex() in self.cached_trigger_trace_challenge_address:
+            return P2trAddress(
+                self.cached_trigger_trace_challenge_address[destroyed_public_key.to_hex()]
+            )
+        trigger_trace_challenge_address = (
+            self.trigger_trace_challenge_scripts_list.get_taproot_address(
+                public_key=destroyed_public_key
+            )
         )
-        self.cached_trigger_challenge_address[destroyed_public_key.to_hex()] = (
-            trigger_challenge_address.to_string()
+        self.cached_trigger_trace_challenge_address[destroyed_public_key.to_hex()] = (
+            trigger_trace_challenge_address.to_string()
         )
-        return trigger_challenge_address
+        return trigger_trace_challenge_address
 
     @property
     def trigger_read_challenge_scripts_list(self) -> BitcoinScriptList:
@@ -180,7 +188,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return BitcoinScriptList(self.choice_read_search_scripts[iteration])
 
     def trigger_challenge_taptree(self):
-        return self.trigger_challenge_scripts_list.to_scripts_tree()
+        return self.trigger_trace_challenge_scripts_list.to_scripts_tree()
 
     def trigger_read_challenge_taptree(self):
         return self.trigger_read_challenge_scripts_list.to_scripts_tree()

@@ -128,7 +128,7 @@ class PublishChoiceReadSearchTransactionService:
         )
 
         if iteration == 0:
-            current_read_choice_search_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_address(
+            current_read_choice_search_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_trace_challenge_address(
                 bitvmx_protocol_setup_properties_dto.unspendable_public_key
             )
             current_read_choice_script_index = (
@@ -144,7 +144,7 @@ class PublishChoiceReadSearchTransactionService:
                 is_odd=current_read_choice_search_scripts_address.is_odd(),
             )
 
-            current_choice_read_search_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list[
+            current_choice_read_search_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_trace_challenge_scripts_list[
                 current_read_choice_script_index
             ]
 

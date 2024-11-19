@@ -90,8 +90,8 @@ class GeneratePublicKeysController:
                 bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
             )
         )
-        print("Call compute trigger challenge address: " + str(time() - init_time))
-        bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_address(
+        print("Call compute trigger trace challenge address: " + str(time() - init_time))
+        bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_trace_challenge_address(
             destroyed_public_key=bitvmx_protocol_setup_properties_dto.unspendable_public_key,
         )
         print("Call transactions time: " + str(time() - init_time))

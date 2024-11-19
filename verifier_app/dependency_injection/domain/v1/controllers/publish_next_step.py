@@ -34,9 +34,9 @@ from verifier_app.domain.controllers.v1.next_step.publish_next_step_controller i
 class PublishNextStepControllers(containers.DeclarativeContainer):
     bitvmx_protocol = providers.Singleton(
         PublishNextStepController,
-        trigger_protocol_transaction_service=TriggerProtocolTransactionService(),
         verifier_challenge_detection_service=VerifierChallengeDetectionService(),
         verifier_read_challenge_detection_service=VerifierReadChallengeDetectionService(),
+        trigger_protocol_transaction_service_class=TriggerProtocolTransactionService,
         publish_choice_search_transaction_service_class=PublishChoiceSearchTransactionService,
         publish_choice_read_search_transaction_service_class=PublishChoiceReadSearchTransactionService,
         protocol_properties=protocol_properties,

@@ -20,6 +20,8 @@ class TriggerProtocolScriptGeneratorService:
         signature_public_keys: List[str],
         prover_halt_step_public_keys: List[str],
         verifier_halt_step_public_keys: List[str],
+        amount_of_nibbles_halt_step: int,
+        bits_per_digit_checksum: int,
     ):
         script = BitcoinScript()
 
@@ -30,13 +32,13 @@ class TriggerProtocolScriptGeneratorService:
                 [PublicKey(hex_str=signature_public_key).to_x_only_hex(), "OP_CHECKSIGVERIFY"]
             )
 
-        # self.confirm_nibbles_script_generator_service(
-        #     script,
-        #     prover_trace_public_keys[i],
-        #     verifier_trace_public_keys[i],
-        #     trace_words_lengths[i],
-        #     bits_per_digit_checksum,
-        # )
+        self.confirm_nibbles_script_generator_service(
+            script,
+            prover_halt_step_public_keys,
+            verifier_halt_step_public_keys,
+            amount_of_nibbles_halt_step,
+            bits_per_digit_checksum,
+        )
 
         script.append(1)
         return script

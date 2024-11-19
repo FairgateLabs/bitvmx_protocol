@@ -15,8 +15,8 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_execution_trace_witness_service import (
     GetExecutionTraceWitnessService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_full_choice_witness_service import (
-    GetFullChoiceWitnessService,
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_full_prover_choice_witness_service import (
+    GetFullProverChoiceWitnessService,
 )
 from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_hash_publication_witness_service import (
     GetHashPublicationWitnessService,
@@ -28,7 +28,7 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 
 class TriggerNoHaltInHaltStepChallengeTransactionService:
     def __init__(self, verifier_private_key):
-        self.get_choice_witness_service = GetFullChoiceWitnessService()
+        self.get_choice_witness_service = GetFullProverChoiceWitnessService()
         self.get_execution_trace_witness_service = GetExecutionTraceWitnessService()
         self.get_hash_publication_witness_service = GetHashPublicationWitnessService()
 
@@ -41,7 +41,7 @@ class TriggerNoHaltInHaltStepChallengeTransactionService:
         trigger_challenge_taptree = (
             bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_taptree()
         )
-        trigger_challenge_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list.get_taproot_address(
+        trigger_challenge_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_trace_challenge_scripts_list.get_taproot_address(
             public_key=bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
 
@@ -49,7 +49,7 @@ class TriggerNoHaltInHaltStepChallengeTransactionService:
             bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_no_halt_in_halt_step_challenge_index()
         )
 
-        current_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list[
+        current_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_trace_challenge_scripts_list[
             current_script_index
         ]
 

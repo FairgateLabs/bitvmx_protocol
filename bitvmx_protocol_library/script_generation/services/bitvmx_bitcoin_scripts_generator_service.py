@@ -169,6 +169,8 @@ class BitVMXBitcoinScriptsGeneratorService:
             signature_public_keys=signature_public_keys,
             prover_halt_step_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.halt_step_public_keys,
             verifier_halt_step_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.halt_step_public_keys,
+            amount_of_nibbles_halt_step=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_halt_step,
+            bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
         hash_search_scripts = []
@@ -236,15 +238,22 @@ class BitVMXBitcoinScriptsGeneratorService:
         )
 
         trigger_wrong_trace_step_script = self.trigger_wrong_trace_step_script_generator_service(
-            signature_public_keys=[bitvmx_protocol_setup_properties_dto.prover_signature_public_key]
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.prover_signature_public_key
+            ],
+            verifier_halt_step_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.halt_step_public_keys,
+            amount_of_nibbles_halt_step=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_halt_step,
+            bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            amount_of_bits_wrong_step_search=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            choice_search_verifier_public_keys_list=bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list,
         )
 
         trigger_execution_script = self.verifier_challenge_execution_script_generator_service(
-            bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
-            bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
-            signature_public_keys,
-            trace_words_lengths,
-            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            prover_trace_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
+            verifier_trace_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.trace_verifier_public_keys,
+            signature_public_keys=signature_public_keys,
+            trace_words_lengths=trace_words_lengths,
+            bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
         trigger_challenge_scripts = BitcoinScriptList(trigger_execution_script)
