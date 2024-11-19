@@ -165,7 +165,11 @@ class BitVMXBitcoinScriptsGeneratorService:
             bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
-        trigger_protocol_script = self.trigger_protocol_script_generator(signature_public_keys)
+        trigger_protocol_script = self.trigger_protocol_script_generator(
+            signature_public_keys=signature_public_keys,
+            prover_halt_step_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.halt_step_public_keys,
+            verifier_halt_step_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.halt_step_public_keys,
+        )
 
         hash_search_scripts = []
         choice_search_scripts = []
