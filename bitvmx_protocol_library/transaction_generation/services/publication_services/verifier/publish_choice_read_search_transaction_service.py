@@ -416,7 +416,6 @@ class PublishChoiceReadSearchTransactionService:
                 ):
                     bad_hash_search_target = sorted_published_indexes[i + 1] - 1
                 i += 1
-        return 1023, previous_published_read_hashes_dict
         return (
             min(bad_hash_search_target, regular_read_search_target),
             previous_published_read_hashes_dict,
