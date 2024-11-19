@@ -267,9 +267,14 @@ class GenerateSignaturesService:
             )
             read_search_choice_signatures.append(current_read_search_choice_signature)
 
-        read_trace_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script.get_taproot_address(
-            self.destroyed_public_key
+        read_trace_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script_list.get_taproot_address(
+            public_key=self.destroyed_public_key
         )
+
+        read_trace_index = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script_index()
+        )
+
         read_trace_signature = self.private_key.sign_taproot_input(
             bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_trace_tx,
             0,
@@ -291,7 +296,9 @@ class GenerateSignaturesService:
                 * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
             ],
             script_path=True,
-            tapleaf_script=bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script,
+            tapleaf_script=bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script_list[
+                read_trace_index
+            ],
             sighash=TAPROOT_SIGHASH_ALL,
             tweak=False,
         )

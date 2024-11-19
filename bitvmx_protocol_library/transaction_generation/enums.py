@@ -9,6 +9,7 @@ class TransactionProverStepType(Enum):
     EXECUTION_CHALLENGE = "execution_challenge"
     READ_TRACE = "read_trace"
     TRIGGER_WRONG_TRACE_STEP = "trigger_wrong_trace_step"
+    TRIGGER_WRONG_READ_TRACE_STEP = "trigger_wrong_read_trace_step"
 
 
 class TransactionVerifierStepType(Enum):

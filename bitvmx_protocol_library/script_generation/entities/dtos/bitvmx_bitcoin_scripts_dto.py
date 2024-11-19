@@ -46,6 +46,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     choice_read_search_scripts: List[BitcoinScript]
     read_trace_script: BitcoinScript
     trigger_wrong_trace_step_script: BitcoinScript
+    trigger_wrong_read_trace_step_script: BitcoinScript
     trigger_read_wrong_hash_challenge_scripts: BitVMXWrongHashScriptList
     trigger_wrong_value_address_read_1_challenge_script: BitcoinScript
     trigger_wrong_value_address_read_2_challenge_script: BitcoinScript
@@ -130,6 +131,20 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
 
     @staticmethod
     def trigger_wrong_trace_step_index() -> int:
+        return 1
+
+    @property
+    def read_trace_script_list(self) -> BitcoinScriptList:
+        return BitcoinScriptList(
+            [self.read_trace_script, self.trigger_wrong_read_trace_step_script]
+        )
+
+    @staticmethod
+    def read_trace_script_index() -> int:
+        return 0
+
+    @staticmethod
+    def trigger_wrong_read_trace_step_index() -> int:
         return 1
 
     def trigger_trace_challenge_address(self, destroyed_public_key: PublicKey) -> P2trAddress:
@@ -555,6 +570,14 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         trigger_wrong_trace_step_script: BitcoinScript,
     ) -> str:
         return BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=trigger_wrong_trace_step_script)
+
+    @field_serializer("trigger_wrong_read_trace_step_script", when_used="always")
+    def serialize_trigger_wrong_read_trace_step_script(
+        trigger_wrong_read_trace_step_script: BitcoinScript,
+    ) -> str:
+        return BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(
+            script=trigger_wrong_read_trace_step_script
+        )
 
     # @field_serializer("trigger_read_challenge_scripts", when_used="always")
     # def serialize_trigger_read_challenge_scripts(
