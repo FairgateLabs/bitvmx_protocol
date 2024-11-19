@@ -41,7 +41,7 @@ class TriggerLastHashEquivocationChallengeTransactionService:
         trigger_challenge_taptree = (
             bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_taptree()
         )
-        trigger_challenge_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list.get_taproot_address(
+        trigger_challenge_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_trace_challenge_scripts_list.get_taproot_address(
             public_key=bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
 
@@ -73,7 +73,7 @@ class TriggerLastHashEquivocationChallengeTransactionService:
         private_key = PrivateKey(
             b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.verifier_signature_private_key)
         )
-        current_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list[
+        current_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_trace_challenge_scripts_list[
             current_index
         ]
 

@@ -64,7 +64,9 @@ class VerifyVerifierSignaturesService:
             )
 
         script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script
-        script_address = self.unspendable_public_key.get_taproot_address([[script]])
+        script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script_list.get_taproot_address(
+            public_key=self.unspendable_public_key
+        )
 
         self.verify_signature_service(
             tx=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trace_tx,

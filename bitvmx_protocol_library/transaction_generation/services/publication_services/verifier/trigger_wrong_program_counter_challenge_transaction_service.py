@@ -46,7 +46,7 @@ class TriggerWrongProgramCounterChallengeTransactionService:
         trigger_challenge_taptree = (
             bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_taptree()
         )
-        trigger_challenge_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_address(
+        trigger_challenge_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_trace_challenge_address(
             destroyed_public_key=bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
 
@@ -80,7 +80,7 @@ class TriggerWrongProgramCounterChallengeTransactionService:
             b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.verifier_signature_private_key)
         )
 
-        current_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list[
+        current_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_trace_challenge_scripts_list[
             bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_wrong_program_counter_challenge_index(
                 choice=bitvmx_protocol_verifier_dto.first_wrong_step
             )

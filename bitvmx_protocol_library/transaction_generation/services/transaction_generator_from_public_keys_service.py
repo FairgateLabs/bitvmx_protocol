@@ -86,7 +86,7 @@ class TransactionGeneratorFromPublicKeysService:
         search_hash_tx_list = []
         search_choice_tx_list = []
 
-        trace_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script.get_taproot_address(
+        trace_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script_list.get_taproot_address(
             destroyed_public_key
         )
 
@@ -120,7 +120,7 @@ class TransactionGeneratorFromPublicKeysService:
             search_choice_tx_list.append(current_tx)
             previous_tx_id = current_tx.get_txid()
 
-        trigger_challenge_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_challenge_address(
+        trigger_challenge_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_trace_challenge_address(
             destroyed_public_key=destroyed_public_key
         )
 

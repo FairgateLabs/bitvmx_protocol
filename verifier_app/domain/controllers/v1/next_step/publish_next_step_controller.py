@@ -35,9 +35,9 @@ class PublishNextStepController:
 
     def __init__(
         self,
-        trigger_protocol_transaction_service,
         verifier_challenge_detection_service,
         verifier_read_challenge_detection_service,
+        trigger_protocol_transaction_service_class,
         publish_choice_search_transaction_service_class,
         publish_choice_read_search_transaction_service_class,
         protocol_properties,
@@ -46,9 +46,9 @@ class PublishNextStepController:
         bitvmx_protocol_setup_properties_dto_persistence: BitVMXProtocolSetupPropertiesDTOPersistenceInterface,
         bitvmx_protocol_verifier_dto_persistence: BitVMXProtocolVerifierDTOPersistenceInterface,
     ):
-        self.trigger_protocol_transaction_service = trigger_protocol_transaction_service
         self.verifier_challenge_detection_service = verifier_challenge_detection_service
         self.verifier_read_challenge_detection_service = verifier_read_challenge_detection_service
+        self.trigger_protocol_transaction_service_class = trigger_protocol_transaction_service_class
         self.publish_choice_search_transaction_service_class = (
             publish_choice_search_transaction_service_class
         )
@@ -87,7 +87,13 @@ class PublishNextStepController:
                 bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.hash_result_tx.get_txid()
             )
         ):
-            last_confirmed_step_tx = self.trigger_protocol_transaction_service(
+            winternitz_verifier_private_key = PrivateKey(
+                b=bytes.fromhex(bitvmx_protocol_verifier_private_dto.winternitz_private_key)
+            )
+            trigger_protocol_transaction_service = self.trigger_protocol_transaction_service_class(
+                verifier_private_key=winternitz_verifier_private_key
+            )
+            last_confirmed_step_tx = trigger_protocol_transaction_service(
                 hash_result_transaction=hash_result_transaction,
                 bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
                 bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,

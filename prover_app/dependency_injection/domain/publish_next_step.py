@@ -18,6 +18,9 @@ from bitvmx_protocol_library.transaction_generation.services.publication_service
 from bitvmx_protocol_library.transaction_generation.services.publication_services.prover.publish_trace_transaction_service import (
     PublishTraceTransactionService,
 )
+from bitvmx_protocol_library.transaction_generation.services.publication_services.prover.trigger_wrong_trace_step_transaction_service import (
+    TriggerWrongTraceStepTransactionService,
+)
 from blockchain_query_services.common.transaction_published_service import (
     TransactionPublishedService,
 )
@@ -42,6 +45,7 @@ class PublishNextStepControllers(containers.DeclarativeContainer):
         publish_hash_transaction_service_class=PublishHashTransactionService,
         publish_hash_search_transaction_service_class=PublishHashSearchTransactionService,
         publish_trace_transaction_service_class=PublishTraceTransactionService,
+        trigger_wrong_trace_step_transaction_service_class=TriggerWrongTraceStepTransactionService,
         execution_challenge_transaction_service_class=ExecutionChallengeTransactionService,
         publish_hash_read_search_transaction_service_class=PublishHashReadSearchTransactionService,
         publish_read_trace_transaction_service_class=PublishReadTraceTransactionService,
