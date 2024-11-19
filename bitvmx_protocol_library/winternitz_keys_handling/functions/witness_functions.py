@@ -19,4 +19,5 @@ def decrypt_first_item(
     )
     value = "".join(map(lambda x: "0" if x == "" else x[1], witness[: n0 * 2][1::2]))[::-1]
     remaining_witness = witness[n0 * 2 + n1 * 2 :]
-    return value, remaining_witness
+    value_witness = witness[: n0 * 2 + n1 * 2]
+    return value, value_witness, remaining_witness

@@ -149,7 +149,7 @@ class TriggerExecutionChallengeTransactionService:
                 trigger_execution_challenge_signature
                 + trigger_challenge_witness
                 + [
-                    bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list[0].to_hex(),
+                    bitvmx_bitcoin_scripts_dto.trigger_trace_challenge_scripts_list[0].to_hex(),
                     challenge_scripts_control_block.to_hex(),
                 ]
             )

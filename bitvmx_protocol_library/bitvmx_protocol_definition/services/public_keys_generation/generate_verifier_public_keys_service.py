@@ -26,6 +26,11 @@ class GenerateVerifierPublicKeysService:
 
     def __call__(self, bitvmx_protocol_properties_dto: BitVMXProtocolPropertiesDTO):
 
+        halt_step_keys = self.verifier_winternitz_keys_nibbles_service(
+            step=2, case=0, n0=bitvmx_protocol_properties_dto.amount_of_nibbles_halt_step
+        )
+        halt_step_public_keys = list(map(lambda key_list: key_list[-1], halt_step_keys))
+
         choice_search_verifier_public_keys_list = []
         for iter_count in range(
             bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
@@ -103,6 +108,7 @@ class GenerateVerifierPublicKeysService:
             )
 
         return BitVMXVerifierWinternitzPublicKeysDTO(
+            halt_step_public_keys=halt_step_public_keys,
             choice_search_verifier_public_keys_list=choice_search_verifier_public_keys_list,
             trace_verifier_public_keys=trace_verifier_public_keys,
             choice_read_search_verifier_public_keys_list=choice_read_search_verifier_public_keys_list,

@@ -94,7 +94,7 @@ class GenericTriggerReadConstantEquivocationChallengeTransactionService:
             )
         )
 
-        current_script = bitvmx_bitcoin_scripts_dto.trigger_challenge_scripts_list[
+        current_script = bitvmx_bitcoin_scripts_dto.trigger_trace_challenge_scripts_list[
             current_script_index
         ]
 
