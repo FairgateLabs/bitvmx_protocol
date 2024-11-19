@@ -62,12 +62,26 @@ class PublishChoiceReadSearchTransactionService:
             for i in range(
                 1,
                 bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
-                + 2,
+                + 1,
             ):
                 current_step = first_iteration_increment * i - 1
                 bitvmx_protocol_verifier_dto.published_read_hashes_dict[current_step] = (
                     bitvmx_protocol_verifier_dto.published_hashes_dict[current_step]
                 )
+            last_index = (
+                first_iteration_increment
+                * (
+                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
+                    + 1
+                )
+                - 1
+            )
+            bitvmx_protocol_verifier_dto.published_read_hashes_dict[last_index] = (
+                bitvmx_protocol_verifier_dto.published_halt_hash
+            )
+            bitvmx_protocol_verifier_dto.published_hashes_dict[last_index] = (
+                bitvmx_protocol_verifier_dto.published_halt_hash
+            )
 
         iteration = len(bitvmx_protocol_verifier_dto.read_search_choices)
 

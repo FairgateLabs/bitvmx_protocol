@@ -247,7 +247,7 @@ class TransactionGeneratorFromPublicKeysService:
         previous_tx_id = read_search_choice_tx_list[-1].get_txid()
         current_output_amount = trigger_challenge_output_amount
 
-        read_trace_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script.get_taproot_address(
+        read_trace_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script_list.get_taproot_address(
             destroyed_public_key
         )
 
