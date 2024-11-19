@@ -232,9 +232,7 @@ class BitVMXBitcoinScriptsGeneratorService:
         )
 
         trigger_wrong_trace_step_script = self.trigger_wrong_trace_step_script_generator_service(
-            signature_public_keys=[
-                bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
-            ]
+            signature_public_keys=[bitvmx_protocol_setup_properties_dto.prover_signature_public_key]
         )
 
         trigger_execution_script = self.verifier_challenge_execution_script_generator_service(

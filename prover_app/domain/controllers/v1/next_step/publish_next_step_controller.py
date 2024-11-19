@@ -4,7 +4,13 @@ from typing import List
 import httpx
 from bitcoinutils.keys import PrivateKey
 
+from bitvmx_protocol_library.bitvmx_execution.services.execution_trace_query_service import (
+    ExecutionTraceQueryService,
+)
 from bitvmx_protocol_library.transaction_generation.enums import TransactionProverStepType
+from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
+    transaction_info_service,
+)
 from prover_app.domain.persistences.interfaces.bitvmx_protocol_prover_dto_persistence_interface import (
     BitVMXProtocolProverDTOPersistenceInterface,
 )
@@ -41,6 +47,7 @@ class PublishNextStepController:
         publish_hash_transaction_service_class,
         publish_hash_search_transaction_service_class,
         publish_trace_transaction_service_class,
+        trigger_wrong_trace_step_transaction_service_class,
         execution_challenge_transaction_service_class,
         publish_hash_read_search_transaction_service_class,
         publish_read_trace_transaction_service_class,
@@ -54,6 +61,9 @@ class PublishNextStepController:
             publish_hash_search_transaction_service_class
         )
         self.publish_trace_transaction_service_class = publish_trace_transaction_service_class
+        self.trigger_wrong_trace_step_transaction_service_class = (
+            trigger_wrong_trace_step_transaction_service_class
+        )
         self.execution_challenge_transaction_service_class = (
             execution_challenge_transaction_service_class
         )
@@ -70,6 +80,7 @@ class PublishNextStepController:
             bitvmx_protocol_prover_private_dto_persistence
         )
         self.bitvmx_protocol_prover_dto_persistence = bitvmx_protocol_prover_dto_persistence
+        self.execution_trace_query_service = ExecutionTraceQueryService("prover_files/")
 
     def __call__(self, setup_uuid: str) -> TransactionProverStepType:
 
@@ -132,18 +143,63 @@ class PublishNextStepController:
                     -1
                 ].get_txid()
             ):
-                publish_trace_transaction_service = self.publish_trace_transaction_service_class(
-                    wintertniz_private_key
+                previous_choice_tx = bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_choice_tx_list[
+                    -1
+                ].get_txid()
+                previous_choice_transaction_info = transaction_info_service(
+                    tx_id=previous_choice_tx
                 )
-                last_confirmed_step_tx = publish_trace_transaction_service(
-                    setup_uuid=setup_uuid,
-                    bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-                    bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto,
+                previous_witness = previous_choice_transaction_info.inputs[0].witness
+                while len(previous_witness[0]) == 128:
+                    previous_witness = previous_witness[1:]
+                while len(previous_witness[-1]) == 128:
+                    previous_witness = previous_witness[:-1]
+                previous_choice_witness = previous_witness[:4]
+                previous_choice = int(previous_witness[1]) if len(previous_witness[1]) > 0 else 0
+                bitvmx_protocol_prover_dto.search_choices.append(previous_choice)
+                last_step = (
+                    self.execution_trace_query_service.get_last_step(setup_uuid=setup_uuid) - 1
                 )
-                bitvmx_protocol_prover_dto.last_confirmed_step_tx_id = (
-                    last_confirmed_step_tx.get_txid()
-                )
-                bitvmx_protocol_prover_dto.last_confirmed_step = TransactionProverStepType.TRACE
+                if last_step < int(
+                    "".join(
+                        map(
+                            lambda x: bin(x)[2:].zfill(
+                                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+                            ),
+                            bitvmx_protocol_prover_dto.search_choices,
+                        )
+                    ),
+                    2,
+                ):
+                    trigger_wrong_trace_step_transaction_service = (
+                        self.trigger_wrong_trace_step_transaction_service_class()
+                    )
+                    last_confirmed_step_tx = trigger_wrong_trace_step_transaction_service(
+                        setup_uuid=setup_uuid,
+                        bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                        bitvmx_protocol_prover_private_dto=bitvmx_protocol_prover_private_dto,
+                    )
+                    bitvmx_protocol_prover_dto.last_confirmed_step_tx_id = (
+                        last_confirmed_step_tx.get_txid()
+                    )
+                    bitvmx_protocol_prover_dto.last_confirmed_step = (
+                        TransactionProverStepType.TRIGGER_WRONG_TRACE_STEP
+                    )
+                else:
+                    publish_trace_transaction_service = (
+                        self.publish_trace_transaction_service_class(wintertniz_private_key)
+                    )
+                    last_confirmed_step_tx = publish_trace_transaction_service(
+                        setup_uuid=setup_uuid,
+                        bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                        bitvmx_protocol_prover_dto=bitvmx_protocol_prover_dto,
+                        previous_choice_witness=previous_choice_witness,
+                        previous_choice=previous_choice,
+                    )
+                    bitvmx_protocol_prover_dto.last_confirmed_step_tx_id = (
+                        last_confirmed_step_tx.get_txid()
+                    )
+                    bitvmx_protocol_prover_dto.last_confirmed_step = TransactionProverStepType.TRACE
             else:
                 i = None
                 for i in range(

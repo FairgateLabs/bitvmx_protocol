@@ -1,3 +1,5 @@
+from typing import List
+
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
 
@@ -21,7 +23,6 @@ from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_
 )
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
-    transaction_info_service,
 )
 
 
@@ -42,6 +43,8 @@ class PublishTraceTransactionService:
         setup_uuid: str,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_prover_dto: BitVMXProtocolProverDTO,
+        previous_choice_witness: List[str],
+        previous_choice: int,
     ):
 
         trace_signatures = bitvmx_protocol_prover_dto.trace_signatures
@@ -53,21 +56,21 @@ class PublishTraceTransactionService:
 
         trace_witness = []
 
-        previous_choice_tx = (
-            bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_choice_tx_list[
-                -1
-            ].get_txid()
-        )
-        previous_choice_transaction_info = transaction_info_service(tx_id=previous_choice_tx)
-        previous_witness = previous_choice_transaction_info.inputs[0].witness
-        trace_witness += previous_witness[len(trace_signatures) + 0 : len(trace_signatures) + 4]
-        current_choice = (
-            int(previous_witness[len(trace_signatures) + 1])
-            if len(previous_witness[len(trace_signatures) + 1]) > 0
-            else 0
-        )
-
-        bitvmx_protocol_prover_dto.search_choices.append(current_choice)
+        # previous_choice_tx = (
+        #     bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_choice_tx_list[
+        #         -1
+        #     ].get_txid()
+        # )
+        # previous_choice_transaction_info = transaction_info_service(tx_id=previous_choice_tx)
+        # previous_witness = previous_choice_transaction_info.inputs[0].witness
+        trace_witness += previous_choice_witness
+        # current_choice = (
+        #     int(previous_choice_witness[1])
+        #     if len(previous_choice_witness[1]) > 0
+        #     else 0
+        # )
+        #
+        # bitvmx_protocol_prover_dto.search_choices.append(current_choice)
         first_wrong_step = int(
             "".join(
                 map(
@@ -116,7 +119,7 @@ class PublishTraceTransactionService:
                 + 1
             ),
             case=0,
-            input_number=current_choice,
+            input_number=previous_choice,
             amount_of_bits=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
         )
 
