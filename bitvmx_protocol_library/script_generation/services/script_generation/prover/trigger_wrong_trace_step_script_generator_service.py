@@ -91,15 +91,15 @@ class TriggerWrongTraceStepScriptGeneratorService:
                 script.extend(["OP_DUP", "OP_ADD"])
             script.append("OP_ADD")
 
-        script.extend([5, "OP_PICK", 2, "OP_PICK", "OP_LESSTHAN"])
+        script.extend([5, "OP_PICK", 3, "OP_PICK", "OP_LESSTHAN"])
 
         script.append("OP_IF")
 
         script.extend(["OP_2DROP", "OP_2DROP", "OP_2DROP"])
         script.append("OP_ELSE")
 
-        script.extend([5, "OP_ROLL", 2, "OP_ROLL", "OP_EQUALVERIFY"])
-        script.extend([3, "OP_PICK", 1, "OP_PICK", "OP_LESSTHAN"])
+        script.extend([5, "OP_ROLL", 3, "OP_ROLL", "OP_EQUALVERIFY"])
+        script.extend([3, "OP_PICK", 2, "OP_PICK", "OP_LESSTHAN"])
 
         script.append("OP_IF")
 
@@ -107,9 +107,9 @@ class TriggerWrongTraceStepScriptGeneratorService:
 
         script.append("OP_ELSE")
 
-        script.extend([3, "OP_ROLL", 1, "OP_ROLL", "OP_EQUALVERIFY"])
+        script.extend([3, "OP_ROLL", 2, "OP_ROLL", "OP_EQUALVERIFY"])
         script.append("OP_LESSTHAN")
-        script.append("OP_EQUALVERIFY")
+        script.append("OP_VERIFY")
 
         script.append("OP_ENDIF")
 

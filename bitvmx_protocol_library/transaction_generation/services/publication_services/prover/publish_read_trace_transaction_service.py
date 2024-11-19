@@ -59,7 +59,12 @@ class PublishReadTraceTransactionService:
         previous_choice_transaction_info = transaction_info_service(tx_id=previous_choice_tx)
         previous_witness = previous_choice_transaction_info.inputs[0].witness
         read_trace_witness += previous_witness[
-            len(read_trace_signatures) + 0 : len(read_trace_signatures) + 4
+            len(read_trace_signatures)
+            + 0 : len(read_trace_signatures)
+            + (
+                2
+                * bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
+            )
         ]
         current_choice = (
             int(previous_witness[len(read_trace_signatures) + 1])
@@ -123,32 +128,24 @@ class PublishReadTraceTransactionService:
                 bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             )
 
-        read_trace_script = self.execution_trace_script_generator_service(
-            bitvmx_protocol_setup_properties_dto.signature_public_keys,
-            bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.read_trace_prover_public_keys,
-            write_trace_words_lengths,
-            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
-            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
-            bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.choice_read_search_prover_public_keys_list[
-                -1
-            ][
-                0
-            ],
-            bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_read_search_verifier_public_keys_list[
-                -1
-            ][
-                0
-            ],
+        read_trace_taptree = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script_list.to_scripts_tree()
         )
-        read_trace_script_address = (
-            bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
-                [[read_trace_script]]
-            )
+        read_trace_script_index = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script_index()
+        )
+        read_trace_script = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script_list[
+                read_trace_script_index
+            ]
+        )
+        read_trace_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script_list.get_taproot_address(
+            public_key=bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
 
         trace_control_block = ControlBlock(
             bitvmx_protocol_setup_properties_dto.unspendable_public_key,
-            scripts=[[read_trace_script]],
+            scripts=read_trace_taptree,
             index=0,
             is_odd=read_trace_script_address.is_odd(),
         )

@@ -22,6 +22,9 @@ from bitvmx_protocol_library.script_generation.services.script_generation.prover
 from bitvmx_protocol_library.script_generation.services.script_generation.prover.hash_result_script_generator_service import (
     HashResultScriptGeneratorService,
 )
+from bitvmx_protocol_library.script_generation.services.script_generation.prover.trigger_wrong_read_trace_step_script_generator_service import (
+    TriggerWrongReadTraceStepScriptGeneratorService,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.prover.trigger_wrong_trace_step_script_generator_service import (
     TriggerWrongTraceStepScriptGeneratorService,
 )
@@ -140,6 +143,9 @@ class BitVMXBitcoinScriptsGeneratorService:
         self.trigger_wrong_trace_step_script_generator_service = (
             TriggerWrongTraceStepScriptGeneratorService()
         )
+        self.trigger_wrong_read_trace_step_script_generator_service = (
+            TriggerWrongReadTraceStepScriptGeneratorService()
+        )
 
     def __call__(
         self,
@@ -246,6 +252,16 @@ class BitVMXBitcoinScriptsGeneratorService:
             bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
             amount_of_bits_wrong_step_search=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
             choice_search_verifier_public_keys_list=bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list,
+        )
+
+        trigger_wrong_read_trace_step_script = self.trigger_wrong_read_trace_step_script_generator_service(
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.prover_signature_public_key
+            ],
+            bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+            amount_of_bits_wrong_step_search=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
+            choice_search_verifier_public_keys_list=bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list,
+            choice_read_search_verifier_public_keys_list=bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_read_search_verifier_public_keys_list,
         )
 
         trigger_execution_script = self.verifier_challenge_execution_script_generator_service(
@@ -584,6 +600,7 @@ class BitVMXBitcoinScriptsGeneratorService:
             choice_read_search_scripts=choice_read_search_scripts,
             read_trace_script=read_trace_script,
             trigger_wrong_trace_step_script=trigger_wrong_trace_step_script,
+            trigger_wrong_read_trace_step_script=trigger_wrong_read_trace_step_script,
             trigger_read_wrong_hash_challenge_scripts=trigger_read_wrong_hash_challenge_scripts,
             trigger_wrong_value_address_read_1_challenge_script=trigger_wrong_value_address_read_1_challenge_script,
             trigger_wrong_value_address_read_2_challenge_script=trigger_wrong_value_address_read_2_challenge_script,

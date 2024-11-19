@@ -105,15 +105,17 @@ class VerifyVerifierSignaturesService:
                 signature=read_search_hash_signatures[i],
             )
 
-        read_trace_script = (
-            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script
-        )
-        read_trace_script_address = read_trace_script.get_taproot_address(
+        read_trace_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script_list.get_taproot_address(
             self.unspendable_public_key
+        )
+        read_trace_script_index = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script_index()
         )
         self.verify_signature_service(
             tx=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_trace_tx,
-            script=read_trace_script,
+            script=bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.read_trace_script_list[
+                read_trace_script_index
+            ],
             script_address=read_trace_script_address,
             amount=(
                 funding_result_output_amount

@@ -208,7 +208,6 @@ class PublishChoiceSearchTransactionService:
                 2,
             )
         )
-        return len(index_list) - 1, previous_published_hashes_dict
         for j in range(len(index_list)):
             index = index_list[j]
             current_hash = self.execution_trace_query_service(
