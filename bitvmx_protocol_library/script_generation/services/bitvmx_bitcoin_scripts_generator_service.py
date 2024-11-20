@@ -69,6 +69,9 @@ from bitvmx_protocol_library.script_generation.services.script_list_generator_se
 from bitvmx_protocol_library.script_generation.services.script_list_generator_services.verifier.trigger_read_challenge_scripts_generator_service import (
     TriggerReadChallengeScriptsGeneratorService,
 )
+from bitvmx_protocol_library.script_generation.services.script_list_generator_services.verifier.trigger_read_search_equivocation_scripts_generator_service import (
+    TriggerReadSearchEquivocationScriptsGeneratorService,
+)
 from bitvmx_protocol_library.script_generation.services.script_list_generator_services.verifier.trigger_wrong_hash_script_list_generator_service import (
     TriggerWrongHashScriptListGeneratorService,
 )
@@ -145,6 +148,9 @@ class BitVMXBitcoinScriptsGeneratorService:
         )
         self.trigger_wrong_read_trace_step_script_generator_service = (
             TriggerWrongReadTraceStepScriptGeneratorService()
+        )
+        self.trigger_read_search_equivocation_scripts_generator_service = (
+            TriggerReadSearchEquivocationScriptsGeneratorService()
         )
 
     def __call__(
@@ -581,6 +587,11 @@ class BitVMXBitcoinScriptsGeneratorService:
             amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
+        trigger_read_search_equivocation_scripts = self.trigger_read_search_equivocation_scripts_generator_service(
+            choice_search_prover_public_keys_list=bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list,
+            choice_read_search_prover_public_keys_list=bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_read_search_verifier_public_keys_list,
+        )
+
         return BitVMXBitcoinScriptsDTO(
             hash_result_script=hash_result_script,
             trigger_protocol_script=trigger_protocol_script,
@@ -598,6 +609,7 @@ class BitVMXBitcoinScriptsGeneratorService:
             constants_2_equivocation_challenge_scripts=trigger_constant_2_equivocation_challenge_scripts_generator_service,
             hash_read_search_scripts=hash_read_search_scripts,
             choice_read_search_scripts=choice_read_search_scripts,
+            trigger_read_search_equivocation_scripts=trigger_read_search_equivocation_scripts,
             read_trace_script=read_trace_script,
             trigger_wrong_trace_step_script=trigger_wrong_trace_step_script,
             trigger_wrong_read_trace_step_script=trigger_wrong_read_trace_step_script,

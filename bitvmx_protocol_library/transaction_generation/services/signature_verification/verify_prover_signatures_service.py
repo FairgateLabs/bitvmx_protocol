@@ -100,16 +100,16 @@ class VerifyProverSignaturesService:
         )
 
         for i in range(len(bitvmx_prover_signatures_dto.search_choice_signatures) - 1):
-            script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_scripts[
-                i + 1
-            ]
-            script_address = script.get_taproot_address(self.unspendable_public_key)
+            current_read_search_choice_script_list = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_script_list(iteration=i+1)
+            current_read_search_choice_script_address = current_read_search_choice_script_list.get_taproot_address(public_key=self.unspendable_public_key)
+            current_read_search_choice_index = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_script_index(iteration=i+1)
+            current_read_search_choice_script = current_read_search_choice_script_list[current_read_search_choice_index]
             self.verify_signature_service(
                 tx=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_choice_tx_list[
                     i + 1
                 ],
-                script=script,
-                script_address=script_address,
+                script=current_read_search_choice_script,
+                script_address=current_read_search_choice_script_address,
                 amount=funding_result_output_amount
                 - (2 + 2 * len(bitvmx_prover_signatures_dto.search_choice_signatures) + 3 + 2 * i)
                 * bitvmx_protocol_setup_properties_dto.step_fees_satoshis,

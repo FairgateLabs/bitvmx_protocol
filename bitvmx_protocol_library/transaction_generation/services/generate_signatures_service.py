@@ -169,6 +169,10 @@ class GenerateSignaturesService:
                 0
             ]
         )
+
+        trigger_challenge_scripts_list = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_trace_challenge_scripts_list
+        choice_read_search_index = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_read_search_challenge_index()
+
         first_read_search_choice_signature = self.private_key.sign_taproot_input(
             first_read_search_choice_tx,
             0,
@@ -185,9 +189,7 @@ class GenerateSignaturesService:
                 * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
             ],
             script_path=True,
-            tapleaf_script=bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_scripts[
-                0
-            ],
+            tapleaf_script=trigger_challenge_scripts_list[choice_read_search_index],
             sighash=TAPROOT_SIGHASH_ALL,
             tweak=False,
         )
@@ -236,11 +238,10 @@ class GenerateSignaturesService:
             current_read_search_choice_tx = bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_choice_tx_list[
                 i + 1
             ]
-            current_read_search_choice_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_scripts[
-                i + 1
-            ].get_taproot_address(
-                self.destroyed_public_key
-            )
+            current_read_search_choice_script_list = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_script_list(iteration=i+1)
+            current_read_search_choice_script_address = current_read_search_choice_script_list.get_taproot_address(public_key=self.destroyed_public_key)
+            current_read_search_choice_index = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_script_index(iteration=i+1)
+            current_read_search_choice_script = current_read_search_choice_script_list[current_read_search_choice_index]
             current_read_search_choice_signature = self.private_key.sign_taproot_input(
                 current_read_search_choice_tx,
                 0,
@@ -259,9 +260,7 @@ class GenerateSignaturesService:
                     * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
                 ],
                 script_path=True,
-                tapleaf_script=bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_scripts[
-                    i + 1
-                ],
+                tapleaf_script=current_read_search_choice_script,
                 sighash=TAPROOT_SIGHASH_ALL,
                 tweak=False,
             )

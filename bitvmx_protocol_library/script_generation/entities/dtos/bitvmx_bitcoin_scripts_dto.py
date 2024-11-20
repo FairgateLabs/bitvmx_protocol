@@ -44,6 +44,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     cached_trigger_trace_challenge_address: Dict[str, str] = Field(default_factory=dict)
     hash_read_search_scripts: List[BitcoinScript]
     choice_read_search_scripts: List[BitcoinScript]
+    trigger_read_search_equivocation_scripts: List[BitcoinScript]
     read_trace_script: BitcoinScript
     trigger_wrong_trace_step_script: BitcoinScript
     trigger_wrong_read_trace_step_script: BitcoinScript
@@ -172,6 +173,8 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             + self.trigger_wrong_latter_step_2_challenge_script
         )
 
+
+
     def trigger_read_challenge_address(self, destroyed_public_key: PublicKey) -> P2trAddress:
         if destroyed_public_key.to_hex() in self.cached_trigger_read_challenge_address:
             return P2trAddress(
@@ -196,10 +199,12 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         )
 
     @staticmethod
-    def choice_read_search_script_index() -> int:
+    def choice_read_search_script_index(iteration: int) -> int:
+        assert iteration > 0
         return 0
 
     def choice_read_search_script_list(self, iteration: int) -> BitcoinScriptList:
+        assert iteration > 0
         return BitcoinScriptList(self.choice_read_search_scripts[iteration])
 
     def trigger_challenge_taptree(self):
@@ -509,6 +514,19 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
                 map(
                     lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
                     choice_read_search_scripts,
+                )
+            )
+        )
+
+    @field_serializer("trigger_read_search_equivocation_scripts", when_used="always")
+    def serialize_trigger_read_search_equivocation_scripts(
+        trigger_read_search_equivocation_scripts: List[BitcoinScript],
+    ) -> str:
+        return json.dumps(
+            list(
+                map(
+                    lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
+                    trigger_read_search_equivocation_scripts,
                 )
             )
         )

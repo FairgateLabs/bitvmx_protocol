@@ -224,12 +224,14 @@ class TransactionGeneratorFromPublicKeysService:
             )
         )
 
-        choice_read_search_scripts_addresses = list(
-            map(
-                lambda choice_script: choice_script.get_taproot_address(destroyed_public_key),
-                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_scripts,
+        choice_read_search_scripts_addresses = []
+        for i in range(1, len(bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_scripts)):
+            choice_read_search_scripts_addresses.append(
+                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_scripts_address(
+                    destroyed_public_key=destroyed_public_key,
+                    iteration=i,
+                )
             )
-        )
 
         read_search_hash_tx_list = []
         read_search_choice_tx_list = []
@@ -256,7 +258,7 @@ class TransactionGeneratorFromPublicKeysService:
             current_txin = TxInput(previous_tx_id, 0)
             current_output_amount -= bitvmx_protocol_setup_properties_dto.step_fees_satoshis
             # The first one is contained in the trigger challenge taproot
-            current_output_address = choice_read_search_scripts_addresses[i + 1]
+            current_output_address = choice_read_search_scripts_addresses[i]
             current_txout = TxOutput(
                 current_output_amount, current_output_address.to_script_pub_key()
             )
