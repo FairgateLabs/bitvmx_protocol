@@ -2,7 +2,7 @@ import secrets
 from typing import Tuple
 
 from bitcoinutils.keys import PrivateKey
-from bitcoinutils.setup import NETWORK
+from bitcoinutils.setup import get_network
 
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_private_dto import (
     BitVMXProtocolVerifierPrivateDTO,
@@ -24,9 +24,9 @@ class CreateSetupController:
 
     async def __call__(self, setup_uuid: str, network: BitcoinNetwork) -> Tuple[str, str, str]:
         if network == BitcoinNetwork.MUTINYNET:
-            assert NETWORK == "testnet"
+            assert get_network() == "testnet"
         else:
-            assert NETWORK == network.value
+            assert get_network() == network.value
         private_key = PrivateKey(b=secrets.token_bytes(32))
         winternitz_private_key = PrivateKey(b=secrets.token_bytes(32))
         signature_private_key = PrivateKey(b=secrets.token_bytes(32))

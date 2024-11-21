@@ -32,7 +32,10 @@ class CreateSetupWithFundingController:
         controlled_prover_private_key: PrivateKey,
         origin_of_funds_private_key: PrivateKey,
     ) -> str:
-        if not self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+        if (
+            not self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET
+            and not self.common_protocol_properties.network == BitcoinNetwork.REGTEST
+        ):
             raise HTTPException(
                 status_code=404,
                 detail="Endpoint not available for network "
@@ -43,7 +46,17 @@ class CreateSetupWithFundingController:
             amount=initial_amount_of_satoshis + step_fees_satoshis,
             destination_address=origin_of_funds_public_key.get_segwit_address().to_string(),
         )
-        prover_destination_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
+        if self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+            prover_destination_address = "tb1qd28npep0s8frcm3y7dxqajkcy2m40eysplyr9v"
+        elif self.common_protocol_properties.network == BitcoinNetwork.REGTEST:
+            prover_destination_address = (
+                origin_of_funds_private_key.get_public_key().get_segwit_address().to_string()
+            )
+        else:
+            raise Exception(
+                "Prover destination address should be set for network "
+                + self.common_protocol_properties.network.value
+            )
         signature_private_key = PrivateKey(b=secrets.token_bytes(32))
         # This is not architecturally correct, we should call the setup controller (as it was before)
         # Nevertheless, it's done like this to ensure we check the whole flow while developing so don't change it

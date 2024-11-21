@@ -35,6 +35,26 @@ services:
     networks:
       - bitvmx-net
 
+  bitcoin-regtest-node:
+    build:
+      context: .
+      target: kylemanna/bitcoind
+    image: kylemanna/bitcoind
+    ports:
+      - "8443:8443"
+    networks:
+      - bitvmx-net
+#    environment:
+#      - DISABLEWALLET=0
+    volumes:
+      - type: bind
+        source: regtestbitcoin.conf
+        target: /bitcoin/.bitcoin/bitcoin.conf
+#    volumes:
+#      - type: bind
+#        source: ./bitcoin_data
+#        target: /root/.bitcoin
+
   format:
     build:
       context: .

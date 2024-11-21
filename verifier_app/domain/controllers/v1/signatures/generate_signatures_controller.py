@@ -1,7 +1,7 @@
 from time import time
 
 from bitcoinutils.keys import PrivateKey
-from bitcoinutils.setup import NETWORK
+from bitcoinutils.setup import get_network
 
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
     BitVMXProtocolVerifierDTO,
@@ -58,9 +58,9 @@ class GenerateSignaturesController:
     ) -> BitVMXVerifierSignaturesDTO:
         init_time = time()
         if self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-            assert NETWORK == "testnet"
+            assert get_network() == "testnet"
         else:
-            assert NETWORK == self.common_protocol_properties.network.value
+            assert get_network() == self.common_protocol_properties.network.value
 
         bitvmx_protocol_verifier_private_dto = (
             self.bitvmx_protocol_verifier_private_dto_persistence.get(setup_uuid=setup_uuid)

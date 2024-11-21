@@ -5,3 +5,4 @@ class BitcoinNetwork(Enum):
     MUTINYNET = "mutinynet"
     TESTNET = "testnet"
     MAINNET = "mainnet"
+    REGTEST = "regtest"
