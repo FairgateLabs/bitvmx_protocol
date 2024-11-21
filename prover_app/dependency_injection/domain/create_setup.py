@@ -17,9 +17,9 @@ from bitvmx_protocol_library.transaction_generation.services.transaction_generat
 )
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
+    faucet_service,
     transaction_info_service,
 )
-from blockchain_query_services.services.mutinynet_api.faucet_service import FaucetService
 from prover_app.dependency_injection.persistences.bitvmx_protocol_prover_dto_persistences import (
     BitVMXProtocolProverDTOPersistences,
 )
@@ -38,7 +38,7 @@ class CreateSetupControllers(containers.DeclarativeContainer):
         broadcast_transaction_service=broadcast_transaction_service,
         transaction_info_service=transaction_info_service,
         transaction_generator_from_public_keys_service=TransactionGeneratorFromPublicKeysService(),
-        faucet_service=FaucetService(),
+        faucet_service=faucet_service,
         bitvmx_bitcoin_scripts_generator_service=BitVMXBitcoinScriptsGeneratorService(),
         generate_prover_public_keys_service_class=GenerateProverPublicKeysService,
         verify_verifier_signatures_service_class=VerifyVerifierSignaturesService,

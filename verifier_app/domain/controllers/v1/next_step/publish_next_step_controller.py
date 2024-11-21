@@ -2,7 +2,7 @@ import asyncio
 
 import httpx
 from bitcoinutils.keys import PrivateKey
-from bitcoinutils.setup import NETWORK
+from bitcoinutils.setup import get_network
 
 from bitvmx_protocol_library.enums import BitcoinNetwork
 from bitvmx_protocol_library.transaction_generation.enums import TransactionVerifierStepType
@@ -67,9 +67,9 @@ class PublishNextStepController:
 
     async def __call__(self, setup_uuid: str):
         if self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
-            assert NETWORK == "testnet"
+            assert get_network() == "testnet"
         else:
-            assert NETWORK == self.common_protocol_properties.network.value
+            assert get_network() == self.common_protocol_properties.network.value
 
         bitvmx_protocol_setup_properties_dto = (
             self.bitvmx_protocol_setup_properties_dto_persistence.get(setup_uuid=setup_uuid)
