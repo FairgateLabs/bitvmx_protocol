@@ -23,7 +23,10 @@ class SetupFundPostViewControllerV1:
 
     async def __call__(self, setup_post_view_input: SetupFundPostV1Input) -> SetupFundPostV1Output:
         # sha_256_bitcoin_script = BitcoinScript.from_int_list(script_list=pybitvmbinding.sha_256_script(int(64 / 2)))
-        if not self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+        if (
+            not self.common_protocol_properties.network == BitcoinNetwork.MUTINYNET
+            and not self.common_protocol_properties.network == BitcoinNetwork.REGTEST
+        ):
             raise HTTPException(
                 status_code=404,
                 detail="Endpoint not available for network "

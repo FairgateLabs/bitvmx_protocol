@@ -12,7 +12,10 @@ class FundPostViewControllerV1:
         self.faucet_service = faucet_service
 
     async def __call__(self, fund_post_view_input: FundPostV1Input) -> FundPostV1Output:
-        if common_protocol_properties.network == BitcoinNetwork.MUTINYNET:
+        if (
+            not common_protocol_properties.network == BitcoinNetwork.MUTINYNET
+            and not common_protocol_properties.network == BitcoinNetwork.REGTEST
+        ):
             raise HTTPException(
                 status_code=404,
                 detail="Endpoint not available for network "
