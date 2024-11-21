@@ -44,8 +44,6 @@ services:
       - "8443:8443"
     networks:
       - bitvmx-net
-#    environment:
-#      - DISABLEWALLET=0
     volumes:
       - type: bind
         source: regtestbitcoin.conf
