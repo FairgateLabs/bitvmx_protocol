@@ -158,10 +158,7 @@ class PublishNextStepController:
                     previous_witness = previous_witness[1:]
                 while len(previous_witness[-1]) == 128:
                     previous_witness = previous_witness[:-1]
-                previous_choice_witness = previous_witness[
-                    : bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
-                    * 2
-                ]
+                previous_choice_witness = previous_witness[:4]
                 previous_choice = int(previous_witness[1]) if len(previous_witness[1]) > 0 else 0
                 bitvmx_protocol_prover_dto.search_choices.append(previous_choice)
                 last_step = (
@@ -317,10 +314,7 @@ class PublishNextStepController:
                     previous_witness = previous_witness[:-1]
                 while len(previous_witness[0]) >= 128:
                     previous_witness = previous_witness[1:]
-                previous_choice_witness = previous_witness[
-                    : bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
-                    * 2
-                ]
+                previous_choice_witness = previous_witness[:4]
                 previous_choice = (
                     int(previous_choice_witness[1]) if len(previous_choice_witness[1]) > 0 else 0
                 )

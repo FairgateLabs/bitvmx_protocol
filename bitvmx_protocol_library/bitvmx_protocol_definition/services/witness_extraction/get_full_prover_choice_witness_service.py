@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_setup_properties_dto import (
     BitVMXProtocolSetupPropertiesDTO,
@@ -13,12 +13,15 @@ class GetFullProverChoiceWitnessService:
     def __call__(
         self,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
+        iteration: Optional[int] = None,
     ) -> List[str]:
         choice_witness = []
         counter = 0
         total_amount_of_choices = len(
             bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.choice_search_prover_public_keys_list
         )
+        if iteration is not None:
+            counter += total_amount_of_choices - iteration
         while counter < total_amount_of_choices:
             if counter == 0:
                 # Trace case

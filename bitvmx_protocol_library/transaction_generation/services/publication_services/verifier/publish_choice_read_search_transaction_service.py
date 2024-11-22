@@ -1,4 +1,5 @@
 from math import inf, isinf
+from typing import Dict, Optional
 
 from bitcoinutils.transactions import TxWitnessInput
 from bitcoinutils.utils import ControlBlock
@@ -42,54 +43,68 @@ class PublishChoiceReadSearchTransactionService:
         self.execution_trace_query_service = ExecutionTraceQueryService("verifier_files/")
         self.bitvmx_bitcoin_scripts_generator_service = BitVMXBitcoinScriptsGeneratorService()
 
+    def load_previous_values(
+        self,
+        bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
+        bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
+    ):
+        amount_of_trace_steps = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_trace_steps
+        )
+        first_iteration_increment = int(
+            amount_of_trace_steps
+            / (
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
+                + 1
+            )
+        )
+        for i in range(
+            1,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
+            + 1,
+        ):
+            current_step = first_iteration_increment * i - 1
+            bitvmx_protocol_verifier_dto.published_read_hashes_dict[current_step] = (
+                bitvmx_protocol_verifier_dto.published_hashes_dict[current_step]
+            )
+        last_index = (
+            first_iteration_increment
+            * (
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
+                + 1
+            )
+            - 1
+        )
+        bitvmx_protocol_verifier_dto.published_read_hashes_dict[last_index] = (
+            bitvmx_protocol_verifier_dto.published_halt_hash
+        )
+        bitvmx_protocol_verifier_dto.published_hashes_dict[last_index] = (
+            bitvmx_protocol_verifier_dto.published_halt_hash
+        )
+
     def __call__(
         self,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_verifier_private_dto: BitVMXProtocolVerifierPrivateDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
+        target_step: Optional[int] = None,
+        new_published_hashes_dict: Optional[Dict[int, str]] = None,
     ):
+
         if len(bitvmx_protocol_verifier_dto.read_search_choices) == 0:
-            amount_of_trace_steps = (
-                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_trace_steps
+            self.load_previous_values(
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
             )
-            first_iteration_increment = int(
-                amount_of_trace_steps
-                / (
-                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
-                    + 1
-                )
-            )
-            for i in range(
-                1,
-                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
-                + 1,
-            ):
-                current_step = first_iteration_increment * i - 1
-                bitvmx_protocol_verifier_dto.published_read_hashes_dict[current_step] = (
-                    bitvmx_protocol_verifier_dto.published_hashes_dict[current_step]
-                )
-            last_index = (
-                first_iteration_increment
-                * (
-                    bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_hashes_per_iteration
-                    + 1
-                )
-                - 1
-            )
-            bitvmx_protocol_verifier_dto.published_read_hashes_dict[last_index] = (
-                bitvmx_protocol_verifier_dto.published_halt_hash
-            )
-            bitvmx_protocol_verifier_dto.published_hashes_dict[last_index] = (
-                bitvmx_protocol_verifier_dto.published_halt_hash
+
+        if target_step is None and new_published_hashes_dict is None:
+            target_step, new_published_hashes_dict = self.get_target_step(
+                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
             )
 
         iteration = len(bitvmx_protocol_verifier_dto.read_search_choices)
 
-        target_step, new_published_hashes_dict = self._get_target_step(
-            iteration=iteration,
-            bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-            bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
-        )
         total_amount_of_choice_bits = (
             bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
             * bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
@@ -200,8 +215,8 @@ class PublishChoiceReadSearchTransactionService:
                 destroyed_public_key=bitvmx_protocol_setup_properties_dto.unspendable_public_key,
                 iteration=iteration,
             )
-            current_choice_read_search_script_index = (
-                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_script_index()
+            current_choice_read_search_script_index = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_script_index(
+                iteration=iteration
             )
             current_choice_read_search_taptree = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_script_list(
                 iteration=iteration
@@ -252,12 +267,13 @@ class PublishChoiceReadSearchTransactionService:
                 iteration
             ]
 
-    def _get_target_step(
+    def get_target_step(
         self,
-        iteration,
         bitvmx_protocol_setup_properties_dto: BitVMXProtocolSetupPropertiesDTO,
         bitvmx_protocol_verifier_dto: BitVMXProtocolVerifierDTO,
     ):
+        iteration = len(bitvmx_protocol_verifier_dto.read_search_choices)
+
         previous_published_read_hashes_dict = (
             bitvmx_protocol_verifier_dto.published_read_hashes_dict.copy()
         )
@@ -375,6 +391,13 @@ class PublishChoiceReadSearchTransactionService:
                     index=index_list[j],
                     input_hex=bitvmx_protocol_verifier_dto.input_hex,
                 )["step_hash"]
+                if (
+                    index_list[j] in bitvmx_protocol_verifier_dto.published_hashes_dict
+                    and not published_read_hashes[j]
+                    == bitvmx_protocol_verifier_dto.published_hashes_dict[index_list[j]]
+                ):
+                    return -1, previous_published_read_hashes_dict
+
                 if index_list[j] < bitvmx_protocol_verifier_dto.first_wrong_step:
                     if index_list[j] not in bitvmx_protocol_verifier_dto.published_hashes_dict:
                         bitvmx_protocol_verifier_dto.published_hashes_dict[index_list[j]] = (

@@ -40,6 +40,7 @@ class PublishNextStepController:
         trigger_protocol_transaction_service_class,
         publish_choice_search_transaction_service_class,
         publish_choice_read_search_transaction_service_class,
+        trigger_read_search_equivocation_transaction_service_class,
         protocol_properties,
         common_protocol_properties,
         bitvmx_protocol_verifier_private_dto_persistence: BitVMXProtocolVerifierPrivateDTOPersistenceInterface,
@@ -54,6 +55,9 @@ class PublishNextStepController:
         )
         self.publish_choice_read_search_transaction_service_class = (
             publish_choice_read_search_transaction_service_class
+        )
+        self.trigger_read_search_equivocation_transaction_service_class = (
+            trigger_read_search_equivocation_transaction_service_class
         )
         self.protocol_properties = protocol_properties
         self.common_protocol_properties = common_protocol_properties
@@ -171,17 +175,45 @@ class PublishNextStepController:
                     winternitz_verifier_private_key
                 )
             )
-            last_confirmed_step_tx = publish_choice_read_search_transaction_service(
-                bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
-                bitvmx_protocol_verifier_private_dto=bitvmx_protocol_verifier_private_dto,
-                bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
+
+            target_step, new_published_hashes_dict = (
+                publish_choice_read_search_transaction_service.get_target_step(
+                    bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                    bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
+                )
             )
-            bitvmx_protocol_verifier_dto.last_confirmed_step_tx_id = (
-                last_confirmed_step_tx.get_txid()
-            )
-            bitvmx_protocol_verifier_dto.last_confirmed_step = (
-                TransactionVerifierStepType.READ_SEARCH_STEP_CHOICE
-            )
+
+            if target_step == -1:
+                trigger_read_search_equivocation_transaction_service = (
+                    self.trigger_read_search_equivocation_transaction_service_class()
+                )
+                last_confirmed_step_tx = trigger_read_search_equivocation_transaction_service(
+                    bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                    bitvmx_protocol_verifier_private_dto=bitvmx_protocol_verifier_private_dto,
+                    bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
+                )
+                bitvmx_protocol_verifier_dto.last_confirmed_step_tx_id = (
+                    last_confirmed_step_tx.get_txid()
+                )
+                bitvmx_protocol_verifier_dto.last_confirmed_step = (
+                    TransactionVerifierStepType.TRIGGER_READ_SEARCH_EQUIVOCATION_CHALLENGE
+                )
+            elif target_step >= 0:
+                last_confirmed_step_tx = publish_choice_read_search_transaction_service(
+                    bitvmx_protocol_setup_properties_dto=bitvmx_protocol_setup_properties_dto,
+                    bitvmx_protocol_verifier_private_dto=bitvmx_protocol_verifier_private_dto,
+                    bitvmx_protocol_verifier_dto=bitvmx_protocol_verifier_dto,
+                    target_step=target_step,
+                    new_published_hashes_dict=new_published_hashes_dict,
+                )
+                bitvmx_protocol_verifier_dto.last_confirmed_step_tx_id = (
+                    last_confirmed_step_tx.get_txid()
+                )
+                bitvmx_protocol_verifier_dto.last_confirmed_step = (
+                    TransactionVerifierStepType.READ_SEARCH_STEP_CHOICE
+                )
+            else:
+                raise Exception("Exception in target step not considered")
         elif (
             bitvmx_protocol_verifier_dto.last_confirmed_step
             is TransactionVerifierStepType.SEARCH_STEP_CHOICE

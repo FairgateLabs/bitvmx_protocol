@@ -36,6 +36,8 @@ class BitVMXProtocolPropertiesDTO(BaseModel):
     read_write_pc_address_position: ClassVar[int]
     read_write_pc_micro_position: ClassVar[int]
     amount_of_nibbles_input_word: ClassVar[int]
+    amount_of_nibbles_hash: ClassVar[int]
+    amount_of_bytes_halt_step: ClassVar[int]
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -49,11 +51,11 @@ class BitVMXProtocolPropertiesDTO(BaseModel):
         self.amount_of_nibbles_hash_with_checksum = n0 + n1
 
     # Compute this depending on the hash algorithm, now only SHA 256 is available
-    @property
+    @classproperty
     def amount_of_nibbles_hash(self) -> int:
         return 64
 
-    @property
+    @classproperty
     def amount_of_bytes_halt_step(self) -> int:
         return 4
 
