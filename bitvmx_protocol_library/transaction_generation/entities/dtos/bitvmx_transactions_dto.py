@@ -20,6 +20,7 @@ class BitVMXTransactionsDTO(BaseModel):
     trigger_wrong_program_counter_challenge_tx: Transaction
     execution_challenge_tx: Transaction
     read_search_hash_tx_list: List[Transaction]
+    read_search_equivocation_tx_list: List[Transaction]
     read_search_choice_tx_list: List[Transaction]
     read_trace_tx: Transaction
     trigger_read_challenge_tx: Transaction
@@ -131,6 +132,17 @@ class BitVMXTransactionsDTO(BaseModel):
             map(
                 lambda transaction: BitVMXTransactionsDTO.transaction_to_str(transaction),
                 read_search_hash_tx_list,
+            )
+        )
+
+    @field_serializer("read_search_equivocation_tx_list", when_used="always")
+    def serialize_read_search_equivocation_tx_list(
+        read_search_equivocation_tx_list: List[Transaction],
+    ) -> List[str]:
+        return list(
+            map(
+                lambda transaction: BitVMXTransactionsDTO.transaction_to_str(transaction),
+                read_search_equivocation_tx_list,
             )
         )
 
