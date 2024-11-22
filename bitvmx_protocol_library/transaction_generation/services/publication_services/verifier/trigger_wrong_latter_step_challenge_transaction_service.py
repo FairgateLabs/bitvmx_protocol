@@ -22,8 +22,8 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extract
     GetExecutionTraceWitnessService,
     GetReadExecutionTraceWitnessService,
 )
-from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_full_read_choice_witness_service import (
-    GetFullReadChoiceWitnessService,
+from bitvmx_protocol_library.bitvmx_protocol_definition.services.witness_extraction.get_full_prover_read_choice_witness_service import (
+    GetFullProverReadChoiceWitnessService,
 )
 from blockchain_query_services.services.blockchain_query_services_dependency_injection import (
     broadcast_transaction_service,
@@ -32,7 +32,7 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 
 class GenericTriggerWrongLatterStepChallengeTransactionService:
     def __init__(self, verifier_private_key):
-        self.get_full_read_choice_witness_service = GetFullReadChoiceWitnessService()
+        self.get_full_read_choice_witness_service = GetFullProverReadChoiceWitnessService()
         self.get_execution_trace_witness_service = GetExecutionTraceWitnessService()
         self.get_read_execution_trace_witness_service = GetReadExecutionTraceWitnessService()
 

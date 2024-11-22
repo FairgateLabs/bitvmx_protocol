@@ -10,6 +10,9 @@ from bitvmx_protocol_library.transaction_generation.services.publication_service
 from bitvmx_protocol_library.transaction_generation.services.publication_services.verifier.trigger_protocol_transaction_service import (
     TriggerProtocolTransactionService,
 )
+from bitvmx_protocol_library.transaction_generation.services.publication_services.verifier.trigger_read_search_equivocation_transaction_service import (
+    TriggerReadSearchEquivocationTransactionService,
+)
 from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection_service import (
     VerifierChallengeDetectionService,
 )
@@ -39,6 +42,7 @@ class PublishNextStepControllers(containers.DeclarativeContainer):
         trigger_protocol_transaction_service_class=TriggerProtocolTransactionService,
         publish_choice_search_transaction_service_class=PublishChoiceSearchTransactionService,
         publish_choice_read_search_transaction_service_class=PublishChoiceReadSearchTransactionService,
+        trigger_read_search_equivocation_transaction_service_class=TriggerReadSearchEquivocationTransactionService,
         protocol_properties=protocol_properties,
         common_protocol_properties=common_protocol_properties,
         bitvmx_protocol_verifier_private_dto_persistence=BitVMXProtocolVerifierPrivateDTOPersistences.bitvmx,

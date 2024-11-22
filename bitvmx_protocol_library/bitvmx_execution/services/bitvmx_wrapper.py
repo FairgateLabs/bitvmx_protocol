@@ -5,6 +5,10 @@ import subprocess
 from enum import Enum
 from typing import Optional
 
+from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
+    BitVMXProtocolPropertiesDTO,
+)
+
 
 def _tweak_input(input_hex: str):
     return input_hex[:-1] + hex(15 - int(input_hex[-1], 16))[2:]
@@ -29,7 +33,7 @@ class BitVMXWrapper:
         # self.fail_actor = "verifier"
         self.fail_actor = "prover"
         # self.fail_step = "1234567890"
-        # self.fail_step = "0"
+        # self.fail_step = "1"
         # self.fail_step = "29"
         self.fail_step = None
         # self.fail_type = "--fail-execute"
@@ -153,9 +157,18 @@ class BitVMXWrapper:
             # TODO: remove when bugs are fixed
             try:
                 execution_trace = list(filter(lambda x: x != "", execution_trace.split("\n")))[-1]
-            except Exception:
-                pass
-
+            except IndexError:
+                words_lengths = BitVMXProtocolPropertiesDTO.trace_words_lengths
+                words = list(
+                    map(
+                        lambda x: "f" * x,
+                        words_lengths,
+                    )
+                )
+                execution_trace = ";".join(words)
+                write_trace = "".join(words[-4:])
+                execution_trace += ";" + write_trace
+                execution_trace += ";" + "f" * BitVMXProtocolPropertiesDTO.amount_of_nibbles_hash
             return execution_trace
 
         except subprocess.CalledProcessError as e:

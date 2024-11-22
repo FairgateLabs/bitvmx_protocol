@@ -9,6 +9,8 @@ class TransactionPublishedService:
         try:
             return transaction_info_service(tx_id=tx_id)
         except Exception as e:
-            if str(e) == "Transaction not found":
+            if str(
+                e
+            ) == "Transaction not found" or "No such mempool or blockchain transaction" in str(e):
                 return False
             raise e

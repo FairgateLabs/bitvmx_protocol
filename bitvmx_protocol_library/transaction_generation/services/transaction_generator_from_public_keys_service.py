@@ -225,7 +225,12 @@ class TransactionGeneratorFromPublicKeysService:
         )
 
         choice_read_search_scripts_addresses = []
-        for i in range(1, len(bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_scripts)):
+        for i in range(
+            1,
+            len(
+                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_scripts
+            ),
+        ):
             choice_read_search_scripts_addresses.append(
                 bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_scripts_address(
                     destroyed_public_key=destroyed_public_key,
@@ -235,6 +240,7 @@ class TransactionGeneratorFromPublicKeysService:
 
         read_search_hash_tx_list = []
         read_search_choice_tx_list = []
+        read_search_equivocation_tx_list = []
 
         first_choice_txin = TxInput(trace_tx.get_txid(), 0)
         first_choice_output_address = hash_read_search_scripts_addresses[0]
@@ -257,28 +263,38 @@ class TransactionGeneratorFromPublicKeysService:
             # HASH
             current_txin = TxInput(previous_tx_id, 0)
             current_output_amount -= bitvmx_protocol_setup_properties_dto.step_fees_satoshis
-            # The first one is contained in the trigger challenge taproot
+            # The first one is contained in the trigger challenge taproot -> We could be appending a None, it's never used
             current_output_address = choice_read_search_scripts_addresses[i]
             current_txout = TxOutput(
                 current_output_amount, current_output_address.to_script_pub_key()
             )
-            current_tx = Transaction([current_txin], [current_txout], has_segwit=True)
-            read_search_hash_tx_list.append(current_tx)
+            current_hash_tx = Transaction([current_txin], [current_txout], has_segwit=True)
+            read_search_hash_tx_list.append(current_hash_tx)
 
             # CHOICE
-            current_txin = TxInput(current_tx.get_txid(), 0)
+            current_txin = TxInput(current_hash_tx.get_txid(), 0)
             current_output_amount -= bitvmx_protocol_setup_properties_dto.step_fees_satoshis
             if i == len(hash_read_search_scripts_addresses) - 1:
-                # Return funds to faucet
                 current_output_address = read_trace_script_address
             else:
                 current_output_address = hash_read_search_scripts_addresses[i + 1]
             current_txout = TxOutput(
                 current_output_amount, current_output_address.to_script_pub_key()
             )
-            current_tx = Transaction([current_txin], [current_txout], has_segwit=True)
-            read_search_choice_tx_list.append(current_tx)
-            previous_tx_id = current_tx.get_txid()
+            current_choice_tx = Transaction([current_txin], [current_txout], has_segwit=True)
+            read_search_choice_tx_list.append(current_choice_tx)
+            previous_tx_id = current_choice_tx.get_txid()
+
+            # EQUIVOCATION
+            current_txin = TxInput(current_hash_tx.get_txid(), 0)
+            current_output_address = P2wpkhAddress.from_address(
+                address=bitvmx_protocol_setup_properties_dto.verifier_destination_address
+            )
+            current_txout = TxOutput(
+                current_output_amount, current_output_address.to_script_pub_key()
+            )
+            current_equivocation_tx = Transaction([current_txin], [current_txout], has_segwit=True)
+            read_search_equivocation_tx_list.append(current_equivocation_tx)
 
         trigger_read_challenge_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_read_challenge_scripts_list.get_taproot_address(
             public_key=destroyed_public_key
@@ -326,4 +342,5 @@ class TransactionGeneratorFromPublicKeysService:
             read_search_choice_tx_list=read_search_choice_tx_list,
             read_trace_tx=read_trace_tx,
             trigger_read_challenge_tx=trigger_read_challenge_tx,
+            read_search_equivocation_tx_list=read_search_equivocation_tx_list,
         )

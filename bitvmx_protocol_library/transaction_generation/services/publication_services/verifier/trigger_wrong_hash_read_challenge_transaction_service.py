@@ -169,14 +169,7 @@ class TriggerWrongHashReadChallengeTransactionService:
                 previous_witness = trace_tx.inputs[0].witness
                 while len(previous_witness[0]) == 128:
                     previous_witness = previous_witness[1:]
-                choice_witness = (
-                    previous_witness[
-                        bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
-                        * 2 : bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
-                        * 4
-                    ]
-                    + choice_witness
-                )
+                choice_witness = previous_witness[4:8] + choice_witness
             else:
                 # Hash case
                 hash_tx = transaction_info_service(
@@ -187,14 +180,7 @@ class TriggerWrongHashReadChallengeTransactionService:
                 previous_witness = hash_tx.inputs[0].witness
                 while len(previous_witness[0]) == 128:
                     previous_witness = previous_witness[1:]
-                choice_witness = (
-                    previous_witness[
-                        bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
-                        * 2 : bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
-                        * 4
-                    ]
-                    + choice_witness
-                )
+                choice_witness = previous_witness[4:8] + choice_witness
                 # choice_witness.extend(previous_witness[4:8])
             if wrong_hash_choice_array[counter] != (
                 suffix_character * amount_of_bits_wrong_step_search

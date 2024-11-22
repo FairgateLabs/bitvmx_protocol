@@ -173,8 +173,6 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             + self.trigger_wrong_latter_step_2_challenge_script
         )
 
-
-
     def trigger_read_challenge_address(self, destroyed_public_key: PublicKey) -> P2trAddress:
         if destroyed_public_key.to_hex() in self.cached_trigger_read_challenge_address:
             return P2trAddress(
@@ -203,9 +201,19 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         assert iteration > 0
         return 0
 
+    @staticmethod
+    def trigger_read_search_equivocation_index(iteration: int) -> int:
+        assert iteration > 0
+        return 1
+
     def choice_read_search_script_list(self, iteration: int) -> BitcoinScriptList:
         assert iteration > 0
-        return BitcoinScriptList(self.choice_read_search_scripts[iteration])
+        return BitcoinScriptList(
+            [
+                self.choice_read_search_scripts[iteration],
+                self.trigger_read_search_equivocation_scripts[iteration - 1],
+            ]
+        )
 
     def trigger_challenge_taptree(self):
         return self.trigger_trace_challenge_scripts_list.to_scripts_tree()

@@ -100,10 +100,20 @@ class VerifyProverSignaturesService:
         )
 
         for i in range(len(bitvmx_prover_signatures_dto.search_choice_signatures) - 1):
-            current_read_search_choice_script_list = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_script_list(iteration=i+1)
-            current_read_search_choice_script_address = current_read_search_choice_script_list.get_taproot_address(public_key=self.unspendable_public_key)
-            current_read_search_choice_index = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_script_index(iteration=i+1)
-            current_read_search_choice_script = current_read_search_choice_script_list[current_read_search_choice_index]
+            current_read_search_choice_script_list = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_script_list(
+                iteration=i + 1
+            )
+            current_read_search_choice_script_address = (
+                current_read_search_choice_script_list.get_taproot_address(
+                    public_key=self.unspendable_public_key
+                )
+            )
+            current_read_search_choice_index = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_script_index(
+                iteration=i + 1
+            )
+            current_read_search_choice_script = current_read_search_choice_script_list[
+                current_read_search_choice_index
+            ]
             self.verify_signature_service(
                 tx=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_choice_tx_list[
                     i + 1

@@ -59,12 +59,7 @@ class PublishReadTraceTransactionService:
         previous_choice_transaction_info = transaction_info_service(tx_id=previous_choice_tx)
         previous_witness = previous_choice_transaction_info.inputs[0].witness
         read_trace_witness += previous_witness[
-            len(read_trace_signatures)
-            + 0 : len(read_trace_signatures)
-            + (
-                2
-                * bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search
-            )
+            len(read_trace_signatures) + 0 : len(read_trace_signatures) + 4
         ]
         current_choice = (
             int(previous_witness[len(read_trace_signatures) + 1])
