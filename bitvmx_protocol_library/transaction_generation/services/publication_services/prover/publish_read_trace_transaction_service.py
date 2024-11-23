@@ -67,7 +67,6 @@ class PublishReadTraceTransactionService:
             else 0
         )
 
-        bitvmx_protocol_prover_dto.read_search_choices.append(current_choice)
         first_wrong_step = int(
             "".join(
                 map(

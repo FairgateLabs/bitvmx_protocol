@@ -53,11 +53,11 @@ class BitVMXWrapper:
             and self.fail_input
         )
 
-        self.fail_read = False
+        self.fail_read = True
         self.fail_actor_read = "prover"
         # This is the latter one
-        self.fail_read_type = ReadErrorType.BEFORE
-        # self.fail_read_type = ReadErrorType.SAME
+        # self.fail_read_type = ReadErrorType.BEFORE
+        self.fail_read_type = ReadErrorType.SAME
         self.fail_read_position = ReadErrorPosition.ONE
         # DO NOT CHANGE THIS AS OF NOW (WE HARDCODE THE EXAMPLE)
         self.fail_read_step = 16
