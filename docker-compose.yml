@@ -36,9 +36,9 @@ services:
       - bitvmx-net
 
   bitcoin-regtest-node:
-    build:
-      context: .
-      target: kylemanna/bitcoind
+#    build:
+#      context: .
+#      target: kylemanna/bitcoind
     image: kylemanna/bitcoind
     ports:
       - "8443:8443"

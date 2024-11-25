@@ -32,11 +32,17 @@ class BitcoinRPCClient:
         self.address = None
         try:
             self._call_rpc("getwalletinfo", [])
-        except Exception as e:
-            if "No wallet is loaded" in e.args[0]:
-                self._call_rpc("createwallet", ["testwallet"])
+        except Exception as e1:
+            if "No wallet is loaded" in e1.args[0]:
+                try:
+                    self._call_rpc("createwallet", ["testwallet"])
+                except Exception as e2:
+                    if "Database already exists" in e2.args[0]:
+                        self._call_rpc("loadwallet", ["testwallet"])
+                    else:
+                        raise e2
             else:
-                raise e
+                raise e1
 
     def _call_rpc(self, method, params=None):
         """

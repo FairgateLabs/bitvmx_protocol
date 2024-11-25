@@ -34,8 +34,8 @@ class BitVMXWrapper:
         self.fail_actor = "prover"
         # self.fail_step = "1234567890"
         # self.fail_step = "1"
-        # self.fail_step = "29"
-        self.fail_step = None
+        self.fail_step = "29"
+        # self.fail_step = None
         # self.fail_type = "--fail-execute"
         self.fail_type = "--fail-hash"
         # self.fail_type = "--fail-pc"
@@ -53,7 +53,7 @@ class BitVMXWrapper:
             and self.fail_input
         )
 
-        self.fail_read = True
+        self.fail_read = False
         self.fail_actor_read = "prover"
         # This is the latter one
         # self.fail_read_type = ReadErrorType.BEFORE
