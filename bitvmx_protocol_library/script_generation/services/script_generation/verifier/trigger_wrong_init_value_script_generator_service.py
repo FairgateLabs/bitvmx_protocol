@@ -3,6 +3,7 @@ from typing import List
 
 from bitcoinutils.keys import PublicKey
 
+from bitvmx_protocol_library.bitvmx_execution.entities.memory_region_dto import MemoryRegionsDTO
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_properties_dto import (
     BitVMXProtocolPropertiesDTO,
 )
@@ -15,7 +16,11 @@ class GenericTriggerWrongInitValueScriptGeneratorService:
     def __init__(self):
         pass
 
-    def __call__(self, signature_public_keys: List[str]):
+    def __call__(
+        self,
+        signature_public_keys: List[str],
+        read_only_memory_regions: MemoryRegionsDTO,
+    ):
         script = BitcoinScript()
         for signature_public_key in signature_public_keys:
             script.extend(

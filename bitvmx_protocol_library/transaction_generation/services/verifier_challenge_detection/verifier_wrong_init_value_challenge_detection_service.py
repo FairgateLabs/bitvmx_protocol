@@ -29,6 +29,5 @@ class VerifierWrongInitValueChallengeDetectionService:
         input_and_constant_addresses = input_and_constant_addresses_generation_service(
             input_length=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_input_words
         )
-        return None, None
         memory_regions = input_and_constant_addresses.memory_regions()
         pass

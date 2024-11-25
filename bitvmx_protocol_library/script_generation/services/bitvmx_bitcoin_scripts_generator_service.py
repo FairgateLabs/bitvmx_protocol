@@ -610,11 +610,22 @@ class BitVMXBitcoinScriptsGeneratorService:
             bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
+        input_and_constant_addresses_generation_service = (
+            InputAndConstantAddressesGenerationService(
+                instruction_commitment=ExecutionTraceGenerationService.commitment_file()
+            )
+        )
+        input_and_constant_addresses = input_and_constant_addresses_generation_service(
+            input_length=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_input_words
+        )
+        read_only_memory_regions = input_and_constant_addresses.memory_regions()
+
         trigger_wrong_init_value_1_script = (
             self.trigger_wrong_init_value_1_script_generator_service(
                 signature_public_keys=[
                     bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
-                ]
+                ],
+                read_only_memory_regions=read_only_memory_regions,
             )
         )
 
@@ -622,7 +633,8 @@ class BitVMXBitcoinScriptsGeneratorService:
             self.trigger_wrong_init_value_2_script_generator_service(
                 signature_public_keys=[
                     bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
-                ]
+                ],
+                read_only_memory_regions=read_only_memory_regions,
             )
         )
 
