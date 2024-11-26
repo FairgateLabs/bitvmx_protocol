@@ -620,22 +620,24 @@ class BitVMXBitcoinScriptsGeneratorService:
         )
         read_only_memory_regions = input_and_constant_addresses.memory_regions()
 
-        trigger_wrong_init_value_1_script = (
-            self.trigger_wrong_init_value_1_script_generator_service(
-                signature_public_keys=[
-                    bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
-                ],
-                read_only_memory_regions=read_only_memory_regions,
-            )
+        trigger_wrong_init_value_1_script = self.trigger_wrong_init_value_1_script_generator_service(
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+            ],
+            trace_words_lengths=trace_words_lengths,
+            read_only_memory_regions=read_only_memory_regions,
+            trace_prover_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
+            amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
-        trigger_wrong_init_value_2_script = (
-            self.trigger_wrong_init_value_2_script_generator_service(
-                signature_public_keys=[
-                    bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
-                ],
-                read_only_memory_regions=read_only_memory_regions,
-            )
+        trigger_wrong_init_value_2_script = self.trigger_wrong_init_value_2_script_generator_service(
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+            ],
+            trace_words_lengths=trace_words_lengths,
+            read_only_memory_regions=read_only_memory_regions,
+            trace_prover_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
+            amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
         return BitVMXBitcoinScriptsDTO(

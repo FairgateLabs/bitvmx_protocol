@@ -56,21 +56,8 @@ class PublishTraceTransactionService:
 
         trace_witness = []
 
-        # previous_choice_tx = (
-        #     bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_choice_tx_list[
-        #         -1
-        #     ].get_txid()
-        # )
-        # previous_choice_transaction_info = transaction_info_service(tx_id=previous_choice_tx)
-        # previous_witness = previous_choice_transaction_info.inputs[0].witness
         trace_witness += previous_choice_witness
-        # current_choice = (
-        #     int(previous_choice_witness[1])
-        #     if len(previous_choice_witness[1]) > 0
-        #     else 0
-        # )
-        #
-        # bitvmx_protocol_prover_dto.search_choices.append(current_choice)
+
         first_wrong_step = int(
             "".join(
                 map(
@@ -100,6 +87,14 @@ class PublishTraceTransactionService:
         # current_trace["read_pc_opcode"] = "115"
         # current_trace["read1_value"] = "93"
         # current_trace["read2_value"] = "0"
+
+        # CHECK WRONG INIT VALUE SCRIPT
+        # current_trace["read1_value"] = str(int("01", 16))
+        # current_trace["read1_address"] = str(int("bb000000", 16))
+        # current_trace["read1_last_step"] = str(int("ffffffff", 16))
+        # current_trace["read2_value"] = str(int("01", 16))
+        # current_trace["read2_address"] = str(int("bb000000", 16))
+        # current_trace["read2_last_step"] = str(int("ffffffff", 16))
 
         current_trace_values = current_trace[:13].to_list()
         current_trace_values.reverse()
