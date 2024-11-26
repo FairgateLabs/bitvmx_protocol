@@ -37,7 +37,11 @@ class VerifierWrongHashChallengeDetectionService:
             + execution_trace.write_micro
         )
         next_step_hash = (
-            byte_sha256(bytes.fromhex(previous_step_hash + write_trace)).hex().zfill(64)
+            byte_sha256(bytes.fromhex(previous_step_hash + write_trace))
+            .hex()
+            .zfill(
+                bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_nibbles_hash
+            )
         )
         print(
             "Checking correct hash challenge. Previous hash (correct): "

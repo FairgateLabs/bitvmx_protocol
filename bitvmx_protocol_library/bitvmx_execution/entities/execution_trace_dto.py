@@ -24,6 +24,10 @@ class ExecutionTraceDTO(BaseModel):
     write_micro: str
 
     @staticmethod
+    def not_written_last_step() -> str:
+        return "ffffffff"
+
+    @staticmethod
     def halt_opcode() -> int:
         return 115
 

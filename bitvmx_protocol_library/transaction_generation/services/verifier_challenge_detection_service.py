@@ -32,6 +32,9 @@ from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_
 from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection.verifier_wrong_hash_challenge_detection_service import (
     VerifierWrongHashChallengeDetectionService,
 )
+from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection.verifier_wrong_init_value_challenge_detection_service import (
+    VerifierWrongInitValueChallengeDetectionService,
+)
 from bitvmx_protocol_library.transaction_generation.services.verifier_challenge_detection.verifier_wrong_program_counter_challenge_detection_service import (
     VerifierWrongProgramCounterChallengeDetectionService,
 )
@@ -43,13 +46,14 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 class VerifierChallengeDetectionService:
     def __init__(self):
         self.verifier_challenge_detection_services = [
+            VerifierWrongInitValueChallengeDetectionService(),
+            VerifierWrongHashChallengeDetectionService(),
             VerifierLastHashEquivocationChallengeDetectionService(),
             VerifierWrongHaltStepChallengeDetectionService(),
             VerifierNoHaltInHaltStepChallengeDetectionService(),
             VerifierWrongProgramCounterChallengeDetectionService(),
             VerifierReadInputEquivocationChallengeDetectionService(),
             VerifierReadConstantEquivocationChallengeDetectionService(),
-            VerifierWrongHashChallengeDetectionService(),
             VerifierReadSearchChallengeDetectionService(),
             VerifierExecutionChallengeDetectionService(),
         ]
