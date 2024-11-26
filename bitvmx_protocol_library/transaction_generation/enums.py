@@ -32,3 +32,5 @@ class TransactionVerifierStepType(Enum):
     TRIGGER_NO_HALT_IN_HALT_STEP_CHALLENGE = "trigger_no_halt_in_halt_step_challenge"
     TRIGGER_LAST_HASH_EQUIVOCATION_CHALLENGE = "trigger_last_hash_equivocation_challenge"
     TRIGGER_READ_SEARCH_EQUIVOCATION_CHALLENGE = "trigger_read_equivocation_challenge"
+    TRIGGER_WRONG_INPUT_VALUE_CHALLENGE_1 = "trigger_wrong_input_value_challenge_1"
+    TRIGGER_WRONG_INPUT_VALUE_CHALLENGE_2 = "trigger_wrong_input_value_challenge_2"

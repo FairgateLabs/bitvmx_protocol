@@ -46,6 +46,10 @@ from bitvmx_protocol_library.script_generation.services.script_generation.verifi
 from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_wrong_halt_step_challenge_script_generator_service import (
     TriggerWrongHaltStepChallengeScriptGeneratorService,
 )
+from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_wrong_init_value_script_generator_service import (
+    TriggerWrongInitValue1ScriptGeneratorService,
+    TriggerWrongInitValue2ScriptGeneratorService,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_wrong_latter_step_challenge_script_generator_service import (
     TriggerWrongLatterStep1ChallengeScriptGeneratorService,
     TriggerWrongLatterStep2ChallengeScriptGeneratorService,
@@ -151,6 +155,12 @@ class BitVMXBitcoinScriptsGeneratorService:
         )
         self.trigger_read_search_equivocation_scripts_generator_service = (
             TriggerReadSearchEquivocationScriptsGeneratorService()
+        )
+        self.trigger_wrong_init_value_1_script_generator_service = (
+            TriggerWrongInitValue1ScriptGeneratorService()
+        )
+        self.trigger_wrong_init_value_2_script_generator_service = (
+            TriggerWrongInitValue2ScriptGeneratorService()
         )
 
     def __call__(
@@ -600,6 +610,36 @@ class BitVMXBitcoinScriptsGeneratorService:
             bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
+        input_and_constant_addresses_generation_service = (
+            InputAndConstantAddressesGenerationService(
+                instruction_commitment=ExecutionTraceGenerationService.commitment_file()
+            )
+        )
+        input_and_constant_addresses = input_and_constant_addresses_generation_service(
+            input_length=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_input_words
+        )
+        read_only_memory_regions = input_and_constant_addresses.memory_regions()
+
+        trigger_wrong_init_value_1_script = self.trigger_wrong_init_value_1_script_generator_service(
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+            ],
+            trace_words_lengths=trace_words_lengths,
+            read_only_memory_regions=read_only_memory_regions,
+            trace_prover_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
+            amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+        )
+
+        trigger_wrong_init_value_2_script = self.trigger_wrong_init_value_2_script_generator_service(
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+            ],
+            trace_words_lengths=trace_words_lengths,
+            read_only_memory_regions=read_only_memory_regions,
+            trace_prover_public_keys=bitvmx_protocol_setup_properties_dto.bitvmx_prover_winternitz_public_keys_dto.trace_prover_public_keys,
+            amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
+        )
+
         return BitVMXBitcoinScriptsDTO(
             hash_result_script=hash_result_script,
             trigger_protocol_script=trigger_protocol_script,
@@ -615,6 +655,8 @@ class BitVMXBitcoinScriptsGeneratorService:
             input_2_equivocation_challenge_scripts=trigger_input_2_equivocation_challenge_scripts_generator_service,
             constants_1_equivocation_challenge_scripts=trigger_constant_1_equivocation_challenge_scripts_generator_service,
             constants_2_equivocation_challenge_scripts=trigger_constant_2_equivocation_challenge_scripts_generator_service,
+            wrong_init_value_1_challenge_script=trigger_wrong_init_value_1_script,
+            wrong_init_value_2_challenge_script=trigger_wrong_init_value_2_script,
             hash_read_search_scripts=hash_read_search_scripts,
             choice_read_search_scripts=choice_read_search_scripts,
             trigger_read_search_equivocation_scripts=trigger_read_search_equivocation_scripts,
