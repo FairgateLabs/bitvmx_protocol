@@ -57,6 +57,8 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     trigger_wrong_latter_step_2_challenge_script: BitcoinScript
     trigger_wrong_halt_step_challenge_script: BitcoinScript
     trigger_no_halt_in_halt_step_challenge_script: BitcoinScript
+    prover_timeout_script: BitcoinScript
+    verifier_timeout_script: BitcoinScript
     cached_trigger_read_challenge_address: Dict[str, str] = Field(default_factory=dict)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -104,6 +106,31 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
                 raise TypeError(f"Unexpected type {field_type} for field {field_name}")
         super().__init__(**data)
 
+    def hash_search_scripts_list(self, iteration: int) -> BitcoinScriptList:
+        return BitcoinScriptList([self.hash_search_scripts[iteration], self.prover_timeout_script])
+
+    @staticmethod
+    def hash_search_script_index():
+        return 0
+
+    def choice_search_scripts_list(self, iteration: int) -> BitcoinScriptList:
+        return BitcoinScriptList(
+            [self.choice_search_scripts[iteration], self.verifier_timeout_script]
+        )
+
+    @staticmethod
+    def choice_search_script_index():
+        return 0
+
+    def hash_read_search_scripts_list(self, iteration: int) -> BitcoinScriptList:
+        return BitcoinScriptList(
+            [self.hash_read_search_scripts[iteration], self.prover_timeout_script]
+        )
+
+    @staticmethod
+    def hash_read_search_script_index():
+        return 0
+
     @property
     def trigger_trace_challenge_scripts_list(self) -> BitcoinScriptList:
         return (
@@ -120,15 +147,22 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             + self.last_hash_equivocation_script_list.script_list()
             + self.wrong_init_value_1_challenge_script
             + self.wrong_init_value_2_challenge_script
+            + self.verifier_timeout_script
         )
 
     @property
     def trigger_protocol_scripts_list(self) -> BitcoinScriptList:
-        return BitcoinScriptList(self.trigger_protocol_script)
+        return BitcoinScriptList([self.trigger_protocol_script, self.verifier_timeout_script])
+
+    @staticmethod
+    def trigger_protocol_index() -> int:
+        return 0
 
     @property
     def trace_script_list(self) -> BitcoinScriptList:
-        return BitcoinScriptList([self.trace_script, self.trigger_wrong_trace_step_script])
+        return BitcoinScriptList(
+            [self.trace_script, self.trigger_wrong_trace_step_script, self.prover_timeout_script]
+        )
 
     @staticmethod
     def trace_script_index() -> int:
@@ -141,7 +175,11 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     @property
     def read_trace_script_list(self) -> BitcoinScriptList:
         return BitcoinScriptList(
-            [self.read_trace_script, self.trigger_wrong_read_trace_step_script]
+            [
+                self.read_trace_script,
+                self.trigger_wrong_read_trace_step_script,
+                self.prover_timeout_script,
+            ]
         )
 
     @staticmethod
@@ -175,6 +213,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             + self.trigger_wrong_value_address_read_2_challenge_script
             + self.trigger_wrong_latter_step_1_challenge_script
             + self.trigger_wrong_latter_step_2_challenge_script
+            + self.verifier_timeout_script
         )
 
     def trigger_read_challenge_address(self, destroyed_public_key: PublicKey) -> P2trAddress:
@@ -200,6 +239,14 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             destroyed_public_key
         )
 
+    def hash_read_search_scripts_address(
+        self, destroyed_public_key: PublicKey, iteration: int
+    ) -> P2trAddress:
+        assert iteration > 0
+        return self.hash_read_search_script_list(iteration=iteration).get_taproot_address(
+            destroyed_public_key
+        )
+
     @staticmethod
     def choice_read_search_script_index(iteration: int) -> int:
         assert iteration > 0
@@ -216,6 +263,16 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             [
                 self.choice_read_search_scripts[iteration],
                 self.trigger_read_search_equivocation_scripts[iteration - 1],
+                self.verifier_timeout_script,
+            ]
+        )
+
+    def hash_read_search_script_list(self, iteration: int) -> BitcoinScriptList:
+        assert iteration > 0
+        return BitcoinScriptList(
+            [
+                self.hash_read_search_scripts[iteration - 1],
+                self.prover_timeout_script,
             ]
         )
 
@@ -654,15 +711,10 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             script=trigger_wrong_read_trace_step_script
         )
 
-    # @field_serializer("trigger_read_challenge_scripts", when_used="always")
-    # def serialize_trigger_read_challenge_scripts(
-    #     trigger_read_challenge_scripts: BitcoinScriptList,
-    # ) -> str:
-    #     return json.dumps(
-    #         list(
-    #             map(
-    #                 lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
-    #                 trigger_read_challenge_scripts.script_list,
-    #             )
-    #         )
-    #     )
+    @field_serializer("prover_timeout_script", when_used="always")
+    def serialize_prover_timeout_script(prover_timeout_script: BitcoinScript) -> str:
+        return BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=prover_timeout_script)
+
+    @field_serializer("verifier_timeout_script", when_used="always")
+    def serialize_verifier_timeout_script(verifier_timeout_script: BitcoinScript) -> str:
+        return BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=verifier_timeout_script)

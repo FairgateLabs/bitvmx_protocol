@@ -45,12 +45,16 @@ class VerifyVerifierSignaturesService:
         )
 
         for i in range(len(search_hash_signatures)):
-            script = (
-                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_search_scripts[
-                    i
-                ]
+            script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_search_scripts_list(
+                iteration=i
+            )[
+                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_search_script_index()
+            ]
+            script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_search_scripts_list(
+                iteration=i
+            ).get_taproot_address(
+                public_key=self.unspendable_public_key
             )
-            script_address = self.unspendable_public_key.get_taproot_address([[script]])
             self.verify_signature_service(
                 tx=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list[
                     i
@@ -63,7 +67,9 @@ class VerifyVerifierSignaturesService:
                 signature=search_hash_signatures[i],
             )
 
-        script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script
+        script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script_list[
+            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script_index()
+        ]
         script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script_list.get_taproot_address(
             public_key=self.unspendable_public_key
         )
@@ -80,10 +86,16 @@ class VerifyVerifierSignaturesService:
         )
 
         for i in range(len(search_hash_signatures) - 1):
-            script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_read_search_scripts[
-                i
+            script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_read_search_scripts_list(
+                iteration=i
+            )[
+                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_read_search_script_index()
             ]
-            script_address = self.unspendable_public_key.get_taproot_address([[script]])
+            script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_read_search_scripts_list(
+                iteration=i
+            ).get_taproot_address(
+                public_key=self.unspendable_public_key
+            )
             self.verify_signature_service(
                 tx=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_hash_tx_list[
                     i

@@ -39,8 +39,8 @@ class TransactionGeneratorFromPublicKeysService:
         )
         funding_tx = Transaction([funding_txin], [funding_txout], has_segwit=True)
 
-        trigger_protocol_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_protocol_script.get_taproot_address(
-            destroyed_public_key
+        trigger_protocol_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_protocol_scripts_list.get_taproot_address(
+            public_key=destroyed_public_key
         )
 
         hash_result_txin = TxInput(funding_tx.get_txid(), 0)
@@ -55,19 +55,29 @@ class TransactionGeneratorFromPublicKeysService:
 
         hash_result_tx = Transaction([hash_result_txin], [hash_result_txOut], has_segwit=True)
 
-        hash_search_scripts_addresses = list(
-            map(
-                lambda search_script: search_script.get_taproot_address(destroyed_public_key),
-                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_search_scripts,
+        hash_search_scripts_addresses = []
+        for i in range(
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+        ):
+            hash_search_scripts_addresses.append(
+                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_search_scripts_list(
+                    iteration=i
+                ).get_taproot_address(
+                    public_key=destroyed_public_key
+                )
             )
-        )
 
-        choice_search_scripts_addresses = list(
-            map(
-                lambda choice_script: choice_script.get_taproot_address(destroyed_public_key),
-                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_scripts,
+        choice_search_scripts_addresses = []
+        for i in range(
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
+        ):
+            choice_search_scripts_addresses.append(
+                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_scripts_list(
+                    iteration=i
+                ).get_taproot_address(
+                    public_key=destroyed_public_key
+                )
             )
-        )
 
         trigger_protocol_output_amount = (
             hash_result_output_amount - bitvmx_protocol_setup_properties_dto.step_fees_satoshis
@@ -217,19 +227,22 @@ class TransactionGeneratorFromPublicKeysService:
             [execution_challenge_txin], [execution_challenge_txout], has_segwit=True
         )
 
-        hash_read_search_scripts_addresses = list(
-            map(
-                lambda search_script: search_script.get_taproot_address(destroyed_public_key),
-                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_read_search_scripts,
+        hash_read_search_scripts_addresses = []
+        for i in range(
+            1,
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations,
+        ):
+            hash_read_search_scripts_addresses.append(
+                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_read_search_scripts_address(
+                    destroyed_public_key=destroyed_public_key,
+                    iteration=i,
+                )
             )
-        )
 
         choice_read_search_scripts_addresses = []
         for i in range(
             1,
-            len(
-                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_scripts
-            ),
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations,
         ):
             choice_read_search_scripts_addresses.append(
                 bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_scripts_address(
