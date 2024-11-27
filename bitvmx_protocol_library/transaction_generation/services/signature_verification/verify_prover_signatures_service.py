@@ -47,10 +47,16 @@ class VerifyProverSignaturesService:
         )
 
         for i in range(len(bitvmx_prover_signatures_dto.search_choice_signatures)):
-            script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_scripts[
-                i
+            script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_scripts_list(
+                iteration=i
+            )[
+                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_script_index()
             ]
-            script_address = self.unspendable_public_key.get_taproot_address([[script]])
+            script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_scripts_list(
+                iteration=i
+            ).get_taproot_address(
+                public_key=self.unspendable_public_key
+            )
             self.verify_signature_service(
                 tx=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_choice_tx_list[
                     i
@@ -81,8 +87,8 @@ class VerifyProverSignaturesService:
             signature=bitvmx_prover_signatures_dto.trigger_execution_challenge_signature,
         )
 
-        script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_read_search_scripts[
-            0
+        script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_trace_challenge_scripts_list[
+            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_read_search_challenge_index()
         ]
         script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_trace_challenge_address(
             destroyed_public_key=self.unspendable_public_key

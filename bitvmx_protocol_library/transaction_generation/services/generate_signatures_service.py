@@ -60,16 +60,21 @@ class GenerateSignaturesService:
         search_hash_signatures = []
         search_choice_signatures = []
         for i in range(
-            len(bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list)
+            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_wrong_step_search_iterations
         ):
             current_search_hash_tx = (
                 bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.search_hash_tx_list[i]
             )
-            current_search_hash_script_address = (
-                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_search_scripts[
-                    i
-                ].get_taproot_address(self.destroyed_public_key)
+            current_search_hash_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_search_scripts_list(
+                iteration=i
+            ).get_taproot_address(
+                public_key=self.destroyed_public_key
             )
+            current_search_hash_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_search_scripts_list(
+                iteration=i
+            )[
+                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_search_script_index()
+            ]
             current_search_hash_signature = self.private_key.sign_taproot_input(
                 current_search_hash_tx,
                 0,
@@ -79,9 +84,7 @@ class GenerateSignaturesService:
                     - (2 * i + 2) * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
                 ],
                 script_path=True,
-                tapleaf_script=bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_search_scripts[
-                    i
-                ],
+                tapleaf_script=current_search_hash_script,
                 sighash=TAPROOT_SIGHASH_ALL,
                 tweak=False,
             )
@@ -92,11 +95,16 @@ class GenerateSignaturesService:
                     i
                 ]
             )
-            current_search_choice_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_scripts[
-                i
-            ].get_taproot_address(
-                self.destroyed_public_key
+            current_search_choice_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_scripts_list(
+                iteration=i
+            ).get_taproot_address(
+                public_key=self.destroyed_public_key
             )
+            current_search_choice_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_scripts_list(
+                iteration=i
+            )[
+                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_script_index()
+            ]
             current_search_choice_signature = self.private_key.sign_taproot_input(
                 current_search_choice_tx,
                 0,
@@ -106,9 +114,7 @@ class GenerateSignaturesService:
                     - (2 * i + 3) * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
                 ],
                 script_path=True,
-                tapleaf_script=bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_scripts[
-                    i
-                ],
+                tapleaf_script=current_search_choice_script,
                 sighash=TAPROOT_SIGHASH_ALL,
                 tweak=False,
             )
@@ -116,6 +122,11 @@ class GenerateSignaturesService:
 
         trace_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script_list.get_taproot_address(
             self.destroyed_public_key
+        )
+        trace_script = (
+            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script_list[
+                bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script_index()
+            ]
         )
         trace_signature = self.private_key.sign_taproot_input(
             bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trace_tx,
@@ -133,7 +144,7 @@ class GenerateSignaturesService:
                 * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
             ],
             script_path=True,
-            tapleaf_script=bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trace_script,
+            tapleaf_script=trace_script,
             sighash=TAPROOT_SIGHASH_ALL,
             tweak=False,
         )
@@ -210,11 +221,12 @@ class GenerateSignaturesService:
             current_read_search_hash_tx = bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.read_search_hash_tx_list[
                 i
             ]
-            current_read_search_hash_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_read_search_scripts[
-                i
-            ].get_taproot_address(
-                self.destroyed_public_key
+            current_read_search_hash_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_read_search_scripts_list(
+                iteration=i
+            ).get_taproot_address(
+                public_key=self.destroyed_public_key
             )
+
             current_read_search_hash_signature = self.private_key.sign_taproot_input(
                 current_read_search_hash_tx,
                 0,
@@ -233,8 +245,10 @@ class GenerateSignaturesService:
                     * bitvmx_protocol_setup_properties_dto.step_fees_satoshis
                 ],
                 script_path=True,
-                tapleaf_script=bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_read_search_scripts[
-                    i
+                tapleaf_script=bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_read_search_scripts_list(
+                    iteration=i
+                )[
+                    bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.hash_read_search_script_index()
                 ],
                 sighash=TAPROOT_SIGHASH_ALL,
                 tweak=False,

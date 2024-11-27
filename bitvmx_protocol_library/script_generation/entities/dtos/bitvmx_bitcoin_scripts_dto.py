@@ -114,10 +114,21 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
         return 0
 
     def choice_search_scripts_list(self, iteration: int) -> BitcoinScriptList:
-        return BitcoinScriptList([self.choice_search_scripts[iteration], self.verifier_timeout_script])
+        return BitcoinScriptList(
+            [self.choice_search_scripts[iteration], self.verifier_timeout_script]
+        )
 
     @staticmethod
     def choice_search_script_index():
+        return 0
+
+    def hash_read_search_scripts_list(self, iteration: int) -> BitcoinScriptList:
+        return BitcoinScriptList(
+            [self.hash_read_search_scripts[iteration], self.prover_timeout_script]
+        )
+
+    @staticmethod
+    def hash_read_search_script_index():
         return 0
 
     @property
@@ -149,7 +160,9 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
 
     @property
     def trace_script_list(self) -> BitcoinScriptList:
-        return BitcoinScriptList([self.trace_script, self.trigger_wrong_trace_step_script, self.prover_timeout_script])
+        return BitcoinScriptList(
+            [self.trace_script, self.trigger_wrong_trace_step_script, self.prover_timeout_script]
+        )
 
     @staticmethod
     def trace_script_index() -> int:
@@ -162,7 +175,11 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     @property
     def read_trace_script_list(self) -> BitcoinScriptList:
         return BitcoinScriptList(
-            [self.read_trace_script, self.trigger_wrong_read_trace_step_script, self.prover_timeout_script]
+            [
+                self.read_trace_script,
+                self.trigger_wrong_read_trace_step_script,
+                self.prover_timeout_script,
+            ]
         )
 
     @staticmethod
@@ -222,6 +239,14 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             destroyed_public_key
         )
 
+    def hash_read_search_scripts_address(
+        self, destroyed_public_key: PublicKey, iteration: int
+    ) -> P2trAddress:
+        assert iteration > 0
+        return self.hash_read_search_script_list(iteration=iteration).get_taproot_address(
+            destroyed_public_key
+        )
+
     @staticmethod
     def choice_read_search_script_index(iteration: int) -> int:
         assert iteration > 0
@@ -238,6 +263,16 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             [
                 self.choice_read_search_scripts[iteration],
                 self.trigger_read_search_equivocation_scripts[iteration - 1],
+                self.verifier_timeout_script,
+            ]
+        )
+
+    def hash_read_search_script_list(self, iteration: int) -> BitcoinScriptList:
+        assert iteration > 0
+        return BitcoinScriptList(
+            [
+                self.hash_read_search_scripts[iteration - 1],
+                self.prover_timeout_script,
             ]
         )
 
