@@ -106,6 +106,20 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
                 raise TypeError(f"Unexpected type {field_type} for field {field_name}")
         super().__init__(**data)
 
+    def hash_search_scripts_list(self, iteration: int) -> BitcoinScriptList:
+        return BitcoinScriptList([self.hash_search_scripts[iteration], self.prover_timeout_script])
+
+    @staticmethod
+    def hash_search_script_index():
+        return 0
+
+    def choice_search_scripts_list(self, iteration: int) -> BitcoinScriptList:
+        return BitcoinScriptList([self.choice_search_scripts[iteration], self.verifier_timeout_script])
+
+    @staticmethod
+    def choice_search_script_index():
+        return 0
+
     @property
     def trigger_trace_challenge_scripts_list(self) -> BitcoinScriptList:
         return (
@@ -122,11 +136,12 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             + self.last_hash_equivocation_script_list.script_list()
             + self.wrong_init_value_1_challenge_script
             + self.wrong_init_value_2_challenge_script
+            + self.verifier_timeout_script
         )
 
     @property
     def trigger_protocol_scripts_list(self) -> BitcoinScriptList:
-        return BitcoinScriptList([self.trigger_protocol_script, self.prover_timeout_script])
+        return BitcoinScriptList([self.trigger_protocol_script, self.verifier_timeout_script])
 
     @staticmethod
     def trigger_protocol_index() -> int:
@@ -134,7 +149,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
 
     @property
     def trace_script_list(self) -> BitcoinScriptList:
-        return BitcoinScriptList([self.trace_script, self.trigger_wrong_trace_step_script])
+        return BitcoinScriptList([self.trace_script, self.trigger_wrong_trace_step_script, self.prover_timeout_script])
 
     @staticmethod
     def trace_script_index() -> int:
@@ -147,7 +162,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     @property
     def read_trace_script_list(self) -> BitcoinScriptList:
         return BitcoinScriptList(
-            [self.read_trace_script, self.trigger_wrong_read_trace_step_script]
+            [self.read_trace_script, self.trigger_wrong_read_trace_step_script, self.prover_timeout_script]
         )
 
     @staticmethod
@@ -181,6 +196,7 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             + self.trigger_wrong_value_address_read_2_challenge_script
             + self.trigger_wrong_latter_step_1_challenge_script
             + self.trigger_wrong_latter_step_2_challenge_script
+            + self.verifier_timeout_script
         )
 
     def trigger_read_challenge_address(self, destroyed_public_key: PublicKey) -> P2trAddress:
