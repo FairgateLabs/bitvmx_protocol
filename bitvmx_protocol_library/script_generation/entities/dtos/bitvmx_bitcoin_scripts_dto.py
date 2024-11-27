@@ -57,6 +57,8 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
     trigger_wrong_latter_step_2_challenge_script: BitcoinScript
     trigger_wrong_halt_step_challenge_script: BitcoinScript
     trigger_no_halt_in_halt_step_challenge_script: BitcoinScript
+    prover_timeout_script: BitcoinScript
+    verifier_timeout_script: BitcoinScript
     cached_trigger_read_challenge_address: Dict[str, str] = Field(default_factory=dict)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -124,7 +126,11 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
 
     @property
     def trigger_protocol_scripts_list(self) -> BitcoinScriptList:
-        return BitcoinScriptList(self.trigger_protocol_script)
+        return BitcoinScriptList([self.trigger_protocol_script, self.prover_timeout_script])
+
+    @staticmethod
+    def trigger_protocol_index() -> int:
+        return 0
 
     @property
     def trace_script_list(self) -> BitcoinScriptList:
@@ -654,15 +660,10 @@ class BitVMXBitcoinScriptsDTO(BaseModel):
             script=trigger_wrong_read_trace_step_script
         )
 
-    # @field_serializer("trigger_read_challenge_scripts", when_used="always")
-    # def serialize_trigger_read_challenge_scripts(
-    #     trigger_read_challenge_scripts: BitcoinScriptList,
-    # ) -> str:
-    #     return json.dumps(
-    #         list(
-    #             map(
-    #                 lambda btc_scr: BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=btc_scr),
-    #                 trigger_read_challenge_scripts.script_list,
-    #             )
-    #         )
-    #     )
+    @field_serializer("prover_timeout_script", when_used="always")
+    def serialize_prover_timeout_script(prover_timeout_script: BitcoinScript) -> str:
+        return BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=prover_timeout_script)
+
+    @field_serializer("verifier_timeout_script", when_used="always")
+    def serialize_verifier_timeout_script(verifier_timeout_script: BitcoinScript) -> str:
+        return BitVMXBitcoinScriptsDTO.bitcoin_script_to_str(script=verifier_timeout_script)

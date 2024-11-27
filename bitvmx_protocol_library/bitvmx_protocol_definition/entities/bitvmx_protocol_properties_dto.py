@@ -1,4 +1,5 @@
 import math
+from datetime import timedelta
 from typing import ClassVar, List
 
 from pydantic import BaseModel
@@ -54,6 +55,15 @@ class BitVMXProtocolPropertiesDTO(BaseModel):
     @classproperty
     def amount_of_nibbles_hash(self) -> int:
         return 64
+
+    @property
+    def timeout_wait_time(self) -> timedelta:
+        months = 0
+        weeks = 2
+        days = 0
+        hours = 0
+        minutes = 0
+        return timedelta(days=(months * 30) + (weeks * 7) + days, hours=hours, minutes=minutes)
 
     @classproperty
     def amount_of_bytes_halt_step(self) -> int:

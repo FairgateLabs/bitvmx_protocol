@@ -29,15 +29,17 @@ class VerifyProverSignaturesService:
         funding_result_output_amount = (
             bitvmx_protocol_setup_properties_dto.funding_amount_of_satoshis
         )
-        script = (
-            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_protocol_script
+        trigger_protocol_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_protocol_scripts_list[
+            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_protocol_index()
+        ]
+        trigger_protocol_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_protocol_scripts_list.get_taproot_address(
+            public_key=self.unspendable_public_key
         )
-        script_address = self.unspendable_public_key.get_taproot_address([[script]])
 
         self.verify_signature_service(
             tx=bitvmx_protocol_setup_properties_dto.bitvmx_transactions_dto.trigger_protocol_tx,
-            script=script,
-            script_address=script_address,
+            script=trigger_protocol_script,
+            script_address=trigger_protocol_script_address,
             amount=funding_result_output_amount
             - bitvmx_protocol_setup_properties_dto.step_fees_satoshis,
             public_key_hex=public_key,

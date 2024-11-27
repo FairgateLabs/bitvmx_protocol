@@ -39,8 +39,8 @@ class TransactionGeneratorFromPublicKeysService:
         )
         funding_tx = Transaction([funding_txin], [funding_txout], has_segwit=True)
 
-        trigger_protocol_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_protocol_script.get_taproot_address(
-            destroyed_public_key
+        trigger_protocol_script_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.trigger_protocol_scripts_list.get_taproot_address(
+            public_key=destroyed_public_key
         )
 
         hash_result_txin = TxInput(funding_tx.get_txid(), 0)
