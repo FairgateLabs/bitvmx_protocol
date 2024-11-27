@@ -28,11 +28,17 @@ from bitvmx_protocol_library.script_generation.services.script_generation.prover
 from bitvmx_protocol_library.script_generation.services.script_generation.prover.trigger_wrong_trace_step_script_generator_service import (
     TriggerWrongTraceStepScriptGeneratorService,
 )
+from bitvmx_protocol_library.script_generation.services.script_generation.prover.verifier_timeout_script_generator_service import (
+    VerifierTimeoutScriptGeneratorService,
+)
 from bitvmx_protocol_library.script_generation.services.script_generation.verifier.commit_read_search_choice_script_generator_service import (
     CommitReadSearchChoiceScriptGeneratorService,
 )
 from bitvmx_protocol_library.script_generation.services.script_generation.verifier.commit_search_choice_script_generator_service import (
     CommitSearchChoiceScriptGeneratorService,
+)
+from bitvmx_protocol_library.script_generation.services.script_generation.verifier.prover_timeout_script_generator_service import (
+    ProverTimeoutScriptGeneratorService,
 )
 from bitvmx_protocol_library.script_generation.services.script_generation.verifier.trigger_generic_challenge_script_generator_service import (
     TriggerGenericChallengeScriptGeneratorService,
@@ -162,6 +168,8 @@ class BitVMXBitcoinScriptsGeneratorService:
         self.trigger_wrong_init_value_2_script_generator_service = (
             TriggerWrongInitValue2ScriptGeneratorService()
         )
+        self.prover_timeout_script_generator_service = ProverTimeoutScriptGeneratorService()
+        self.verifier_timeout_script_generator_service = VerifierTimeoutScriptGeneratorService()
 
     def __call__(
         self,
@@ -640,6 +648,19 @@ class BitVMXBitcoinScriptsGeneratorService:
             amount_of_bits_per_digit_checksum=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_per_digit_checksum,
         )
 
+        prover_timeout_script = self.prover_timeout_script_generator_service(
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.verifier_signature_public_key
+            ],
+            timeout_wait_time=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.timeout_wait_time,
+        )
+        verifier_timeout_script = self.verifier_timeout_script_generator_service(
+            signature_public_keys=[
+                bitvmx_protocol_setup_properties_dto.prover_signature_public_key
+            ],
+            timeout_wait_time=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.timeout_wait_time,
+        )
+
         return BitVMXBitcoinScriptsDTO(
             hash_result_script=hash_result_script,
             trigger_protocol_script=trigger_protocol_script,
@@ -670,4 +691,6 @@ class BitVMXBitcoinScriptsGeneratorService:
             trigger_wrong_latter_step_2_challenge_script=trigger_wrong_latter_step_2_challenge_script,
             trigger_wrong_halt_step_challenge_script=trigger_wrong_halt_step_challenge_script,
             trigger_no_halt_in_halt_step_challenge_script=trigger_no_halt_in_halt_step_challenge_script,
+            prover_timeout_script=prover_timeout_script,
+            verifier_timeout_script=verifier_timeout_script,
         )

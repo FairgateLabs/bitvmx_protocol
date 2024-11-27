@@ -12,9 +12,6 @@ from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol
 from bitvmx_protocol_library.bitvmx_protocol_definition.entities.bitvmx_protocol_verifier_dto import (
     BitVMXProtocolVerifierDTO,
 )
-from bitvmx_protocol_library.script_generation.services.script_generation.verifier.commit_search_choice_script_generator_service import (
-    CommitSearchChoiceScriptGeneratorService,
-)
 from bitvmx_protocol_library.winternitz_keys_handling.services.generate_witness_from_input_single_word_service import (
     GenerateWitnessFromInputSingleWordService,
 )
@@ -27,9 +24,6 @@ from blockchain_query_services.services.blockchain_query_services_dependency_inj
 class PublishChoiceSearchTransactionService:
 
     def __init__(self, verifier_private_key):
-        self.commit_search_choice_script_generator_service = (
-            CommitSearchChoiceScriptGeneratorService()
-        )
         self.generate_verifier_witness_from_input_single_word_service = (
             GenerateWitnessFromInputSingleWordService(verifier_private_key)
         )
@@ -43,14 +37,11 @@ class PublishChoiceSearchTransactionService:
     ):
         search_choice_signatures = bitvmx_protocol_verifier_dto.search_choice_signatures
 
-        current_choice_public_keys = bitvmx_protocol_setup_properties_dto.bitvmx_verifier_winternitz_public_keys_dto.choice_search_verifier_public_keys_list[
-            iteration
+        current_choice_search_script = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_scripts_list(
+            iteration=iteration
+        )[
+            bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_script_index()
         ]
-        current_choice_search_script = self.commit_search_choice_script_generator_service(
-            bitvmx_protocol_setup_properties_dto.signature_public_keys,
-            current_choice_public_keys[0],
-            bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
-        )
 
         choice_search_witness = []
         current_choice, new_published_hashes_dict = self._get_choice(
@@ -65,14 +56,17 @@ class PublishChoiceSearchTransactionService:
             input_number=current_choice,
             amount_of_bits=bitvmx_protocol_setup_properties_dto.bitvmx_protocol_properties_dto.amount_of_bits_wrong_step_search,
         )
-        current_choice_search_scripts_address = (
-            bitvmx_protocol_setup_properties_dto.unspendable_public_key.get_taproot_address(
-                [[current_choice_search_script]]
-            )
+        current_choice_search_scripts_address = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_scripts_list(
+            iteration=iteration
+        ).get_taproot_address(
+            public_key=bitvmx_protocol_setup_properties_dto.unspendable_public_key
         )
+        current_choice_search_scripts_taptree = bitvmx_protocol_setup_properties_dto.bitvmx_bitcoin_scripts_dto.choice_search_scripts_list(
+            iteration=iteration
+        ).to_scripts_tree()
         current_choice_search_control_block = ControlBlock(
             bitvmx_protocol_setup_properties_dto.unspendable_public_key,
-            scripts=[[current_choice_search_script]],
+            scripts=current_choice_search_scripts_taptree,
             index=0,
             is_odd=current_choice_search_scripts_address.is_odd(),
         )
