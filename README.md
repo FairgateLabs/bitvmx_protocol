@@ -1,4 +1,6 @@
-# bitvmx_protocol
+# bitvmx_protocol 🚫 DEPRECATED! 
+
+⚠️ **WARNING: This is a no longer maintained or improved PoC. If what you're looking for is the BitVMX platform, please go to [**BitVMX Client**](https://github.com/FairgateLabs/rust-bitvmx-client)**
 
 ⚠️ **WARNING: This repository is a work in progress. Some challenges are missing, and the implementation is not complete.**
 
